@@ -1,11 +1,12 @@
 import re
 import os
+import time
 import uuid
 import json
 import asyncio
 from pathlib import Path
 from typing import Optional, List, Dict, Any
-from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException, Body
+from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException, Body, BackgroundTasks
 from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -20,6 +21,7 @@ from core.video_helper import (
     cleanup_storage,
     parse_subtitles_from_ai,
     export_srt,
+    export_vtt,
     burn_subtitles_to_video
 )
 
@@ -259,12 +261,15 @@ async def auto_subtitle_video(req: AutoSubRequest):
             await asyncio.gather(*(translate_chunk(c) for c in chunks))
 
             srt_path = OUTPUT_DIR / f"{req.video_id}.srt"
+            vtt_path = OUTPUT_DIR / f"{req.video_id}.vtt"
             export_srt(extracted_subs, srt_path)
+            export_vtt(extracted_subs, vtt_path)
 
             return {
                 "video_id": req.video_id,
                 "subtitles": extracted_subs,
                 "srt_url": f"/outputs/{req.video_id}.srt",
+                "vtt_url": f"/outputs/{req.video_id}.vtt",
                 "mode": "zero_download_caption"
             }
 
@@ -313,12 +318,15 @@ async def auto_subtitle_video(req: AutoSubRequest):
             }]
 
         srt_path = OUTPUT_DIR / f"{req.video_id}.srt"
+        vtt_path = OUTPUT_DIR / f"{req.video_id}.vtt"
         export_srt(subtitles, srt_path)
+        export_vtt(subtitles, vtt_path)
 
         return {
             "video_id": req.video_id,
             "subtitles": subtitles,
             "srt_url": f"/outputs/{req.video_id}.srt",
+            "vtt_url": f"/outputs/{req.video_id}.vtt",
             "mode": "multimodal_audio"
         }
     except Exception as e:
@@ -332,9 +340,11 @@ async def burn_subtitles_endpoint(req: BurnSubRequest):
     
     video_path = matches[0]
     srt_path = OUTPUT_DIR / f"{req.video_id}.srt"
+    vtt_path = OUTPUT_DIR / f"{req.video_id}.vtt"
     output_video_path = OUTPUT_DIR / f"{req.video_id}_subtitled.mp4"
 
     export_srt(req.subtitles, srt_path)
+    export_vtt(req.subtitles, vtt_path)
 
     loop = asyncio.get_event_loop()
     success = await loop.run_in_executor(
@@ -358,7 +368,69 @@ async def burn_subtitles_endpoint(req: BurnSubRequest):
         "status": "success",
         "video_id": req.video_id,
         "download_url": f"/outputs/{req.video_id}_subtitled.mp4",
-        "srt_url": f"/outputs/{req.video_id}.srt"
+        "clean_download_url": f"/api/video/download/{req.video_id}_subtitled.mp4?cleanup=1",
+        "srt_url": f"/outputs/{req.video_id}.srt",
+        "vtt_url": f"/outputs/{req.video_id}.vtt"
+    }
+
+@app.get("/api/video/download/{filename}")
+async def download_file_with_cleanup(filename: str, background_tasks: BackgroundTasks, cleanup: bool = False):
+    """
+    Tải file về máy và tự động dọn dẹp tức thì ngay sau khi stream hoàn tất (nếu cleanup=True).
+    Không tốn dung lượng máy chủ lưu trữ lâu dài!
+    """
+    # Ngăn chặn Directory Traversal
+    safe_filename = Path(filename).name
+    file_path = OUTPUT_DIR / safe_filename
+    if not file_path.exists():
+        file_path = UPLOAD_DIR / safe_filename
+    
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(status_code=404, detail="File không tồn tại hoặc đã được dọn dẹp sạch sẽ")
+
+    if cleanup:
+        def cleanup_temp_file():
+            # Chờ 3 giây để đảm bảo client đã nhận xong bytes cuối cùng
+            time.sleep(3)
+            try:
+                if file_path.exists():
+                    file_path.unlink()
+                    print(f"[AUTO-CLEANUP] Đã xóa file tạm thời sau khi tải: {file_path.name}")
+            except Exception as e:
+                print(f"[AUTO-CLEANUP ERROR] {e}")
+        background_tasks.add_task(cleanup_temp_file)
+
+    return FileResponse(
+        path=str(file_path),
+        filename=safe_filename,
+        media_type="application/octet-stream"
+    )
+
+@app.post("/api/video/cleanup")
+async def cleanup_video_endpoint(req: Dict[str, Any] = Body(...)):
+    """
+    Xóa sạch toàn bộ video gốc, file audio trích xuất và file video đã burn của video_id chỉ định.
+    Đảm bảo 0-byte ổ đĩa tồn đọng trên server.
+    """
+    video_id = req.get("video_id")
+    if not video_id:
+        raise HTTPException(status_code=400, detail="Thiếu video_id")
+    
+    cleaned_files = []
+    for d in [UPLOAD_DIR, OUTPUT_DIR]:
+        for p in d.glob(f"{video_id}*"):
+            try:
+                if p.is_file():
+                    cleaned_files.append(p.name)
+                    p.unlink()
+            except Exception as e:
+                print(f"[CLEANUP ERROR] {p}: {e}")
+
+    return {
+        "status": "success",
+        "video_id": video_id,
+        "deleted_count": len(cleaned_files),
+        "deleted_files": cleaned_files
     }
 
 @app.get("/", response_class=HTMLResponse)

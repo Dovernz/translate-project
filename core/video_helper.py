@@ -304,6 +304,16 @@ def export_srt(subtitles: List[Dict[str, Any]], output_path: Path):
             text = sub.get("translated") or sub.get("text") or ""
             f.write(f"{idx}\n{s_str} --> {e_str}\n{text}\n\n")
 
+def export_vtt(subtitles: List[Dict[str, Any]], output_path: Path):
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write("WEBVTT\n\n")
+        for idx, sub in enumerate(subtitles, 1):
+            s_str = seconds_to_vtt_time(sub["start"])
+            e_str = seconds_to_vtt_time(sub["end"])
+            text = sub.get("translated") or sub.get("text") or ""
+            f.write(f"{idx}\n{s_str} --> {e_str}\n{text}\n\n")
+
 def hex_color_to_ass(hex_color: str) -> str:
     hex_color = hex_color.lstrip("#")
     if len(hex_color) == 6:
