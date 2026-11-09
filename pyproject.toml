@@ -14,4 +14,5 @@ dependencies = [
     "yt-dlp>=2026.10.26",
     "Pillow>=10.0.0",
     "aiofiles>=23.0.0",
+    "beautifulsoup4>=4.15.0",
 ]

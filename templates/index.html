@@ -238,6 +238,10 @@
       scrollbar-width: none;
     }
     /* Custom Scrollbars */
+    html, body {
+      overflow-x: hidden;
+      max-width: 100vw;
+    }
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -254,11 +258,11 @@
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col overflow-x-hidden">
 
-  <!-- Header (Lean & Unified for PC and Mobile - Hamburger on LEFT) -->
-  <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-40 backdrop-blur transition-colors">
-    <div class="max-w-7xl mx-auto px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3">
+  <!-- Header (Fluid Wide Screen - Unified for PC and Mobile) -->
+  <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-40 backdrop-blur transition-colors w-full">
+    <div class="w-full max-w-[1920px] mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-3">
       <!-- Left: Hamburger Menu Button (ON LEFT) + Logo GeminiTrans -->
       <div class="flex items-center gap-3">
         <!-- Hamburger Menu Button on LEFT -->
@@ -279,19 +283,19 @@
         </a>
       </div>
 
-      <!-- Center (PC/Laptop): 3 Minimalist Navigation Pill Tabs -->
+      <!-- Center (PC/Laptop): 4 Minimalist Navigation Pill Tabs -->
       <nav class="hidden md:flex items-center bg-slate-800/80 p-1 rounded-xl border border-slate-700/70 shadow-inner gap-1">
         <button onclick="switchTab('video')" id="tab-btn-video" data-tab-link="video" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow">
-          <i data-lucide="film" class="w-3.5 h-3.5"></i> <span data-i18n="tab_video">🎬 Video</span>
+          <i data-lucide="film" class="w-3.5 h-3.5"></i> <span data-i18n="tab_video">Video</span>
         </button>
         <button onclick="switchTab('translate')" id="tab-btn-translate" data-tab-link="translate" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white hover:bg-slate-700/50">
-          <i data-lucide="file-text" class="w-3.5 h-3.5"></i> <span data-i18n="tab_translate">📝 Văn bản</span>
+          <i data-lucide="file-text" class="w-3.5 h-3.5"></i> <span data-i18n="tab_translate">Văn bản</span>
         </button>
         <button onclick="switchTab('transcribe')" id="tab-btn-transcribe" data-tab-link="transcribe" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white hover:bg-slate-700/50">
-          <i data-lucide="mic" class="w-3.5 h-3.5"></i> <span data-i18n="tab_transcribe">🎙️ Giọng nói</span>
+          <i data-lucide="mic" class="w-3.5 h-3.5"></i> <span data-i18n="tab_transcribe">Giọng nói</span>
         </button>
         <button onclick="switchTab('manga')" id="tab-btn-manga" data-tab-link="manga" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white hover:bg-slate-700/50">
-          <i data-lucide="book-open" class="w-3.5 h-3.5"></i> <span data-i18n="tab_manga">📖 Truyện tranh</span>
+          <i data-lucide="book-open" class="w-3.5 h-3.5"></i> <span data-i18n="tab_manga">Truyện tranh</span>
         </button>
       </nav>
 
@@ -342,28 +346,28 @@
             <button id="mobile-tab-btn-video" data-tab-link="video" onclick="switchDrawerTab('video')" class="w-full py-2.5 px-3.5 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-between transition cursor-pointer bg-indigo-600 text-white shadow">
               <span class="flex items-center gap-2.5">
                 <i data-lucide="film" class="w-4 h-4"></i>
-                <span data-i18n="drawer_tab_video">🎬 Video Subtitles</span>
+                <span data-i18n="drawer_tab_video">Video Subtitles</span>
               </span>
               <i data-lucide="chevron-right" class="w-4 h-4 opacity-70"></i>
             </button>
             <button id="mobile-tab-btn-translate" data-tab-link="translate" onclick="switchDrawerTab('translate')" class="w-full py-2.5 px-3.5 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-between transition cursor-pointer bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white">
               <span class="flex items-center gap-2.5">
                 <i data-lucide="file-text" class="w-4 h-4"></i>
-                <span data-i18n="drawer_tab_translate">📝 Dịch văn bản</span>
+                <span data-i18n="drawer_tab_translate">Dịch văn bản</span>
               </span>
               <i data-lucide="chevron-right" class="w-4 h-4 opacity-70"></i>
             </button>
             <button id="mobile-tab-btn-transcribe" data-tab-link="transcribe" onclick="switchDrawerTab('transcribe')" class="w-full py-2.5 px-3.5 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-between transition cursor-pointer bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white">
               <span class="flex items-center gap-2.5">
                 <i data-lucide="mic" class="w-4 h-4"></i>
-                <span data-i18n="drawer_tab_transcribe">🎙️ Transcribe giọng nói</span>
+                <span data-i18n="drawer_tab_transcribe">Giọng nói</span>
               </span>
               <i data-lucide="chevron-right" class="w-4 h-4 opacity-70"></i>
             </button>
             <button id="mobile-tab-btn-manga" data-tab-link="manga" onclick="switchDrawerTab('manga')" class="w-full py-2.5 px-3.5 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-between transition cursor-pointer bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white">
               <span class="flex items-center gap-2.5">
                 <i data-lucide="book-open" class="w-4 h-4"></i>
-                <span data-i18n="drawer_tab_manga">📖 AI Dịch Truyện Tranh</span>
+                <span data-i18n="drawer_tab_manga">Truyện tranh</span>
               </span>
               <i data-lucide="chevron-right" class="w-4 h-4 opacity-70"></i>
             </button>
@@ -374,7 +378,7 @@
         <div class="space-y-3 pt-3 border-t border-slate-800/80">
           <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-1" data-i18n="drawer_section_pref">Cài đặt giao diện</div>
           
-          <!-- Language selector toggle pill [ 🇻🇳 Tiếng Việt | 🇬🇧 English ] -->
+          <!-- Language selector toggle pill [ Tiếng Việt | English ] -->
           <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700/60 space-y-2">
             <div class="text-xs text-slate-300 font-medium flex items-center gap-1.5">
               <i data-lucide="globe" class="w-3.5 h-3.5 text-indigo-400"></i>
@@ -382,15 +386,15 @@
             </div>
             <div class="flex items-center p-1 rounded-lg bg-slate-900/80 border border-slate-700/60">
               <button id="drawer-lang-btn-vi" onclick="setLanguage('vi')" class="flex-1 py-1.5 px-2 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition bg-indigo-600 text-white shadow cursor-pointer">
-                <span>🇻🇳</span> <span>Tiếng Việt</span>
+                <span>Tiếng Việt</span>
               </button>
               <button id="drawer-lang-btn-en" onclick="setLanguage('en')" class="flex-1 py-1.5 px-2 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition text-slate-400 hover:text-white cursor-pointer">
-                <span>🇬🇧</span> <span>English</span>
+                <span>English</span>
               </button>
             </div>
           </div>
 
-          <!-- Theme selector toggle pill [ 🌙 Tối (Dark) | ☀️ Sáng (Light) ] -->
+          <!-- Theme selector toggle pill [ Tối | Sáng ] -->
           <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700/60 space-y-2">
             <div class="text-xs text-slate-300 font-medium flex items-center gap-1.5">
               <i data-lucide="sun-moon" class="w-3.5 h-3.5 text-indigo-400"></i>
@@ -398,10 +402,10 @@
             </div>
             <div class="flex items-center p-1 rounded-lg bg-slate-900/80 border border-slate-700/60">
               <button id="theme-btn-dark" onclick="setTheme('dark')" class="flex-1 py-1.5 px-2 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition bg-indigo-600 text-white shadow cursor-pointer">
-                <span>🌙</span> <span data-i18n="theme_dark">Tối (Dark)</span>
+                <span data-i18n="theme_dark">Tối</span>
               </button>
               <button id="theme-btn-light" onclick="setTheme('light')" class="flex-1 py-1.5 px-2 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition text-slate-400 hover:text-white cursor-pointer">
-                <span>☀️</span> <span data-i18n="theme_light">Sáng (Light)</span>
+                <span data-i18n="theme_light">Sáng</span>
               </button>
             </div>
           </div>
@@ -421,11 +425,11 @@
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span id="drawer-pool-summary">🟢 7 Cloud Keys Sẵn Sàng</span>
+                <span id="drawer-pool-summary">7 Cloud Keys Sẵn Sàng</span>
               </span>
               <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono" id="drawer-pool-active-ptr">Key #1</span>
             </div>
-            <p class="text-[11px] text-slate-400 leading-snug" data-i18n="pool_drawer_desc">Tự động xoay vòng Round-Robin tránh hạn mức 15 RPM.</p>
+            <p class="text-[11px] text-slate-400 leading-snug" data-i18n="pool_drawer_desc">Tự động cân bằng tải Round-Robin qua các dự án API.</p>
           </div>
 
           <!-- Pool Key List Table (TUYỆT ĐỐI ẨN 100% CHUỖI KEY) -->
@@ -465,13 +469,13 @@
       <!-- Drawer Footer -->
       <div class="px-5 py-3 border-t border-slate-800/80 bg-slate-900/60 backdrop-blur flex items-center justify-between text-xs text-slate-500 flex-shrink-0">
         <span>GeminiTrans v2.0</span>
-        <span class="text-[11px]">Linear & Vercel Style</span>
+        <span class="text-[11px] font-mono">AI Studio Suite</span>
       </div>
     </div>
   </div>
 
-  <!-- Main Content Container -->
-  <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
+  <!-- Main Content Container (Fluid Wide Screen: leverages full widescreen display with balanced gutters) -->
+  <main class="w-full max-w-[1920px] mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-6 flex-1">
 
     <!-- ========================================== -->
     <!-- TAB 1: VIDEO SUBTITLER & AUTO HARDSUB -->
@@ -484,7 +488,7 @@
         <div class="p-3 sm:p-3.5 rounded-xl bg-slate-800/50 border border-slate-700/60 flex flex-col justify-between gap-2.5">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-indigo-400 flex items-center gap-1.5">
-              <i data-lucide="upload" class="w-4 h-4"></i> <span data-i18n="video_opt1_title">Tải tệp video (.mp4, .mkv, .mov)</span>
+              <i data-lucide="upload" class="w-4 h-4"></i> <span data-i18n="video_opt1_title">Tải tệp video</span>
             </span>
           </div>
           <div class="flex items-center gap-2">
@@ -500,7 +504,7 @@
         <div class="p-3 sm:p-3.5 rounded-xl bg-slate-800/50 border border-slate-700/60 flex flex-col justify-between gap-2.5">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
-              <i data-lucide="link" class="w-4 h-4"></i> <span data-i18n="video_opt2_title">Dán link YouTube / Web stream</span>
+              <i data-lucide="link" class="w-4 h-4"></i> <span data-i18n="video_opt2_title">Dán link YouTube hoặc video</span>
             </span>
           </div>
           <div class="flex gap-2">
@@ -555,10 +559,10 @@
                 <div id="cache-notice-badge" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
                   <span class="flex items-center gap-1">
                     <i data-lucide="zap" class="w-3.5 h-3.5 fill-emerald-400 text-emerald-400"></i>
-                    <span data-i18n="cache_loaded_badge">⚡ Đã nạp từ bộ nhớ đệm (0 token)</span>
+                    <span data-i18n="cache_loaded_badge">Đã nạp từ bộ nhớ đệm</span>
                   </span>
                   <button id="btn-rescan-cache" onclick="rescanBypassCache()" class="ml-1 px-2 py-0.5 rounded bg-emerald-600/30 hover:bg-emerald-600 text-emerald-200 hover:text-white text-[11px] font-medium border border-emerald-500/30 transition flex items-center gap-1 cursor-pointer touch-manipulation">
-                    <i data-lucide="refresh-cw" class="w-3 h-3"></i> <span data-i18n="btn_rescan_cache">Quét lại (Bỏ cache)</span>
+                    <i data-lucide="refresh-cw" class="w-3 h-3"></i> <span data-i18n="btn_rescan_cache">Quét lại</span>
                   </button>
                 </div>
               </div>
@@ -716,86 +720,295 @@
     <!-- TAB 2: TEXT & DOCUMENT TRANSLATOR -->
     <!-- ========================================== -->
     <section id="tab-translate" class="space-y-4 hidden">
-      <div class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-slate-900 border border-slate-800">
-        <div class="flex items-center space-x-2">
-          <select id="source-lang" class="bg-slate-800 border border-slate-700 text-xs sm:text-sm rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500">
-            <option value="auto" data-i18n="lang_auto">Tự nhận diện ngôn ngữ</option>
-            <option value="en">Tiếng Anh (English)</option>
-            <option value="vi">Tiếng Việt</option>
-            <option value="zh">Tiếng Trung</option>
-            <option value="ja">Tiếng Nhật</option>
-            <option value="ko">Tiếng Hàn</option>
-            <option value="fr">Tiếng Pháp</option>
-            <option value="de">Tiếng Đức</option>
-          </select>
-          <button onclick="swapLanguages()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Đổi chiều dịch">
-            <i data-lucide="arrow-right-left" class="w-4 h-4"></i>
+      <!-- SUB-MODE SEGMENTED CONTROL: [ Văn bản ] | [ Trang web (URL) ] -->
+      <div class="flex items-center justify-between flex-wrap gap-3 pb-1">
+        <div class="inline-flex p-1 rounded-xl bg-slate-900 border border-slate-800 shadow-inner">
+          <button type="button" id="submode-btn-text" onclick="switchTextSubMode('text')" class="px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow cursor-pointer">
+            <i data-lucide="file-text" class="w-3.5 h-3.5"></i> <span data-i18n="submode_text">Văn bản</span>
           </button>
-          <select id="target-lang" class="bg-slate-800 border border-slate-700 text-xs sm:text-sm rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500">
-            <option value="vi" selected>Tiếng Việt</option>
-            <option value="en">Tiếng Anh (English)</option>
-            <option value="zh">Tiếng Trung</option>
-            <option value="ja">Tiếng Nhật</option>
-            <option value="ko">Tiếng Hàn</option>
-            <option value="fr">Tiếng Pháp</option>
-            <option value="de">Tiếng Đức</option>
-          </select>
+          <button type="button" id="submode-btn-web" onclick="switchTextSubMode('web')" class="px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white cursor-pointer">
+            <i data-lucide="globe" class="w-3.5 h-3.5 text-cyan-400"></i> <span data-i18n="submode_web">Trang web (URL)</span>
+          </button>
         </div>
-
-        <div class="flex items-center space-x-2">
-          <span class="text-xs text-slate-400" data-i18n="tier_label">Model:</span>
-          <select id="tier-select" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2.5 py-1.5 text-indigo-300 font-medium focus:outline-none focus:border-indigo-500">
-            <option value="bulk" selected data-i18n="tier_bulk">Gemini 3.5 Flash Lite (Bulk)</option>
-            <option value="ultra" data-i18n="tier_ultra">Gemma 4 26B (Ultra)</option>
-            <option value="standard" data-i18n="tier_standard">Gemini 3.6 Flash (Standard)</option>
-            <option value="deep" data-i18n="tier_deep">Gemini 3.8 Flash (Deep)</option>
-          </select>
-          <label class="cursor-pointer px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
-            <i data-lucide="upload" class="w-3.5 h-3.5"></i> <span data-i18n="file_upload_btn">Nạp file</span>
-            <input type="file" id="file-upload" class="hidden" accept=".txt,.md,.srt,.vtt,.json,.csv" onchange="handleFileUpload(event)">
-          </label>
+        <div class="text-xs text-slate-400 flex items-center gap-2">
+          <span id="submode-tagline" class="font-medium text-slate-400">Dịch văn bản thuần, tài liệu hoặc phụ đề</span>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="flex flex-col h-[520px] rounded-2xl bg-slate-900 border border-slate-800 p-4 shadow-sm">
-          <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <i data-lucide="edit-3" class="w-3.5 h-3.5 text-indigo-400"></i> <span data-i18n="src_box_title">Văn bản gốc</span>
-            </span>
-            <span id="src-char-count" class="text-xs text-slate-500 font-mono">0 ký tự</span>
+      <!-- SUB-MODE 1: PLAIN TEXT & DOCUMENT -->
+      <div id="text-mode-container" class="space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-slate-900 border border-slate-800">
+          <div class="flex items-center space-x-2">
+            <select id="source-lang" class="bg-slate-800 border border-slate-700 text-xs sm:text-sm rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+              <option value="auto" data-i18n="lang_auto">Tự nhận diện ngôn ngữ</option>
+              <option value="en">Tiếng Anh (English)</option>
+              <option value="vi">Tiếng Việt</option>
+              <option value="zh">Tiếng Trung</option>
+              <option value="ja">Tiếng Nhật</option>
+              <option value="ko">Tiếng Hàn</option>
+              <option value="fr">Tiếng Pháp</option>
+              <option value="de">Tiếng Đức</option>
+            </select>
+            <button onclick="swapLanguages()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Đổi chiều dịch">
+              <i data-lucide="arrow-right-left" class="w-4 h-4"></i>
+            </button>
+            <select id="target-lang" class="bg-slate-800 border border-slate-700 text-xs sm:text-sm rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+              <option value="vi" selected>Tiếng Việt</option>
+              <option value="en">Tiếng Anh (English)</option>
+              <option value="zh">Tiếng Trung</option>
+              <option value="ja">Tiếng Nhật</option>
+              <option value="ko">Tiếng Hàn</option>
+              <option value="fr">Tiếng Pháp</option>
+              <option value="de">Tiếng Đức</option>
+            </select>
           </div>
-          <textarea id="src-text" class="flex-1 w-full bg-transparent resize-none border-0 text-slate-200 placeholder-slate-600 focus:outline-none text-base leading-relaxed" placeholder="Nhập văn bản cần dịch..." data-i18n-placeholder="src_placeholder" oninput="updateCharCount()"></textarea>
-          <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
-            <button onclick="clearSourceText()" class="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1 transition">
-              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> <span data-i18n="btn_clear">Xóa</span>
-            </button>
-            <button onclick="startTranslation()" id="btn-translate" class="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-indigo-500/25 transition cursor-pointer">
-              <i data-lucide="sparkles" class="w-4 h-4"></i> <span data-i18n="btn_translate">Dịch</span>
-            </button>
+
+          <div class="flex items-center space-x-2">
+            <span class="text-xs text-slate-400" data-i18n="tier_label">Model:</span>
+            <select id="tier-select" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2.5 py-1.5 text-indigo-300 font-medium focus:outline-none focus:border-indigo-500">
+              <option value="bulk" selected data-i18n="tier_bulk">Gemini 3.5 Flash Lite (Bulk)</option>
+              <option value="ultra" data-i18n="tier_ultra">Gemma 4 26B (Ultra)</option>
+              <option value="standard" data-i18n="tier_standard">Gemini 3.6 Flash (Standard)</option>
+              <option value="deep" data-i18n="tier_deep">Gemini 3.8 Flash (Deep)</option>
+            </select>
+            <label class="cursor-pointer px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i> <span data-i18n="file_upload_btn">Nạp file</span>
+              <input type="file" id="file-upload" class="hidden" accept=".txt,.md,.srt,.vtt,.json,.csv" onchange="handleFileUpload(event)">
+            </label>
           </div>
         </div>
 
-        <div class="flex flex-col h-[520px] rounded-2xl bg-slate-900 border border-slate-800 p-4 shadow-sm relative">
-          <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i> <span data-i18n="target_box_title">Bản dịch</span>
-            </span>
-            <div id="translate-status" class="text-xs text-indigo-400 hidden flex items-center gap-1">
-              <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span> <span data-i18n="streaming_status">Đang dịch...</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex flex-col h-[520px] sm:h-[580px] lg:h-[620px] rounded-2xl bg-slate-900 border border-slate-800 p-4 shadow-sm">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5 text-indigo-400"></i> <span data-i18n="src_box_title">Văn bản gốc</span>
+              </span>
+              <span id="src-char-count" class="text-xs text-slate-500 font-mono">0 ký tự</span>
+            </div>
+            <textarea id="src-text" class="flex-1 w-full bg-transparent resize-none border-0 text-slate-200 placeholder-slate-600 focus:outline-none text-base leading-relaxed" placeholder="Nhập văn bản cần dịch..." data-i18n-placeholder="src_placeholder" oninput="updateCharCount()"></textarea>
+            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+              <button onclick="clearSourceText()" class="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1 transition">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> <span data-i18n="btn_clear">Xóa</span>
+              </button>
+              <button onclick="startTranslation()" id="btn-translate" class="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-indigo-500/25 transition cursor-pointer">
+                <i data-lucide="sparkles" class="w-4 h-4"></i> <span data-i18n="btn_translate">Dịch</span>
+              </button>
             </div>
           </div>
-          <div id="target-text" class="flex-1 w-full overflow-y-auto text-slate-200 text-base leading-relaxed whitespace-pre-wrap select-text">
-            <span class="text-slate-600 italic" data-i18n="target_placeholder">Bản dịch sẽ hiển thị ở đây...</span>
+
+          <div class="flex flex-col h-[520px] sm:h-[580px] lg:h-[620px] rounded-2xl bg-slate-900 border border-slate-800 p-4 shadow-sm relative">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i> <span data-i18n="target_box_title">Bản dịch</span>
+              </span>
+              <div id="translate-status" class="text-xs text-indigo-400 hidden flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span> <span data-i18n="streaming_status">Đang dịch...</span>
+              </div>
+            </div>
+            <div id="target-text" class="flex-1 w-full overflow-y-auto text-slate-200 text-base leading-relaxed whitespace-pre-wrap select-text">
+              <span class="text-slate-600 italic" data-i18n="target_placeholder">Bản dịch sẽ hiển thị ở đây...</span>
+            </div>
+            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-end space-x-2">
+              <button onclick="copyTargetText()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> <span data-i18n="btn_copy">Sao chép</span>
+              </button>
+              <button onclick="downloadTargetText()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> <span data-i18n="btn_download_txt">Tải về (.txt)</span>
+              </button>
+            </div>
           </div>
-          <div class="pt-3 border-t border-slate-800/80 flex items-center justify-end space-x-2">
-            <button onclick="copyTargetText()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
-              <i data-lucide="copy" class="w-3.5 h-3.5"></i> <span data-i18n="btn_copy">Sao chép</span>
-            </button>
-            <button onclick="downloadTargetText()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
-              <i data-lucide="download" class="w-3.5 h-3.5"></i> <span data-i18n="btn_download_txt">Tải về (.txt)</span>
-            </button>
+        </div>
+      </div>
+
+      <!-- SUB-MODE 2: WEB PAGE TRANSLATOR -->
+      <div id="web-mode-container" class="space-y-4 hidden">
+        <!-- URL Input & Configuration Card -->
+        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-lg space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+                <i data-lucide="globe" class="w-4 h-4 text-cyan-400"></i>
+                <span data-i18n="web_input_title">Dịch trang web</span>
+              </h3>
+            </div>
+            <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono border border-slate-700/60">
+              Layout Preserved
+            </span>
           </div>
+
+          <p class="text-xs text-slate-400" data-i18n="web_input_desc">
+            Dịch toàn bộ trang web sang ngôn ngữ đích và giữ nguyên cấu trúc bố cục, bảng biểu và giao diện gốc.
+          </p>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-center">
+            <!-- Browser Navigation Controls (Back, Forward, Refresh) -->
+            <div class="lg:col-span-2 flex items-center gap-1 bg-slate-950 border border-slate-800 p-1 rounded-xl shadow-inner">
+              <button id="btn-web-nav-back" onclick="webNavBack()" disabled type="button"
+                      class="flex-1 py-1.5 px-2 rounded-lg text-slate-500 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800/80 transition flex items-center justify-center gap-1 text-xs font-semibold cursor-pointer"
+                      title="Quay lại trang trước (Back)">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+              </button>
+              <button id="btn-web-nav-forward" onclick="webNavForward()" disabled type="button"
+                      class="flex-1 py-1.5 px-2 rounded-lg text-slate-500 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800/80 transition flex items-center justify-center gap-1 text-xs font-semibold cursor-pointer"
+                      title="Tiến tới trang sau (Forward)">
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </button>
+              <button id="btn-web-nav-refresh" onclick="webNavRefresh()" type="button"
+                      class="flex-1 py-1.5 px-2 rounded-lg text-slate-400 hover:text-cyan-400 hover:bg-slate-800/80 transition flex items-center justify-center gap-1 text-xs font-semibold cursor-pointer"
+                      title="Tải lại trang (Refresh)">
+                <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+
+            <!-- URL Input with Paste button & Cache Hit Indicator -->
+            <div class="lg:col-span-5 relative">
+              <input type="url" id="web-url-input"
+                     placeholder="https://en.wikipedia.org/wiki/Artificial_intelligence..."
+                     class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500 font-mono pr-28">
+              <div class="absolute right-2 top-2 flex items-center gap-1.5">
+                <span id="web-cache-badge" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono font-medium">0ms Cache</span>
+                <button onclick="pasteWebUrl()" type="button" class="p-1 text-slate-400 hover:text-white rounded" title="Dán từ Clipboard">
+                  <i data-lucide="clipboard" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Target Lang Select -->
+            <div class="lg:col-span-2">
+              <select id="web-target-lang" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-medium">
+                <option value="vi" selected>Tiếng Việt</option>
+                <option value="en">Tiếng Anh</option>
+                <option value="ja">Tiếng Nhật</option>
+                <option value="ko">Tiếng Hàn</option>
+                <option value="zh">Tiếng Trung</option>
+                <option value="fr">Tiếng Pháp</option>
+                <option value="de">Tiếng Đức</option>
+              </select>
+            </div>
+
+            <!-- Translate Action Button -->
+            <div class="lg:col-span-3 flex items-center gap-2">
+              <button onclick="translateWebPage()" id="btn-web-translate" class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 transition cursor-pointer">
+                <i data-lucide="globe" class="w-4 h-4"></i>
+                <span id="btn-web-translate-text" data-i18n="btn_web_translate">Dịch Trang Web</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress / Status bar -->
+        <div id="web-progress-container" class="rounded-xl bg-cyan-950/40 border border-cyan-800/40 p-3 hidden">
+          <div class="flex items-center justify-between text-xs text-cyan-200 mb-1.5">
+            <span class="flex items-center gap-2">
+              <i data-lucide="loader" class="w-3.5 h-3.5 animate-spin text-cyan-400"></i>
+              <span id="web-progress-text">Đang tải và dịch cấu trúc trang web qua Gemini Key Pool...</span>
+            </span>
+            <span id="web-progress-status" class="font-mono text-cyan-300 font-semibold">Vui lòng chờ...</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+            <div id="web-progress-bar" class="bg-gradient-to-r from-cyan-400 to-indigo-500 h-1.5 rounded-full transition-all duration-300" style="width: 30%"></div>
+          </div>
+        </div>
+
+        <!-- Result Workspace (Hidden until page translated) -->
+        <div id="web-result-workspace" class="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden flex flex-col hidden">
+          <!-- Toolbar -->
+          <div class="bg-slate-950/90 border-b border-slate-800 px-4 py-3 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20 backdrop-blur">
+            <!-- Left: Browser Navigation Controls & Title & Page info -->
+            <div class="flex items-center gap-2.5 max-w-xl truncate">
+              <!-- Mini Browser Nav -->
+              <div class="inline-flex items-center gap-0.5 bg-slate-900 border border-slate-800 p-0.5 rounded-lg shrink-0">
+                <button id="btn-web-tb-back" onclick="webNavBack()" disabled type="button" class="p-1.5 rounded text-slate-500 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800 transition cursor-pointer" title="Quay lại (Back)">
+                  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                </button>
+                <button id="btn-web-tb-forward" onclick="webNavForward()" disabled type="button" class="p-1.5 rounded text-slate-500 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800 transition cursor-pointer" title="Tiến tới (Forward)">
+                  <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </button>
+                <button id="btn-web-tb-refresh" onclick="webNavRefresh()" type="button" class="p-1.5 rounded text-slate-400 hover:text-cyan-400 hover:bg-slate-800 transition cursor-pointer" title="Tải lại (Refresh)">
+                  <i data-lucide="rotate-cw" class="w-3 h-3"></i>
+                </button>
+              </div>
+              <i data-lucide="globe" class="w-4 h-4 text-cyan-400 shrink-0"></i>
+              <span id="web-result-title" class="text-xs font-bold text-slate-200 truncate">Tiêu đề trang web</span>
+              <span id="web-node-count-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono shrink-0">0 đoạn văn</span>
+              <span id="web-tb-cache-badge" class="hidden text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono shrink-0">0ms Cache Hit</span>
+            </div>
+
+            <!-- Center/Right: View Modes & Controls -->
+            <div class="flex flex-wrap items-center gap-2">
+              <!-- 3 View Modes Segmented Control -->
+              <div class="inline-flex p-0.5 rounded-lg bg-slate-800/90 border border-slate-700/60 shadow-inner">
+                <button type="button" onclick="setWebViewMode('translated')" id="web-view-btn-trans" class="px-3 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white cursor-pointer">
+                  <span data-i18n="web_view_trans">Bản dịch</span>
+                </button>
+                <button type="button" onclick="setWebViewMode('original')" id="web-view-btn-orig" class="px-3 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white cursor-pointer">
+                  <span data-i18n="web_view_orig">Bản gốc</span>
+                </button>
+                <button type="button" onclick="setWebViewMode('split')" id="web-view-btn-split" class="px-3 py-1 rounded-md text-xs font-semibold transition bg-indigo-600 text-white shadow cursor-pointer" title="So sánh song song 2 cột">
+                  <span data-i18n="web_view_split">Song song</span>
+                </button>
+              </div>
+
+              <!-- Quick Switch button between Original & Translated -->
+              <button type="button" onclick="toggleWebQuickSwitch()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium text-xs flex items-center gap-1.5 transition border border-slate-700/60 cursor-pointer shadow" title="Đổi nhanh giữa Bản Gốc và Bản Dịch">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-cyan-400"></i>
+                <span data-i18n="web_btn_quick_switch">Đổi chế độ xem</span>
+              </button>
+
+              <!-- Synchronized Scroll Switch -->
+              <label class="flex items-center gap-1.5 cursor-pointer select-none text-xs text-slate-300 hover:text-white bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800/80" title="Tự động đồng bộ cuộn 2 cột theo tỷ lệ">
+                <input type="checkbox" id="web-sync-scroll-check" checked onchange="toggleSyncScroll(this.checked)" class="w-3.5 h-3.5 rounded text-cyan-600 focus:ring-0 focus:ring-offset-0 bg-slate-900 border-slate-700 cursor-pointer">
+                <span class="text-[11px] font-medium flex items-center gap-1">
+                  <i data-lucide="link-2" class="w-3 h-3 text-cyan-400"></i>
+                  <span data-i18n="web_sync_scroll">Đồng bộ cuộn</span>
+                </span>
+              </label>
+
+              <!-- Open External Link -->
+              <a id="web-external-link" href="#" target="_blank" rel="noopener noreferrer" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition" title="Mở trang gốc trong tab mới">
+                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Viewports Grid -->
+          <div class="p-3 bg-slate-950/60">
+            <div id="web-viewports-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-3 transition-all duration-200">
+              <!-- Left Column: Original HTML -->
+              <div id="web-col-orig" class="flex flex-col rounded-xl bg-slate-900 border border-slate-800 overflow-hidden shadow">
+                <div class="px-3 py-1.5 bg-slate-800/70 border-b border-slate-700/60 flex items-center justify-between text-xs font-semibold text-slate-300">
+                  <span class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span> Bản gốc (Original)
+                  </span>
+                  <span class="text-[10px] text-slate-400 font-mono" id="web-orig-status">Sẵn sàng</span>
+                </div>
+                <iframe id="web-orig-iframe" class="w-full h-[78vh] min-h-[600px] bg-white border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+              </div>
+
+              <!-- Right Column: Translated HTML -->
+              <div id="web-col-trans" class="flex flex-col rounded-xl bg-slate-900 border border-slate-800 overflow-hidden shadow">
+                <div class="px-3 py-1.5 bg-slate-800/70 border-b border-slate-700/60 flex items-center justify-between text-xs font-semibold text-indigo-300">
+                  <span class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Bản dịch (Vietnamese)
+                  </span>
+                  <span class="text-[10px] text-emerald-400 font-mono" id="web-trans-status">AI Translated</span>
+                </div>
+                <iframe id="web-trans-iframe" class="w-full h-[78vh] min-h-[600px] bg-white border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Web Empty State (Shown before any URL is translated) -->
+        <div id="web-empty-state" class="py-20 flex flex-col items-center justify-center text-center space-y-3 px-4 rounded-2xl bg-slate-900/50 border border-slate-800/70">
+          <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-cyan-400/70 shadow-inner">
+            <i data-lucide="globe" class="w-8 h-8"></i>
+          </div>
+          <h4 class="text-base font-bold text-slate-200" data-i18n="web_empty_title">Chưa có trang web nào được nạp</h4>
+          <p class="text-xs text-slate-400 max-w-md leading-relaxed" data-i18n="web_empty_desc">
+            Nhập URL bài viết, tin tức công nghệ hoặc tài liệu bất kỳ ở trên để AI dịch toàn bộ trang web sang tiếng Việt giữ nguyên giao diện gốc.
+          </p>
         </div>
       </div>
     </section>
@@ -834,7 +1047,7 @@
           </button>
         </div>
 
-        <div class="md:col-span-2 rounded-2xl bg-slate-900 border border-slate-800 p-5 flex flex-col h-[520px]">
+        <div class="md:col-span-2 rounded-2xl bg-slate-900 border border-slate-800 p-5 flex flex-col h-[520px] sm:h-[580px] lg:h-[620px]">
           <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-2">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
               <i data-lucide="file-audio" class="w-3.5 h-3.5 text-indigo-400"></i> <span data-i18n="transcribe_result_title">Kết quả phiên âm</span>
@@ -862,35 +1075,48 @@
             <div class="flex items-center justify-between mb-3">
               <h3 class="font-bold text-sm sm:text-base flex items-center gap-2 text-white">
                 <i data-lucide="folder-archive" class="w-5 h-5 text-indigo-400"></i>
-                <span data-i18n="manga_opt1_title">Tải lên Ảnh hoặc Tệp ZIP Chapter</span>
+                <span data-i18n="manga_opt1_title">Tải lên ảnh hoặc tệp ZIP</span>
               </h3>
-              <span class="text-[11px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-mono border border-indigo-500/20">ZIP, CBZ, JPG, PNG, WEBP</span>
+              <span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono border border-slate-700/60">ZIP, CBZ, JPG, PNG, WEBP</span>
             </div>
             
-            <!-- Drag & Drop Zone -->
+            <!-- Drag & Drop & Paste Zone -->
             <div id="manga-dropzone" 
+                 tabindex="0"
                  ondragover="handleMangaDragOver(event)" 
                  ondragleave="handleMangaDragLeave(event)" 
                  ondrop="handleMangaDrop(event)"
-                 class="relative border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-6 text-center transition bg-slate-950/40 cursor-pointer group">
-              <input type="file" id="manga-file-input" multiple accept="image/*,.zip,.cbz" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleMangaFileInput(event)">
-              <div class="flex flex-col items-center justify-center space-y-2 pointer-events-none">
-                <div class="w-12 h-12 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center group-hover:scale-110 transition">
-                  <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                 class="relative border border-dashed border-slate-700 hover:border-indigo-500 focus:border-indigo-500 focus:outline-none rounded-xl p-6 text-center transition bg-slate-950/40 cursor-pointer group">
+              <input type="file" id="manga-file-input" multiple accept="image/*,.zip,.cbz" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="handleMangaFileInput(event)">
+              <div class="flex flex-col items-center justify-center space-y-2.5 pointer-events-none">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-600/10 text-indigo-400 flex items-center justify-center group-hover:scale-105 transition border border-indigo-500/20">
+                  <i data-lucide="image-plus" class="w-6 h-6"></i>
                 </div>
                 <div>
-                  <p class="text-sm font-semibold text-slate-200 group-hover:text-white" data-i18n="manga_drag_prompt">Kéo thả tệp ZIP hoặc chọn nhiều ảnh trang truyện</p>
-                  <p class="text-xs text-slate-400 mt-1" data-i18n="manga_drag_hint">Tự động nhận diện thứ tự trang tự nhiên (page 1, 2, ... 10)</p>
+                  <p class="text-sm font-semibold text-slate-200 group-hover:text-white">
+                    Kéo thả ảnh hoặc tệp ZIP vào đây
+                  </p>
+                  <p class="text-xs text-slate-400 mt-1" data-i18n="manga_paste_hint">
+                    Hỗ trợ dán trực tiếp từ Clipboard hoặc ảnh chụp màn hình (<kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[11px] border border-slate-700">Ctrl + V</kbd>)
+                  </p>
                 </div>
               </div>
             </div>
           </div>
           
-          <div class="mt-4 flex items-center justify-between text-xs text-slate-400">
-            <span id="manga-upload-status" class="truncate font-mono">Chưa nạp truyện</span>
-            <label for="manga-file-input" class="cursor-pointer px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-1.5 transition">
-              <i data-lucide="plus" class="w-3.5 h-3.5"></i> <span data-i18n="manga_btn_choose">Chọn tệp</span>
-            </label>
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+            <span id="manga-upload-status" class="truncate font-mono flex items-center gap-1.5">
+              <i data-lucide="info" class="w-3.5 h-3.5 text-slate-500"></i> Chưa nạp truyện
+            </span>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="pasteImageFromClipboardButton(event)" id="btn-manga-paste-clipboard" class="px-3 py-1.5 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 hover:text-white font-medium text-xs flex items-center gap-1.5 transition border border-indigo-500/30 cursor-pointer shadow">
+                <i data-lucide="clipboard" class="w-3.5 h-3.5 text-indigo-400"></i>
+                <span data-i18n="manga_btn_paste">Dán ảnh (Ctrl+V)</span>
+              </button>
+              <label for="manga-file-input" class="cursor-pointer px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-1.5 transition shadow">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i> <span data-i18n="manga_btn_choose">Chọn tệp</span>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -900,19 +1126,19 @@
             <div class="flex items-center justify-between mb-3">
               <h3 class="font-bold text-sm sm:text-base flex items-center gap-2 text-white">
                 <i data-lucide="globe" class="w-5 h-5 text-cyan-400"></i>
-                <span data-i18n="manga_opt2_title">Nạp từ Link Web hoặc Link Ảnh</span>
+                <span data-i18n="manga_opt2_title">Nạp từ liên kết web hoặc ảnh</span>
               </h3>
-              <span class="text-[11px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 font-mono border border-cyan-500/20">Auto Scrape</span>
+              <span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono border border-slate-700/60">Auto Scrape</span>
             </div>
 
             <p class="text-xs text-slate-400 mb-3" data-i18n="manga_opt2_desc">
-              Hệ thống tự động phân tích trang web đọc truyện để bóc tách toàn bộ trang của chapter, hoặc tải trực tiếp từ link ảnh.
+              Nhập địa chỉ URL chương truyện hoặc liên kết hình ảnh trực tiếp để nạp vào trình đọc.
             </p>
 
             <div class="space-y-3">
               <div class="relative">
                 <input type="text" id="manga-url-input" 
-                       placeholder="https://truyentranh.org/chapter-1 hoặc link ảnh .jpg/.png..."
+                       placeholder="https://example.com/chapter-1 hoặc link ảnh .jpg/.png..."
                        class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500 font-mono pr-10">
                 <button onclick="pasteMangaUrl()" class="absolute right-2 top-2 p-1 text-slate-400 hover:text-white rounded" title="Dán từ Clipboard">
                   <i data-lucide="clipboard" class="w-4 h-4"></i>
@@ -923,11 +1149,11 @@
               <div class="flex items-center justify-between pt-1">
                 <span class="text-xs text-slate-400" data-i18n="manga_target_lang_label">Ngôn ngữ dịch:</span>
                 <select id="manga-target-lang" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-medium">
-                  <option value="vi" selected>🇻🇳 Tiếng Việt (Chuẩn văn phong Comic)</option>
-                  <option value="en">🇬🇧 Tiếng Anh (English)</option>
-                  <option value="ja">🇯🇵 Tiếng Nhật (Japanese)</option>
-                  <option value="ko">🇰🇷 Tiếng Hàn (Korean)</option>
-                  <option value="zh">🇨🇳 Tiếng Trung (Chinese)</option>
+                  <option value="vi" selected>Tiếng Việt</option>
+                  <option value="en">Tiếng Anh</option>
+                  <option value="ja">Tiếng Nhật</option>
+                  <option value="ko">Tiếng Hàn</option>
+                  <option value="zh">Tiếng Trung</option>
                 </select>
               </div>
             </div>
@@ -939,8 +1165,8 @@
               <button onclick="scanMangaChapters()" id="btn-manga-scan-series" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium text-xs flex items-center gap-1.5 transition cursor-pointer border border-slate-700/60 shadow">
                 <i data-lucide="list" class="w-3.5 h-3.5 text-cyan-400"></i> <span data-i18n="manga_btn_scan_series">Quét Chapter</span>
               </button>
-              <button onclick="loadMangaFromUrl(true)" id="btn-manga-load-url" class="px-4 py-1.5 rounded-lg bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-medium text-xs flex items-center gap-1.5 transition cursor-pointer shadow">
-                <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-300"></i> <span data-i18n="manga_btn_load_and_translate">Đọc & Dịch Ngay</span>
+              <button onclick="loadMangaFromUrl(true)" id="btn-manga-load-url" class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-1.5 transition cursor-pointer shadow">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> <span data-i18n="manga_btn_load_and_translate">Đọc & Dịch Ngay</span>
               </button>
             </div>
           </div>
@@ -959,16 +1185,19 @@
               <span id="manga-page-count-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">0 trang</span>
             </div>
 
-            <!-- Toggle View Mode: Bản Dịch <-> Bản Gốc -->
+            <!-- Toggle View Mode: Bản Dịch <-> Bản Gốc <-> Song Song <-> Song Ngữ -->
             <div class="inline-flex p-0.5 rounded-lg bg-slate-800/90 border border-slate-700/60 shadow-inner">
               <button onclick="setMangaViewMode('translated')" id="manga-view-btn-trans" class="px-2.5 py-1 rounded-md text-xs font-semibold transition bg-indigo-600 text-white shadow">
-                🇻🇳 <span data-i18n="manga_view_trans">Bản Dịch</span>
+                <span data-i18n="manga_view_trans">Bản dịch</span>
               </button>
               <button onclick="setMangaViewMode('original')" id="manga-view-btn-orig" class="px-2.5 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white">
-                🌐 <span data-i18n="manga_view_orig">Bản Gốc</span>
+                <span data-i18n="manga_view_orig">Bản gốc</span>
+              </button>
+              <button onclick="setMangaViewMode('split')" id="manga-view-btn-split" class="px-2.5 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white" title="So sánh song song Bản Gốc và Bản Dịch">
+                <span data-i18n="manga_view_split">Song song</span>
               </button>
               <button onclick="toggleMangaBilingualTooltip()" id="manga-view-btn-bilingual" class="px-2.5 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white" title="Rê chuột vào bóng thoại để xem chữ gốc">
-                💡 <span data-i18n="manga_view_bilingual">Song ngữ</span>
+                <span data-i18n="manga_view_bilingual">Bóng thoại</span>
               </button>
             </div>
           </div>
@@ -978,39 +1207,39 @@
             <!-- Zoom Controls -->
             <div class="hidden sm:flex items-center bg-slate-800 rounded-lg p-0.5 border border-slate-700/60 text-slate-300">
               <button onclick="zoomManga(-10)" class="p-1 hover:text-white rounded" title="Thu nhỏ"><i data-lucide="zoom-out" class="w-3.5 h-3.5"></i></button>
-              <span id="manga-zoom-text" class="text-[11px] px-1.5 font-mono">100%</span>
+              <button onclick="zoomMangaReset()" id="manga-zoom-text" class="text-[11px] px-1.5 font-mono hover:text-indigo-300 cursor-pointer" title="Nhấn để đặt lại 100%">100%</button>
               <button onclick="zoomManga(10)" class="p-1 hover:text-white rounded" title="Phóng to"><i data-lucide="zoom-in" class="w-3.5 h-3.5"></i></button>
             </div>
 
             <!-- Translate All Button -->
-            <button onclick="translateAllManga()" id="btn-manga-translate-all" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium text-xs flex items-center gap-1.5 shadow-lg shadow-indigo-600/20 transition cursor-pointer">
-              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> <span id="btn-manga-translate-all-text" data-i18n="manga_btn_translate_all">AI Dịch Toàn Bộ Chapter</span>
+            <button onclick="translateAllManga()" id="btn-manga-translate-all" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-1.5 shadow-lg shadow-indigo-600/20 transition cursor-pointer">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> <span id="btn-manga-translate-all-text" data-i18n="manga_btn_translate_all">Dịch toàn bộ Chapter</span>
             </button>
 
             <!-- Export ZIP Button -->
             <button onclick="exportMangaZip()" id="btn-manga-export-zip" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 transition cursor-pointer">
-              <i data-lucide="file-archive" class="w-3.5 h-3.5"></i> <span data-i18n="manga_btn_export_zip">Tải Tệp ZIP Chapter</span>
+              <i data-lucide="file-archive" class="w-3.5 h-3.5"></i> <span data-i18n="manga_btn_export_zip">Tải tệp ZIP</span>
             </button>
           </div>
         </div>
 
-        <!-- Chapter Navigation Bar (Webtoon / NetTruyen Style) -->
+        <!-- Chapter Navigation Bar -->
         <div id="manga-chapter-bar" class="bg-slate-900/95 border-b border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2.5 sticky top-0 z-30 backdrop-blur shadow-md">
           <!-- Prev / Select / Next controls -->
           <div class="flex items-center gap-2 flex-wrap">
-            <button id="btn-manga-prev" onclick="changeChapterOffset(-1)" disabled class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold text-slate-200 hover:text-white flex items-center gap-1.5 transition border border-slate-700/60 shadow cursor-pointer">
+            <button id="btn-manga-prev" onclick="changeChapterOffset(-1)" disabled class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold text-slate-200 hover:text-white flex items-center gap-1.5 transition border border-slate-700/60 shadow cursor-pointer">
               <i data-lucide="chevron-left" class="w-4 h-4 text-indigo-400"></i>
-              <span data-i18n="manga_prev_chapter">◀ Chương Trước</span>
+              <span data-i18n="manga_prev_chapter">Chương trước</span>
             </button>
 
             <div class="relative flex items-center">
-              <select id="manga-chapter-dropdown" onchange="onChapterDropdownChange(this.value)" class="bg-slate-950 border border-indigo-500/50 hover:border-indigo-400 focus:border-indigo-400 text-indigo-300 font-bold rounded-xl px-3 py-1.5 text-xs focus:outline-none transition shadow-inner max-w-[240px] sm:max-w-[340px] truncate cursor-pointer">
+              <select id="manga-chapter-dropdown" onchange="onChapterDropdownChange(this.value)" class="bg-slate-950 border border-indigo-500/50 hover:border-indigo-400 focus:border-indigo-400 text-indigo-300 font-semibold rounded-xl px-3 py-1.5 text-xs focus:outline-none transition shadow-inner max-w-[240px] sm:max-w-[340px] truncate cursor-pointer">
                 <option value="" data-i18n="manga_select_chapter">-- Chọn Chương Truyện --</option>
               </select>
             </div>
 
-            <button id="btn-manga-next" onclick="changeChapterOffset(1)" disabled class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold text-slate-200 hover:text-white flex items-center gap-1.5 transition border border-slate-700/60 shadow cursor-pointer">
-              <span data-i18n="manga_next_chapter">Chương Tiếp ▶</span>
+            <button id="btn-manga-next" onclick="changeChapterOffset(1)" disabled class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold text-slate-200 hover:text-white flex items-center gap-1.5 transition border border-slate-700/60 shadow cursor-pointer">
+              <span data-i18n="manga_next_chapter">Chương tiếp</span>
               <i data-lucide="chevron-right" class="w-4 h-4 text-indigo-400"></i>
             </button>
           </div>
@@ -1020,13 +1249,13 @@
             <label class="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-300 hover:text-white bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800/80">
               <input type="checkbox" id="manga-auto-trans-check" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-0 focus:ring-offset-0 bg-slate-900 border-slate-700 cursor-pointer">
               <span class="flex items-center gap-1.5 text-[11px] sm:text-xs font-medium">
-                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-400"></i>
                 <span data-i18n="manga_auto_translate_switch">Tự động dịch khi đổi chương</span>
               </span>
             </label>
 
             <div class="hidden sm:flex items-center gap-1 text-[11px] text-slate-400 px-2.5 py-1 rounded-lg bg-slate-800/60 border border-slate-700/40">
-              <i data-lucide="arrow-down" class="w-3.5 h-3.5 text-cyan-400 animate-bounce"></i>
+              <i data-lucide="arrow-down" class="w-3.5 h-3.5 text-slate-400"></i>
               <span data-i18n="manga_webtoon_scroll">Cuộn dọc Webtoon</span>
             </div>
           </div>
@@ -1050,13 +1279,13 @@
         <div id="manga-reader-viewport" class="p-4 sm:p-6 bg-slate-950 min-h-[600px] max-h-[85vh] overflow-y-auto flex flex-col items-center">
           
           <!-- Empty State -->
-          <div id="manga-empty-state" class="py-24 flex flex-col items-center justify-center text-center space-y-3">
-            <div class="w-20 h-20 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 shadow-inner">
-              <i data-lucide="book-open" class="w-10 h-10"></i>
+          <div id="manga-empty-state" class="py-24 flex flex-col items-center justify-center text-center space-y-3 px-4">
+            <div class="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-indigo-400/60 shadow-inner">
+              <i data-lucide="book-open" class="w-8 h-8"></i>
             </div>
-            <h4 class="text-base font-bold text-slate-300" data-i18n="manga_empty_title">Trình Đọc & Dịch Truyện Tranh Thông Minh</h4>
-            <p class="text-xs text-slate-500 max-w-md" data-i18n="manga_empty_desc">
-              Hỗ trợ Manga (Nhật), Manhwa (Hàn), Manhua (Trung) và Comic (Âu Mỹ). Tải lên tệp ZIP hoặc dán link truyện phía trên để bắt đầu đọc và dịch tự động.
+            <h4 class="text-base font-bold text-slate-200" data-i18n="manga_empty_title">Chưa có trang nào</h4>
+            <p class="text-xs text-slate-400 max-w-md leading-relaxed" data-i18n="manga_empty_desc">
+              Nhấn Ctrl+V để dán ảnh, tải ảnh/ZIP hoặc nhập URL truyện để bắt đầu
             </p>
           </div>
 
@@ -1079,9 +1308,9 @@
       <div class="flex items-center justify-between pb-3 border-b border-slate-800">
         <div>
           <h3 class="font-bold text-base text-white flex items-center gap-2">
-            <i data-lucide="download" class="w-5 h-5 text-emerald-400"></i> <span data-i18n="modal_export_title">Tùy Chọn Xuất Video Hardsub</span>
+            <i data-lucide="download" class="w-5 h-5 text-emerald-400"></i> <span data-i18n="modal_export_title">Tùy chọn xuất video Hardsub</span>
           </h3>
-          <p class="text-xs text-slate-400" data-i18n="modal_export_desc">Chọn phương thức in phụ đề phù hợp với nhu cầu của bạn</p>
+          <p class="text-xs text-slate-400" data-i18n="modal_export_desc">Chọn phương thức in phụ đề phù hợp</p>
         </div>
         <button onclick="closeExportModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
           <i data-lucide="x" class="w-5 h-5"></i>
@@ -1091,37 +1320,37 @@
       <div class="space-y-3">
         <!-- Option 1: Client-side Zero-Storage Burn (Recommended) -->
         <div onclick="chooseExportMode('client')" class="p-4 rounded-xl bg-slate-800/60 border border-emerald-500/40 hover:border-emerald-400 hover:bg-slate-800 transition cursor-pointer flex items-start gap-3.5 group">
-          <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition shrink-0 mt-0.5">
+          <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 group-hover:scale-105 transition shrink-0 mt-0.5">
             <i data-lucide="zap" class="w-5 h-5"></i>
           </div>
           <div class="flex-1">
             <div class="flex items-center gap-2">
-              <h4 class="font-bold text-sm text-white group-hover:text-emerald-300 transition" data-i18n="opt_client_title">Xuất Zero-Storage (Trực Tiếp Trên Trình Duyệt)</h4>
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold border border-emerald-500/30" data-i18n="badge_recommended">Khuyên Dùng</span>
+              <h4 class="font-bold text-sm text-white group-hover:text-emerald-300 transition" data-i18n="opt_client_title">Xuất trực tiếp trên trình duyệt</h4>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold border border-emerald-500/30" data-i18n="badge_recommended">Khuyên dùng</span>
             </div>
-            <p class="text-xs text-slate-400 mt-1" data-i18n="opt_client_desc">Dùng Canvas & MediaRecorder API in sub trực tiếp trên máy của bạn. Tốc độ cực nhanh, bảo mật tuyệt đối, 100% không tốn 1 byte ổ đĩa của server!</p>
+            <p class="text-xs text-slate-400 mt-1" data-i18n="opt_client_desc">Xử lý video qua Canvas & MediaRecorder API trực tiếp trên máy của bạn. Tốc độ cao, bảo mật và không lưu trữ trên máy chủ.</p>
           </div>
         </div>
 
         <!-- Option 2: Server-side FFmpeg Burn -->
         <div onclick="chooseExportMode('server')" class="p-4 rounded-xl bg-slate-800/60 border border-slate-700 hover:border-indigo-400 hover:bg-slate-800 transition cursor-pointer flex items-start gap-3.5 group">
-          <div class="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-400 group-hover:scale-110 transition shrink-0 mt-0.5">
+          <div class="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-400 group-hover:scale-105 transition shrink-0 mt-0.5">
             <i data-lucide="server" class="w-5 h-5"></i>
           </div>
           <div class="flex-1">
-            <h4 class="font-bold text-sm text-white group-hover:text-indigo-300 transition" data-i18n="opt_server_title">Xuất Bằng Server FFmpeg (MP4 H.264)</h4>
-            <p class="text-xs text-slate-400 mt-1" data-i18n="opt_server_desc">Mã hóa H.264 qua FFmpeg trên server. Hỗ trợ cơ chế tự động xóa sạch tệp tạm ngay sau khi tải về.</p>
+            <h4 class="font-bold text-sm text-white group-hover:text-indigo-300 transition" data-i18n="opt_server_title">Xuất qua máy chủ FFmpeg (MP4 H.264)</h4>
+            <p class="text-xs text-slate-400 mt-1" data-i18n="opt_server_desc">Mã hóa H.264 qua FFmpeg trên máy chủ. Tự động xóa tệp tạm sau khi hoàn tất.</p>
           </div>
         </div>
 
         <!-- Option 3: Subtitle file only -->
         <div onclick="chooseExportMode('subtitles')" class="p-4 rounded-xl bg-slate-800/60 border border-slate-700 hover:border-amber-400 hover:bg-slate-800 transition cursor-pointer flex items-start gap-3.5 group">
-          <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 group-hover:scale-110 transition shrink-0 mt-0.5">
+          <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 group-hover:scale-105 transition shrink-0 mt-0.5">
             <i data-lucide="file-text" class="w-5 h-5"></i>
           </div>
           <div class="flex-1">
-            <h4 class="font-bold text-sm text-white group-hover:text-amber-300 transition" data-i18n="opt_subs_title">Chỉ Tải Gói Phụ Đề (.SRT / .VTT)</h4>
-            <p class="text-xs text-slate-400 mt-1" data-i18n="opt_subs_desc">Tải tệp phụ đề song ngữ chuẩn để mở bằng trình phát ngoại tuyến (VLC, PotPlayer) mà không cần re-encode video.</p>
+            <h4 class="font-bold text-sm text-white group-hover:text-amber-300 transition" data-i18n="opt_subs_title">Tải tệp phụ đề (.SRT / .VTT)</h4>
+            <p class="text-xs text-slate-400 mt-1" data-i18n="opt_subs_desc">Tải tệp phụ đề chuẩn để sử dụng với các trình phát ngoại tuyến mà không cần mã hóa lại video.</p>
           </div>
         </div>
       </div>
@@ -1137,7 +1366,7 @@
         <i data-lucide="zap" class="w-8 h-8 text-white"></i>
       </div>
       <div>
-        <h3 class="font-bold text-base text-white" data-i18n="burn_modal_title">Đang Xuất Hardsub Trên Trình Duyệt (Zero-Storage)</h3>
+        <h3 class="font-bold text-base text-white" data-i18n="burn_modal_title">Đang xuất Hardsub trên trình duyệt</h3>
         <p class="text-xs text-slate-400 mt-1" data-i18n="burn_modal_desc">Đang đọc video và in phụ đề trực tiếp qua Canvas & MediaRecorder API...</p>
       </div>
 
@@ -1154,7 +1383,7 @@
 
       <div class="p-3 rounded-xl bg-slate-800/40 border border-slate-800 text-[11px] text-slate-400 text-left flex items-start gap-2">
         <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
-        <span data-i18n="burn_safe_note">Video được xử lý 100% trong RAM của trình duyệt bạn, không gửi lên server, bảo đảm an toàn dữ liệu và không tốn dung lượng máy chủ.</span>
+        <span data-i18n="burn_safe_note">Video được xử lý trực tiếp trên trình duyệt của bạn, bảo mật dữ liệu và không lưu trữ trên máy chủ.</span>
       </div>
 
       <div class="pt-2">
@@ -1173,9 +1402,9 @@
       <div class="flex items-center justify-between pb-3 border-b border-slate-800">
         <div>
           <h3 class="font-bold text-lg text-white flex items-center gap-2">
-            <i data-lucide="cpu" class="w-5 h-5 text-indigo-400"></i> <span data-i18n="pool_modal_title">Quản Lý Smart Key Pool (7 Cloud Projects)</span>
+            <i data-lucide="cpu" class="w-5 h-5 text-indigo-400"></i> <span data-i18n="pool_modal_title">Smart Key Pool</span>
           </h3>
-          <p class="text-xs text-slate-400" data-i18n="pool_modal_desc">Tự động xoay vòng Round-Robin & chống chạm hạn ngạch RPM/TPM</p>
+          <p class="text-xs text-slate-400" data-i18n="pool_modal_desc">Cân bằng tải Round-Robin và điều phối hạn ngạch API thông minh</p>
         </div>
         <button onclick="togglePoolModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
           <i data-lucide="x" class="w-5 h-5"></i>
@@ -1199,7 +1428,7 @@
       </div>
 
       <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
-        <span data-i18n="pool_footer">Unlimited RPD cho Live Models | Tự động cách ly key khi gặp 429</span>
+        <span data-i18n="pool_footer">Tự động cách ly key khi gặp mã phản hồi 429</span>
         <button onclick="fetchPoolStatus()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-sans transition" data-i18n="btn_refresh">
           Làm mới
         </button>
@@ -1216,16 +1445,17 @@
         header_tagline: "",
         pool_loading: "Pool: Đang tải...",
         pool_status: "7 Keys: #{pointer}",
-        tab_video: "🎬 Phụ đề Video",
-        tab_translate: "📝 Dịch văn bản",
-        tab_transcribe: "🎙️ Giọng nói",
-        video_opt1_title: "Tải tệp video (.mp4, .mkv, .mov)",
+        tab_video: "Video",
+        tab_translate: "Văn bản",
+        tab_transcribe: "Giọng nói",
+        tab_manga: "Truyện tranh",
+        video_opt1_title: "Tải tệp video",
         video_opt1_formats: "MP4, MOV, MKV, WEBM",
         video_opt1_btn: "Chọn file",
         video_opt1_btn_change: "Đổi file",
         video_opt1_uploading: "Đang tải lên...",
         video_opt1_success: "Đã tải xong!",
-        video_opt2_title: "Dán link YouTube / Web stream",
+        video_opt2_title: "Dán link YouTube hoặc video",
         video_opt2_formats: "YouTube, Direct MP4",
         video_opt2_placeholder: "https://www.youtube.com/watch?v=...",
         video_opt2_btn: "Nạp",
@@ -1238,7 +1468,7 @@
         btn_auto_sub_scanning: "Đang quét sub...",
         btn_export_video: "Xuất Hardsub",
         dual_sub_title: "Song ngữ",
-        cache_loaded_badge: "⚡ Bộ nhớ đệm (0 token)",
+        cache_loaded_badge: "Đã nạp từ bộ nhớ đệm",
         btn_rescan_cache: "Quét lại",
         btn_fullscreen: "Toàn màn hình",
         customizer_title: "Tùy chỉnh phụ đề",
@@ -1290,50 +1520,51 @@
         transcribe_result_title: "Kết quả phiên âm",
         transcribe_placeholder: "Kết quả sẽ hiển thị tại đây...",
         transcribe_analyzing: "Gemini đang phân tích âm thanh...",
-        modal_export_title: "Tùy chọn xuất Hardsub",
-        modal_export_desc: "Chọn phương thức in phụ đề vào video",
-        opt_client_title: "Xuất Zero-Storage (Trình duyệt)",
-        badge_recommended: "Khuyên Dùng",
-        opt_client_desc: "In sub trực tiếp qua Canvas & MediaRecorder. Tốc độ cực nhanh, 0 byte ổ cứng server!",
-        opt_server_title: "Xuất Server FFmpeg (MP4 H.264)",
-        opt_server_desc: "Mã hóa qua FFmpeg trên server. Tự động xóa file tạm sau khi tải.",
-        opt_subs_title: "Chỉ tải phụ đề (.SRT / .VTT)",
-        opt_subs_desc: "Tải tệp phụ đề song ngữ để xem ngoại tuyến không cần render lại video.",
-        burn_modal_title: "Đang xuất Hardsub (Zero-Storage)",
-        burn_modal_desc: "Đang đọc video và in phụ đề qua Canvas & MediaRecorder...",
+        modal_export_title: "Tùy chọn xuất video Hardsub",
+        modal_export_desc: "Chọn phương thức in phụ đề phù hợp",
+        opt_client_title: "Xuất trực tiếp trên trình duyệt",
+        badge_recommended: "Khuyên dùng",
+        opt_client_desc: "Xử lý video qua Canvas & MediaRecorder API trực tiếp trên máy của bạn. Tốc độ cao, bảo mật và không lưu trữ trên máy chủ.",
+        opt_server_title: "Xuất qua máy chủ FFmpeg (MP4 H.264)",
+        opt_server_desc: "Mã hóa H.264 qua FFmpeg trên máy chủ. Tự động xóa tệp tạm sau khi hoàn tất.",
+        opt_subs_title: "Tải tệp phụ đề (.SRT / .VTT)",
+        opt_subs_desc: "Tải tệp phụ đề chuẩn để sử dụng với các trình phát ngoại tuyến mà không cần mã hóa lại video.",
+        burn_modal_title: "Đang xuất Hardsub trên trình duyệt",
+        burn_modal_desc: "Đang đọc video và in phụ đề trực tiếp qua Canvas & MediaRecorder API...",
         burn_init: "Đang khởi tạo burner...",
         burn_encoding: "Đang render & encode...",
         burn_done: "Hoàn tất! Đang tạo file...",
-        burn_safe_note: "Xử lý trực tiếp trong RAM trình duyệt, bảo mật 100%, 0 tốn dung lượng server.",
+        burn_safe_note: "Video được xử lý trực tiếp trên trình duyệt của bạn, bảo mật dữ liệu và không lưu trữ trên máy chủ.",
         burn_success_alert: "Xuất video Hardsub thành công! File đã tải về máy.",
         btn_cancel: "Hủy",
-        pool_modal_title: "Quản lý Smart Key Pool (7 Keys)",
-        pool_modal_desc: "Tự động xoay vòng Round-Robin & chống chạm hạn ngạch",
+        pool_modal_title: "Smart Key Pool",
+        pool_modal_desc: "Cân bằng tải Round-Robin và điều phối hạn ngạch API thông minh",
         th_stt: "STT",
         th_project: "Cloud Project",
         th_key: "Khóa",
         th_status: "Trạng thái",
         th_cooldown: "Cooldown",
         th_requests: "Lượt gọi",
-        pool_footer: "Tự động cách ly key khi gặp rate limit (429)",
+        pool_footer: "Tự động cách ly key khi gặp mã phản hồi 429",
         btn_refresh: "Làm mới",
-        status_ready: "🟢 SẴN SÀNG",
-        status_cooldown: "🟡 COOLDOWN ({sec}s)",
+        status_ready: "SẴN SÀNG",
+        status_cooldown: "COOLDOWN ({sec}s)",
         status_ready_short: "Sẵn sàng",
         btn_menu_text: "Menu",
         drawer_subtitle: "Trung tâm điều khiển",
         drawer_section_nav: "Điều hướng chức năng",
-        drawer_tab_video: "🎬 Video Subtitles",
-        drawer_tab_translate: "📝 Dịch văn bản",
-        drawer_tab_transcribe: "🎙️ Transcribe giọng nói",
+        drawer_tab_video: "Video Subtitles",
+        drawer_tab_translate: "Dịch văn bản",
+        drawer_tab_transcribe: "Giọng nói",
+        drawer_tab_manga: "Truyện tranh",
         drawer_section_pref: "Cài đặt giao diện",
         drawer_lang_title: "Ngôn ngữ giao diện",
         drawer_theme_title: "Chế độ hiển thị (Theme)",
-        theme_dark: "Tối (Dark)",
-        theme_light: "Sáng (Light)",
+        theme_dark: "Tối",
+        theme_light: "Sáng",
         drawer_section_pool: "Trạng thái AI Studio Pool",
-        pool_ready_summary: "🟢 {ready} Cloud Keys Sẵn Sàng",
-        pool_drawer_desc: "Tự động xoay vòng Round-Robin tránh hạn mức 15 RPM.",
+        pool_ready_summary: "{ready} Cloud Keys Sẵn Sàng",
+        pool_drawer_desc: "Tự động cân bằng tải Round-Robin qua các dự án API.",
         drawer_section_links: "Liên kết",
         alert_no_video: "Vui lòng chọn video trước!",
         alert_no_subs: "Vui lòng quét phụ đề trước khi xuất video!",
@@ -1341,25 +1572,28 @@
         alert_copied: "Đã sao chép!",
         alert_no_text: "Vui lòng nhập nội dung!",
         alert_no_audio: "Vui lòng ghi âm hoặc tải file âm thanh!",
-        tab_manga: "📖 Truyện tranh",
-        drawer_tab_manga: "📖 AI Dịch Truyện Tranh",
-        manga_opt1_title: "Tải lên Ảnh hoặc Tệp ZIP Chapter",
+        manga_opt1_title: "Tải lên ảnh hoặc tệp ZIP",
         manga_drag_prompt: "Kéo thả tệp ZIP hoặc chọn nhiều ảnh trang truyện",
         manga_drag_hint: "Tự động nhận diện thứ tự trang tự nhiên (page 1, 2, ... 10)",
         manga_btn_choose: "Chọn tệp",
-        manga_opt2_title: "Nạp từ Link Web hoặc Link Ảnh",
-        manga_opt2_desc: "Hệ thống tự động phân tích trang web đọc truyện để bóc tách toàn bộ trang của chapter, hoặc tải trực tiếp từ link ảnh.",
+        manga_opt2_title: "Nạp từ liên kết web hoặc ảnh",
+        manga_opt2_desc: "Nhập địa chỉ URL chương truyện hoặc liên kết hình ảnh trực tiếp để nạp vào trình đọc.",
         manga_btn_load_url: "Nạp chapter",
         manga_target_lang_label: "Ngôn ngữ dịch:",
-        manga_view_trans: "Bản Dịch",
-        manga_view_orig: "Bản Gốc",
-        manga_view_bilingual: "Song ngữ",
-        manga_btn_translate_all: "AI Dịch Toàn Bộ Chapter",
-        manga_btn_export_zip: "Tải Tệp ZIP Chapter",
-        manga_empty_title: "Trình Đọc & Dịch Truyện Tranh Thông Minh",
-        manga_empty_desc: "Hỗ trợ Manga (Nhật), Manhwa (Hàn), Manhua (Trung) và Comic (Âu Mỹ). Tải lên tệp ZIP hoặc dán link truyện phía trên để bắt đầu đọc và dịch tự động.",
-        manga_prev_chapter: "◀ Chương Trước",
-        manga_next_chapter: "Chương Tiếp ▶",
+        manga_view_trans: "Bản dịch",
+        manga_view_orig: "Bản gốc",
+        manga_view_bilingual: "Bóng thoại",
+        manga_btn_paste: "Dán ảnh (Ctrl+V)",
+        manga_paste_hint: "Hỗ trợ dán trực tiếp từ Clipboard hoặc ảnh chụp màn hình",
+        manga_view_split: "Song song",
+        manga_hold_orig: "Giữ xem Gốc",
+        manga_lightbox_btn: "Phóng to",
+        manga_btn_translate_all: "Dịch toàn bộ Chapter",
+        manga_btn_export_zip: "Tải tệp ZIP",
+        manga_empty_title: "Chưa có trang nào",
+        manga_empty_desc: "Nhấn Ctrl+V để dán ảnh, tải ảnh/ZIP hoặc nhập URL truyện để bắt đầu",
+        manga_prev_chapter: "Chương trước",
+        manga_next_chapter: "Chương tiếp",
         manga_select_chapter: "-- Chọn Chương Truyện --",
         manga_btn_load_and_translate: "Đọc & Dịch Ngay",
         manga_btn_scan_series: "Quét Chapter",
@@ -1367,16 +1601,28 @@
         manga_webtoon_scroll: "Cuộn dọc Webtoon",
         manga_scroll_top: "Lên đầu trang",
         manga_chapter_badge: "Chương",
+        submode_text: "Văn bản",
+        submode_web: "Trang web (URL)",
+        web_input_title: "Dịch trang web",
+        web_input_desc: "Dịch toàn bộ trang web sang ngôn ngữ đích và giữ nguyên cấu trúc bố cục, bảng biểu và giao diện gốc.",
+        btn_web_translate: "Dịch Trang Web",
+        web_view_trans: "Bản dịch",
+        web_view_orig: "Bản gốc",
+        web_view_split: "Song song",
+        web_btn_quick_switch: "Đổi chế độ xem",
+        web_sync_scroll: "Đồng bộ cuộn",
+        web_empty_title: "Chưa có trang web nào được nạp",
+        web_empty_desc: "Nhập URL bài viết, tin tức công nghệ hoặc tài liệu bất kỳ ở trên để AI dịch toàn bộ trang web sang tiếng Việt giữ nguyên giao diện gốc.",
       },
       en: {
         header_tagline: "",
         pool_loading: "Pool: Loading...",
         pool_status: "7 Keys: #{pointer}",
-        tab_video: "🎬 Video",
-        tab_translate: "📝 Text",
-        tab_transcribe: "🎙️ Voice",
-        tab_manga: "📖 Manga / Comic",
-        drawer_tab_manga: "📖 AI Manga Translator",
+        tab_video: "Video",
+        tab_translate: "Text",
+        tab_transcribe: "Voice",
+        tab_manga: "Manga",
+        drawer_tab_manga: "Manga Translator",
         manga_opt1_title: "Upload Images or Chapter ZIP",
         manga_drag_prompt: "Drag & drop ZIP or multiple page images",
         manga_drag_hint: "Auto natural sorting for page orders (page 1, 2, ... 10)",
@@ -1387,13 +1633,18 @@
         manga_target_lang_label: "Target Language:",
         manga_view_trans: "Translated",
         manga_view_orig: "Original",
-        manga_view_bilingual: "Bilingual",
-        manga_btn_translate_all: "AI Translate Entire Chapter",
+        manga_view_bilingual: "Tooltips",
+        manga_btn_paste: "Paste Image (Ctrl+V)",
+        manga_paste_hint: "Support direct paste from Clipboard or screenshot",
+        manga_view_split: "Side-by-Side",
+        manga_hold_orig: "Hold to view Original",
+        manga_lightbox_btn: "Zoom / Lightbox",
+        manga_btn_translate_all: "Translate Entire Chapter",
         manga_btn_export_zip: "Download Chapter ZIP",
-        manga_empty_title: "Smart AI Manga & Comic Reader / Translator",
-        manga_empty_desc: "Supports Japanese Manga, Korean Manhwa, Chinese Manhua, and Western Comics. Upload ZIP or paste chapter URL above to begin.",
-        manga_prev_chapter: "◀ Prev Chapter",
-        manga_next_chapter: "Next Chapter ▶",
+        manga_empty_title: "No pages loaded yet",
+        manga_empty_desc: "Press Ctrl+V to paste an image, upload images/ZIP, or enter a comic URL above to start",
+        manga_prev_chapter: "Prev Chapter",
+        manga_next_chapter: "Next Chapter",
         manga_select_chapter: "-- Select Chapter --",
         manga_btn_load_and_translate: "Read & Translate Now",
         manga_btn_scan_series: "Scan Chapters",
@@ -1401,6 +1652,18 @@
         manga_webtoon_scroll: "Webtoon Vertical Scroll",
         manga_scroll_top: "Back to top",
         manga_chapter_badge: "Chapter",
+        submode_text: "Plain Text",
+        submode_web: "Web Page (URL)",
+        web_input_title: "Web Translator",
+        web_input_desc: "Translate web pages while preserving layout, structure, and original styling.",
+        btn_web_translate: "Translate Webpage",
+        web_view_trans: "Translated",
+        web_view_orig: "Original",
+        web_view_split: "Side-by-Side",
+        web_btn_quick_switch: "Toggle View",
+        web_sync_scroll: "Sync Scroll",
+        web_empty_title: "No web page loaded yet",
+        web_empty_desc: "Enter an article or document URL above to translate the entire webpage while preserving its original design.",
         video_opt1_title: "Upload video (.mp4, .mkv, .mov)",
         video_opt1_formats: "MP4, MOV, MKV, WEBM",
         video_opt1_btn: "Choose file",
@@ -1420,7 +1683,7 @@
         btn_auto_sub_scanning: "Scanning sub...",
         btn_export_video: "Export Hardsub",
         dual_sub_title: "Bilingual",
-        cache_loaded_badge: "⚡ Cached (0 tokens)",
+        cache_loaded_badge: "Cached (0 tokens)",
         btn_rescan_cache: "Rescan",
         btn_fullscreen: "Fullscreen",
         customizer_title: "Subtitle Settings",
@@ -1474,47 +1737,47 @@
         transcribe_analyzing: "Gemini analyzing audio...",
         modal_export_title: "Hardsub Export Options",
         modal_export_desc: "Choose subtitle burning method",
-        opt_client_title: "Export Zero-Storage (In Browser)",
+        opt_client_title: "Browser Direct Export",
         badge_recommended: "Recommended",
-        opt_client_desc: "Burn subtitles directly via Canvas & MediaRecorder. Fast, 100% private, 0 server disk usage!",
-        opt_server_title: "Export Server FFmpeg (MP4 H.264)",
-        opt_server_desc: "Encode with server FFmpeg. Temp files automatically cleaned after download.",
+        opt_client_desc: "Render subtitles with Canvas & MediaRecorder API in browser. Fast, private, zero server storage.",
+        opt_server_title: "Server FFmpeg Export (MP4 H.264)",
+        opt_server_desc: "H.264 encoding via server FFmpeg. Temp files automatically cleaned after download.",
         opt_subs_title: "Download Subtitles (.SRT / .VTT)",
-        opt_subs_desc: "Download bilingual subtitles to watch in VLC or PotPlayer without re-encoding.",
-        burn_modal_title: "Exporting Hardsub (Zero-Storage)",
+        opt_subs_desc: "Download standard subtitles to watch offline without re-encoding video.",
+        burn_modal_title: "Exporting Hardsub in Browser",
         burn_modal_desc: "Reading video and burning subtitles in browser...",
         burn_init: "Initializing burner...",
         burn_encoding: "Rendering & encoding...",
         burn_done: "Done! Preparing download...",
-        burn_safe_note: "Processed directly in browser RAM, 100% private, 0 server storage used.",
+        burn_safe_note: "Processed directly in browser RAM, ensuring data privacy and zero server storage.",
         burn_success_alert: "Hardsub video exported successfully! Saved to your device.",
         btn_cancel: "Cancel",
-        pool_modal_title: "Smart Key Pool Management (7 Keys)",
-        pool_modal_desc: "Auto Round-Robin rotation & RPM/TPM limit avoidance",
+        pool_modal_title: "Smart Key Pool",
+        pool_modal_desc: "Automated Round-Robin load balancing & quota management",
         th_stt: "No.",
         th_project: "Cloud Project",
         th_key: "Key",
         th_status: "Status",
         th_cooldown: "Cooldown",
         th_requests: "Calls",
-        pool_footer: "Auto-quarantine keys on rate limit (429)",
+        pool_footer: "Automatic key quarantine on 429 rate limit",
         btn_refresh: "Refresh",
-        status_ready: "🟢 READY",
-        status_cooldown: "🟡 COOLDOWN ({sec}s)",
+        status_ready: "READY",
+        status_cooldown: "COOLDOWN ({sec}s)",
         status_ready_short: "Ready",
         btn_menu_text: "Menu",
         drawer_subtitle: "Control Center",
         drawer_section_nav: "Navigation",
-        drawer_tab_video: "🎬 Video Subtitles",
-        drawer_tab_translate: "📝 Text Translation",
-        drawer_tab_transcribe: "🎙️ Voice Transcribe",
+        drawer_tab_video: "Video Subtitles",
+        drawer_tab_translate: "Text Translation",
+        drawer_tab_transcribe: "Voice Transcribe",
         drawer_section_pref: "Preferences",
         drawer_lang_title: "Interface Language",
         drawer_theme_title: "Appearance (Theme)",
         theme_dark: "Dark",
         theme_light: "Light",
         drawer_section_pool: "AI Studio Pool Status",
-        pool_ready_summary: "🟢 {ready} Cloud Keys Ready",
+        pool_ready_summary: "{ready} Cloud Keys Ready",
         pool_drawer_desc: "Auto Round-Robin rotation avoiding 15 RPM limits.",
         drawer_section_links: "Links",
         alert_no_video: "Please choose a video first!",
@@ -1749,8 +2012,8 @@
       if (window.lucide && lucide.createIcons) {
         lucide.createIcons();
       }
-      if (tab === 'manga' && typeof initDefaultMangaView === 'function' && mangaState.pages.length === 0 && !mangaState.sessionId) {
-        initDefaultMangaView();
+      if (tab === 'manga' && typeof renderMangaWorkspace === 'function') {
+        renderMangaWorkspace();
       }
     }
 
@@ -2309,7 +2572,7 @@
         subtitleOverlay.classList.add('hidden');
         updateSubtitleStyle();
 
-        // ⚡ Check and restore local cache in 0.05s without calling AI Studio
+        // Check and restore local cache in 0.05s without calling AI Studio
         checkAndLoadSubtitleCache();
       } catch (err) {
         alert("Upload error: " + err.message);
@@ -2970,7 +3233,7 @@
           subtitleOverlay.classList.add('hidden');
           updateSubtitleStyle();
 
-          // ⚡ Check and restore local cache in 0.05s without calling AI Studio
+          // Check and restore local cache in 0.05s without calling AI Studio
           checkAndLoadSubtitleCache();
         } else {
           throw new Error(data.detail || "Cannot load video");
@@ -2994,7 +3257,7 @@
       const total = poolData.total_keys || (poolData.keys ? poolData.keys.length : 0);
       const readyKeys = poolData.keys ? poolData.keys.filter(k => k.status === 'READY').length : total;
 
-      // Drawer pool summary: "🟢 7 Cloud Keys Sẵn Sàng"
+      // Drawer pool summary: "7 Cloud Keys Sẵn Sàng"
       const drawerSummary = document.getElementById('drawer-pool-summary');
       if (drawerSummary) {
         drawerSummary.innerText = t('pool_ready_summary', { ready: readyKeys, total: total });
@@ -3046,7 +3309,7 @@
             : `<span class="text-amber-400 font-bold">${t('status_cooldown', { sec: k.cooldown_remaining })}</span>`;
 
           row.innerHTML = `
-            <td class="py-2.5 px-3 font-semibold text-slate-300">Key #${k.index} ${k.is_current ? '⭐' : ''}</td>
+            <td class="py-2.5 px-3 font-semibold text-slate-300">Key #${k.index} ${k.is_current ? '<span class="text-indigo-400 text-[10px] ml-1 font-sans">Active</span>' : ''}</td>
             <td class="py-2.5 px-3 font-medium text-slate-300">Cloud Project #${k.index}</td>
             <td class="py-2.5 px-3">${statusBadge}</td>
             <td class="py-2.5 px-3 text-slate-400">${k.cooldown_remaining > 0 ? k.cooldown_remaining + 's' : '0s'}</td>
@@ -3171,6 +3434,603 @@
     }
 
     // ==========================================
+    // GLOBAL TOAST NOTIFICATION HELPER
+    // ==========================================
+    function showToast(message, type = 'info') {
+      let toast = document.getElementById('app-toast-notification');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'app-toast-notification';
+        toast.className = "fixed top-6 right-6 z-50 px-4 py-3 rounded-2xl bg-slate-900/95 border border-cyan-500/50 shadow-2xl text-white text-xs sm:text-sm font-semibold flex items-center gap-2.5 transition-all duration-300 pointer-events-none transform -translate-y-5 opacity-0 backdrop-blur";
+        document.body.appendChild(toast);
+      }
+      const icon = type === 'error' ? 'alert-circle' : 'sparkles';
+      const iconColor = type === 'error' ? 'text-rose-400' : 'text-cyan-400';
+      toast.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4 ${iconColor}"></i><span>${message}</span>`;
+      if (window.lucide && lucide.createIcons) lucide.createIcons();
+      toast.classList.remove('-translate-y-5', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('-translate-y-5', 'opacity-0');
+      }, 3500);
+    }
+
+    // ==========================================
+    // SUB-FEATURE: WEBPAGE TRANSLATOR CONTROLLER
+    // ==========================================
+    const webState = {
+      subMode: 'text', // 'text' | 'web'
+      viewMode: 'split', // 'translated' | 'original' | 'split'
+      syncScroll: true,
+      url: '',
+      title: '',
+      translatedTitle: '',
+      originalHtml: '',
+      translatedHtml: '',
+      isLoading: false
+    };
+
+    function switchTextSubMode(mode) {
+      webState.subMode = mode;
+      const textBtn = document.getElementById('submode-btn-text');
+      const webBtn = document.getElementById('submode-btn-web');
+      const textContainer = document.getElementById('text-mode-container');
+      const webContainer = document.getElementById('web-mode-container');
+      const tagline = document.getElementById('submode-tagline');
+
+      if (mode === 'web') {
+        if (textBtn) {
+          textBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white cursor-pointer";
+        }
+        if (webBtn) {
+          webBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition bg-cyan-600 text-white shadow cursor-pointer";
+        }
+        if (textContainer) textContainer.classList.add('hidden');
+        if (webContainer) webContainer.classList.remove('hidden');
+        if (tagline) tagline.innerText = currentLang === 'vi' ? 'Dịch toàn bộ trang web & giữ nguyên bố cục HTML/CSS' : 'Full webpage translator preserving layout/CSS';
+      } else {
+        if (textBtn) {
+          textBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow cursor-pointer";
+        }
+        if (webBtn) {
+          webBtn.className = "px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white cursor-pointer";
+        }
+        if (textContainer) textContainer.classList.remove('hidden');
+        if (webContainer) webContainer.classList.add('hidden');
+        if (tagline) tagline.innerText = currentLang === 'vi' ? 'Dịch văn bản thuần, tài liệu hoặc phụ đề' : 'Plain text, documents or subtitles translator';
+      }
+      if (window.lucide && lucide.createIcons) lucide.createIcons();
+    }
+
+    async function pasteWebUrl() {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text && text.trim()) {
+          const input = document.getElementById('web-url-input');
+          if (input) {
+            input.value = text.trim();
+            showToast(currentLang === 'vi' ? 'Đã dán link từ clipboard!' : 'Pasted link from clipboard!');
+          }
+        }
+      } catch (err) {
+        showToast(currentLang === 'vi' ? 'Không thể truy cập clipboard' : 'Cannot access clipboard', 'error');
+      }
+    }
+
+    function toggleSyncScroll(enabled) {
+      webState.syncScroll = !!enabled;
+      const check = document.getElementById('web-sync-scroll-check');
+      if (check) check.checked = webState.syncScroll;
+      if (!webState.syncScroll) {
+        if (syncScrollRafId) {
+          cancelAnimationFrame(syncScrollRafId);
+          syncScrollRafId = null;
+        }
+        syncScrollPending = null;
+        isSyncScrollDispatching = false;
+        syncScrollActiveDriver = null;
+      }
+    }
+
+    function toggleWebQuickSwitch() {
+      if (webState.viewMode === 'translated') {
+        setWebViewMode('original');
+      } else if (webState.viewMode === 'original') {
+        setWebViewMode('translated');
+      } else {
+        // From split, switch to single translated
+        setWebViewMode('translated');
+      }
+    }
+
+    function setWebViewMode(mode) {
+      webState.viewMode = mode;
+      const btnTrans = document.getElementById('web-view-btn-trans');
+      const btnOrig = document.getElementById('web-view-btn-orig');
+      const btnSplit = document.getElementById('web-view-btn-split');
+      const grid = document.getElementById('web-viewports-grid');
+      const colOrig = document.getElementById('web-col-orig');
+      const colTrans = document.getElementById('web-col-trans');
+
+      // Reset button styles
+      [btnTrans, btnOrig, btnSplit].forEach(btn => {
+        if (btn) btn.className = "px-3 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white cursor-pointer";
+      });
+
+      if (mode === 'translated') {
+        if (btnTrans) btnTrans.className = "px-3 py-1 rounded-md text-xs font-semibold transition bg-indigo-600 text-white shadow cursor-pointer";
+        if (grid) grid.className = "grid grid-cols-1 gap-3 transition-all duration-200";
+        if (colOrig) colOrig.classList.add('hidden');
+        if (colTrans) colTrans.classList.remove('hidden');
+      } else if (mode === 'original') {
+        if (btnOrig) btnOrig.className = "px-3 py-1 rounded-md text-xs font-semibold transition bg-cyan-600 text-white shadow cursor-pointer";
+        if (grid) grid.className = "grid grid-cols-1 gap-3 transition-all duration-200";
+        if (colOrig) colOrig.classList.remove('hidden');
+        if (colTrans) colTrans.classList.add('hidden');
+      } else { // split
+        if (btnSplit) btnSplit.className = "px-3 py-1 rounded-md text-xs font-semibold transition bg-indigo-600 text-white shadow cursor-pointer";
+        if (grid) grid.className = "grid grid-cols-1 lg:grid-cols-2 gap-3 transition-all duration-200";
+        if (colOrig) colOrig.classList.remove('hidden');
+        if (colTrans) colTrans.classList.remove('hidden');
+      }
+    }
+
+    // ==========================================
+    // SYNCHRONIZED SCROLLING CONTROLLER (ACTIVE DRIVER + RAF 60FPS)
+    // ==========================================
+    let syncScrollActiveDriver = null; // 'orig' | 'trans' | null
+    let syncScrollDriverTimer = null;
+    let isSyncScrollDispatching = false;
+    let syncScrollRafId = null;
+    let syncScrollPending = null; // { targetIframe: HTMLIFrameElement, ratio: number }
+
+    function setSyncScrollActiveDriver(driverRole) {
+      if (syncScrollActiveDriver !== driverRole) {
+        syncScrollActiveDriver = driverRole;
+      }
+      if (syncScrollDriverTimer) {
+        clearTimeout(syncScrollDriverTimer);
+      }
+      // Keep driver role active during interaction, auto-release after 350ms idle
+      syncScrollDriverTimer = setTimeout(() => {
+        syncScrollActiveDriver = null;
+      }, 350);
+    }
+
+    function handleSyncScroll(driverRole) {
+      if (!webState.syncScroll || isSyncScrollDispatching) return;
+      // If the other column is currently driving, ignore scroll events from this column (prevent ping-pong cycle)
+      if (syncScrollActiveDriver && syncScrollActiveDriver !== driverRole) return;
+
+      setSyncScrollActiveDriver(driverRole);
+
+      const origIframe = document.getElementById('web-orig-iframe');
+      const transIframe = document.getElementById('web-trans-iframe');
+      if (!origIframe || !transIframe) return;
+
+      const sourceIframe = driverRole === 'orig' ? origIframe : transIframe;
+      const targetIframe = driverRole === 'orig' ? transIframe : origIframe;
+
+      try {
+        const sWin = sourceIframe.contentWindow;
+        if (!sWin || !sWin.document) return;
+        const sDoc = sWin.document.scrollingElement || sWin.document.documentElement || sWin.document.body;
+        if (!sDoc) return;
+
+        const sScrollTop = sWin.scrollY || sDoc.scrollTop || 0;
+        const sMax = Math.max(0, (sDoc.scrollHeight || 0) - (sWin.innerHeight || sDoc.clientHeight || 0));
+        if (sMax <= 0) return;
+
+        const ratio = Math.max(0, Math.min(1, sScrollTop / sMax));
+        syncScrollPending = { targetIframe, ratio };
+
+        if (!syncScrollRafId) {
+          syncScrollRafId = requestAnimationFrame(() => {
+            syncScrollRafId = null;
+            if (!syncScrollPending || !webState.syncScroll) return;
+            const { targetIframe: tgt, ratio: r } = syncScrollPending;
+            syncScrollPending = null;
+
+            try {
+              const tWin = tgt.contentWindow;
+              if (!tWin || !tWin.document) return;
+              const tDoc = tWin.document.scrollingElement || tWin.document.documentElement || tWin.document.body;
+              if (!tDoc) return;
+
+              const tMax = Math.max(0, (tDoc.scrollHeight || 0) - (tWin.innerHeight || tDoc.clientHeight || 0));
+              if (tMax <= 0) return;
+
+              const targetY = Math.round(r * tMax);
+              const currentY = tWin.scrollY || tDoc.scrollTop || 0;
+              if (Math.abs(currentY - targetY) < 1) return;
+
+              isSyncScrollDispatching = true;
+              tWin.scrollTo({ top: targetY, behavior: 'auto' });
+              if (tDoc.scrollTop !== targetY) {
+                tDoc.scrollTop = targetY;
+              }
+
+              requestAnimationFrame(() => {
+                isSyncScrollDispatching = false;
+              });
+            } catch (err) {
+              isSyncScrollDispatching = false;
+            }
+          });
+        }
+      } catch (e) {
+        // Safe cross-origin / access error guard
+      }
+    }
+
+    function attachIframeScrollSync() {
+      const origIframe = document.getElementById('web-orig-iframe');
+      const transIframe = document.getElementById('web-trans-iframe');
+      const origCol = document.getElementById('web-col-orig');
+      const transCol = document.getElementById('web-col-trans');
+      if (!origIframe || !transIframe) return;
+
+      const bindPointerEvents = (container, role) => {
+        if (!container || container._syncDriverBound) return;
+        container._syncDriverBound = true;
+        const setDriver = () => setSyncScrollActiveDriver(role);
+        ['pointerenter', 'pointermove', 'wheel', 'touchstart'].forEach(evt => {
+          container.addEventListener(evt, setDriver, { passive: true });
+        });
+      };
+
+      bindPointerEvents(origCol, 'orig');
+      bindPointerEvents(transCol, 'trans');
+
+      function bindIframe(iframe, role) {
+        try {
+          const win = iframe.contentWindow;
+          const doc = iframe.contentDocument;
+          const setDriver = () => setSyncScrollActiveDriver(role);
+          const onScroll = () => handleSyncScroll(role);
+
+          if (win) {
+            win.onscroll = onScroll;
+            win.addEventListener('scroll', onScroll, { passive: true });
+            win.addEventListener('wheel', setDriver, { passive: true });
+          }
+
+          if (doc) {
+            doc.onscroll = onScroll;
+            doc.addEventListener('scroll', onScroll, { passive: true });
+            ['pointermove', 'wheel', 'touchstart'].forEach(evt => {
+              doc.addEventListener(evt, setDriver, { passive: true });
+            });
+          }
+        } catch (e) {
+          // ignore any cross-origin restrictions
+        }
+      }
+
+      bindIframe(origIframe, 'orig');
+      bindIframe(transIframe, 'trans');
+    }
+
+    // ==========================================
+    // CLIENT-SIDE CACHE & BROWSER NAVIGATION STACK
+    // ==========================================
+    const webClientCache = new Map(); // key: `${targetLang}:::${url}`
+    const webHistory = []; // Array<{ url: string, targetLang: string, title?: string }>
+    let webHistoryIndex = -1;
+
+    function setWebCacheBadge(show, label = '0ms Cache Hit') {
+      const b1 = document.getElementById('web-cache-badge');
+      const b2 = document.getElementById('web-tb-cache-badge');
+      [b1, b2].forEach(b => {
+        if (b) {
+          if (show) {
+            b.innerText = label;
+            b.classList.remove('hidden');
+          } else {
+            b.classList.add('hidden');
+          }
+        }
+      });
+    }
+
+    function updateWebNavButtons() {
+      const canBack = webHistoryIndex > 0;
+      const canForward = webHistoryIndex >= 0 && webHistoryIndex < webHistory.length - 1;
+
+      const navBack = document.getElementById('btn-web-nav-back');
+      const navFwd = document.getElementById('btn-web-nav-forward');
+      const tbBack = document.getElementById('btn-web-tb-back');
+      const tbFwd = document.getElementById('btn-web-tb-forward');
+
+      [navBack, tbBack].forEach(btn => {
+        if (btn) {
+          btn.disabled = !canBack;
+          if (canBack) {
+            btn.classList.remove('opacity-40', 'cursor-not-allowed', 'text-slate-500');
+            btn.classList.add('text-slate-200', 'hover:text-cyan-400');
+          } else {
+            btn.classList.remove('text-slate-200', 'hover:text-cyan-400');
+            btn.classList.add('opacity-40', 'cursor-not-allowed', 'text-slate-500');
+          }
+        }
+      });
+
+      [navFwd, tbFwd].forEach(btn => {
+        if (btn) {
+          btn.disabled = !canForward;
+          if (canForward) {
+            btn.classList.remove('opacity-40', 'cursor-not-allowed', 'text-slate-500');
+            btn.classList.add('text-slate-200', 'hover:text-cyan-400');
+          } else {
+            btn.classList.remove('text-slate-200', 'hover:text-cyan-400');
+            btn.classList.add('opacity-40', 'cursor-not-allowed', 'text-slate-500');
+          }
+        }
+      });
+      if (window.lucide && lucide.createIcons) lucide.createIcons();
+    }
+
+    function pushWebHistory(url, targetLang, title) {
+      if (!url) return;
+      if (webHistoryIndex >= 0 && webHistory[webHistoryIndex]) {
+        const cur = webHistory[webHistoryIndex];
+        if (cur.url === url && cur.targetLang === targetLang) {
+          return;
+        }
+      }
+      // If navigating to a new URL after moving back in history, discard forward stack
+      if (webHistoryIndex < webHistory.length - 1) {
+        webHistory.splice(webHistoryIndex + 1);
+      }
+      webHistory.push({ url, targetLang, title: title || url });
+      webHistoryIndex = webHistory.length - 1;
+      updateWebNavButtons();
+    }
+
+    function webNavBack() {
+      if (webHistoryIndex > 0) {
+        webHistoryIndex--;
+        const entry = webHistory[webHistoryIndex];
+        const input = document.getElementById('web-url-input');
+        if (input) input.value = entry.url;
+        const targetLangSelect = document.getElementById('web-target-lang');
+        if (targetLangSelect && entry.targetLang) targetLangSelect.value = entry.targetLang;
+        updateWebNavButtons();
+        translateWebPage(entry.url, { pushHistory: false, bypassCache: false });
+      }
+    }
+
+    function webNavForward() {
+      if (webHistoryIndex >= 0 && webHistoryIndex < webHistory.length - 1) {
+        webHistoryIndex++;
+        const entry = webHistory[webHistoryIndex];
+        const input = document.getElementById('web-url-input');
+        if (input) input.value = entry.url;
+        const targetLangSelect = document.getElementById('web-target-lang');
+        if (targetLangSelect && entry.targetLang) targetLangSelect.value = entry.targetLang;
+        updateWebNavButtons();
+        translateWebPage(entry.url, { pushHistory: false, bypassCache: false });
+      }
+    }
+
+    function webNavRefresh() {
+      const input = document.getElementById('web-url-input');
+      const currentUrl = (input ? input.value : '').trim() || (webHistory[webHistoryIndex]?.url);
+      if (!currentUrl) return;
+      showToast(currentLang === 'vi' ? 'Đang làm mới trang web...' : 'Refreshing webpage...');
+      translateWebPage(currentUrl, { pushHistory: false, bypassCache: true });
+    }
+
+    function navigateToWebUrl(targetUrl) {
+      if (!targetUrl) return;
+      const input = document.getElementById('web-url-input');
+      if (input) input.value = targetUrl;
+      translateWebPage(targetUrl, { pushHistory: true, bypassCache: false });
+    }
+
+    function attachIframeLinkInterception(iframe) {
+      if (!iframe) return;
+      try {
+        const doc = iframe.contentDocument;
+        if (!doc) return;
+        doc.addEventListener('click', function(e) {
+          const anchor = e.target.closest('a');
+          if (!anchor) return;
+          const rawHref = anchor.getAttribute('href');
+          if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('javascript:')) return;
+          e.preventDefault();
+          e.stopPropagation();
+          let absUrl = anchor.href;
+          if (!absUrl || absUrl.startsWith('about:')) {
+            try {
+              absUrl = new URL(rawHref, doc.baseURI || window.location.href).href;
+            } catch (err) {
+              absUrl = rawHref;
+            }
+          }
+          navigateToWebUrl(absUrl);
+        }, true);
+      } catch (err) {
+        // Cross-origin access guard
+      }
+    }
+
+    // Window message listener for injected interceptor script in iframes
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'GEMINI_TRANS_NAVIGATE' && event.data.url) {
+        navigateToWebUrl(event.data.url);
+      }
+    });
+
+    function renderWebpageData(data, cacheLabel = null) {
+      const emptyState = document.getElementById('web-empty-state');
+      const workspace = document.getElementById('web-result-workspace');
+
+      webState.url = data.url;
+      webState.title = data.title || data.url;
+      webState.translatedTitle = data.translated_title || data.title || data.url;
+      webState.originalHtml = data.original_html || '';
+      webState.translatedHtml = data.translated_html || '';
+
+      if (emptyState) emptyState.classList.add('hidden');
+      if (workspace) workspace.classList.remove('hidden');
+
+      const titleEl = document.getElementById('web-result-title');
+      if (titleEl) {
+        titleEl.innerText = webState.translatedTitle || webState.title;
+        titleEl.title = webState.url;
+      }
+
+      const countBadge = document.getElementById('web-node-count-badge');
+      if (countBadge) {
+        countBadge.innerText = `${data.total_nodes || 0} ${currentLang === 'vi' ? 'đoạn đã dịch' : 'nodes translated'}`;
+      }
+
+      const extLink = document.getElementById('web-external-link');
+      if (extLink) extLink.href = webState.url;
+
+      if (cacheLabel) {
+        setWebCacheBadge(true, cacheLabel);
+      } else {
+        setWebCacheBadge(false);
+      }
+
+      const origIframe = document.getElementById('web-orig-iframe');
+      const transIframe = document.getElementById('web-trans-iframe');
+
+      if (origIframe) {
+        origIframe.srcdoc = webState.originalHtml;
+        origIframe.onload = () => {
+          attachIframeScrollSync();
+          attachIframeLinkInterception(origIframe);
+        };
+      }
+      if (transIframe) {
+        transIframe.srcdoc = webState.translatedHtml;
+        transIframe.onload = () => {
+          attachIframeScrollSync();
+          attachIframeLinkInterception(transIframe);
+        };
+      }
+
+      setWebViewMode(webState.viewMode || 'split');
+      if (window.lucide && lucide.createIcons) lucide.createIcons();
+    }
+
+    async function translateWebPage(customUrl = null, options = {}) {
+      const input = document.getElementById('web-url-input');
+      const targetLangSelect = document.getElementById('web-target-lang');
+      const btn = document.getElementById('btn-web-translate');
+      const btnText = document.getElementById('btn-web-translate-text');
+      const progressContainer = document.getElementById('web-progress-container');
+      const progressText = document.getElementById('web-progress-text');
+      const progressBar = document.getElementById('web-progress-bar');
+
+      const url = (customUrl || (input ? input.value : '')).trim();
+      if (!url) {
+        showToast(currentLang === 'vi' ? 'Vui lòng nhập đường dẫn trang web!' : 'Please enter a webpage URL!', 'error');
+        if (input) input.focus();
+        return;
+      }
+
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        showToast(currentLang === 'vi' ? 'URL phải bắt đầu bằng http:// hoặc https://' : 'URL must start with http:// or https://', 'error');
+        return;
+      }
+
+      const targetLang = targetLangSelect ? targetLangSelect.value : 'vi';
+      const cacheKey = `${targetLang}:::${url}`;
+      const bypassCache = !!options.bypassCache;
+      const shouldPushHistory = options.pushHistory !== false;
+
+      // 1. Check Client-side Memory Cache (Instant, 0ms, 100% token saved)
+      if (!bypassCache && webClientCache.has(cacheKey)) {
+        const cachedData = webClientCache.get(cacheKey);
+        renderWebpageData(cachedData, '0ms Client Cache');
+        if (shouldPushHistory) {
+          pushWebHistory(url, targetLang, cachedData.translated_title || cachedData.title);
+        } else {
+          updateWebNavButtons();
+        }
+        showToast(currentLang === 'vi' ? 'Đã tải từ bộ nhớ đệm (0ms)' : 'Loaded from cache (0ms)');
+        return;
+      }
+
+      // UI state: loading
+      webState.isLoading = true;
+      if (btn) btn.disabled = true;
+      if (btnText) btnText.innerText = currentLang === 'vi' ? 'Đang dịch...' : 'Translating...';
+      if (progressContainer) progressContainer.classList.remove('hidden');
+      if (progressBar) progressBar.style.width = '35%';
+      if (progressText) progressText.innerText = currentLang === 'vi' ? 'Đang tải mã nguồn và phân tích cấu trúc HTML/CSS...' : 'Fetching HTML and parsing layout/CSS...';
+
+      try {
+        const res = await fetch('/api/webpage/translate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: url,
+            target_lang: targetLang,
+            tier: 'bulk',
+            bypass_cache: bypassCache
+          })
+        });
+
+        if (progressBar) progressBar.style.width = '85%';
+        if (progressText) progressText.innerText = currentLang === 'vi' ? 'Đang hoàn tất render song song...' : 'Finishing parallel rendering...';
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || 'Không thể dịch trang web');
+        }
+
+        // Store into client memory cache
+        webClientCache.set(cacheKey, data);
+
+        const cacheLabel = data.from_cache ? (data.cache_source === 'server_memory_lru' ? '0ms Server Memory Cache' : '0ms Server Disk Cache') : null;
+        renderWebpageData(data, cacheLabel);
+
+        if (shouldPushHistory) {
+          pushWebHistory(url, targetLang, data.translated_title || data.title);
+        } else {
+          updateWebNavButtons();
+        }
+
+        if (data.from_cache) {
+          showToast(currentLang === 'vi' ? 'Đã tải từ bộ nhớ đệm máy chủ (0ms)' : 'Loaded from server cache (0ms)');
+        } else {
+          showToast(currentLang === 'vi' ? `Dịch thành công ${data.total_nodes} đoạn văn!` : `Successfully translated ${data.total_nodes} elements!`);
+        }
+      } catch (err) {
+        console.error('translateWebPage error:', err);
+        showToast(err.message || 'Lỗi khi dịch trang web', 'error');
+      } finally {
+        webState.isLoading = false;
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.innerText = currentLang === 'vi' ? 'Dịch Trang Web' : 'Translate Webpage';
+        if (progressBar) progressBar.style.width = '100%';
+        setTimeout(() => {
+          if (progressContainer) progressContainer.classList.add('hidden');
+          if (progressBar) progressBar.style.width = '0%';
+        }, 600);
+      }
+    }
+
+    // Attach Enter key listener to web-url-input
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlInput = document.getElementById('web-url-input');
+      if (urlInput) {
+        urlInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            translateWebPage();
+          }
+        });
+      }
+    });
+
+    // ==========================================
     // TAB 3: AUDIO TRANSCRIBE
     // ==========================================
     async function toggleRecord() {
@@ -3251,7 +4111,7 @@
     const mangaState = {
       sessionId: null,
       pages: [],
-      viewMode: 'translated', // 'translated' | 'original'
+      viewMode: 'translated', // 'translated' | 'original' | 'split'
       bilingualActive: false,
       zoomLevel: 100,
       isTranslatingAll: false,
@@ -3259,33 +4119,11 @@
       chapters: [],
       currentChapterIndex: -1,
       currentChapterUrl: '',
-      autoTranslateOnSwitch: true
+      autoTranslateOnSwitch: true,
+      lightboxPageIndex: 1,
+      lightboxMode: 'translated',
+      lightboxZoom: 100
     };
-
-    async function initDefaultMangaView() {
-      mangaState.seriesTitle = "Lập trình viên và Ý tưởng Python (Webtoon)";
-      mangaState.chapters = [
-        { id: "chap_1", name: "Chương 1: Ý tưởng lúc nửa đêm", url: "demo_webtoon" },
-        { id: "chap_2", name: "Chương 2: Đột phá công nghệ", url: "https://example.com/manga/python-comic/chap-2" },
-        { id: "chap_3", name: "Chương 3: Triển khai sản phẩm", url: "https://example.com/manga/python-comic/chap-3" },
-        { id: "chap_4", name: "Chương 4: Đỉnh cao lập trình", url: "https://example.com/manga/python-comic/chap-4" },
-        { id: "chap_5", name: "Chương 5: Kết thúc mở", url: "https://example.com/manga/python-comic/chap-5" }
-      ];
-      mangaState.currentChapterIndex = 0;
-      updateChapterNavUI();
-
-      try {
-        const res = await fetch('/api/manga/session/demo_webtoon');
-        if (res.ok) {
-          const data = await res.json();
-          mangaState.sessionId = data.session_id;
-          mangaState.pages = data.pages || [];
-          renderMangaWorkspace();
-        }
-      } catch (e) {
-        console.warn('initDefaultMangaView error:', e);
-      }
-    }
 
     function updateChapterNavUI() {
       const dropdown = document.getElementById('manga-chapter-dropdown');
@@ -3361,7 +4199,7 @@
         updateChapterNavUI();
 
         const titleText = mangaState.seriesTitle ? `[${mangaState.seriesTitle}] ` : '';
-        if (statusEl) statusEl.innerText = `✨ ${titleText}Tìm thấy ${mangaState.chapters.length} chapter!`;
+        if (statusEl) statusEl.innerText = `${titleText}Tìm thấy ${mangaState.chapters.length} chapter!`;
         const chapterBar = document.getElementById('manga-chapter-bar');
         if (chapterBar) {
           chapterBar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -3453,6 +4291,180 @@
       }).catch(err => {
         console.warn('Could not read clipboard:', err);
       });
+    }
+
+// ==========================================
+    // CLIPBOARD & PASTE IMAGE TO TRANSLATE LOGIC
+    // ==========================================
+
+    function showPasteToast(message) {
+      let toast = document.getElementById('paste-toast-notification');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'paste-toast-notification';
+        toast.className = "fixed top-6 right-6 z-50 px-4 py-3 rounded-2xl bg-slate-900/95 border border-indigo-500/50 shadow-2xl text-white text-xs sm:text-sm font-semibold flex items-center gap-2.5 transition-all duration-300 pointer-events-none transform -translate-y-5 opacity-0 backdrop-blur";
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = `<i data-lucide="sparkles" class="w-4 h-4 text-amber-300"></i><span>${message}</span>`;
+      if (window.lucide && lucide.createIcons) lucide.createIcons();
+      
+      toast.classList.remove('-translate-y-5', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('-translate-y-5', 'opacity-0');
+      }, 3500);
+    }
+
+    async function pasteAndTranslateImage(file) {
+      if (!file) return;
+
+      // Switch to manga tab automatically if not already active
+      if (typeof switchTab === 'function') {
+        switchTab('manga');
+      }
+
+      const statusEl = document.getElementById('manga-upload-status');
+      if (statusEl) {
+        statusEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-indigo-400 font-semibold"><i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> Đang nạp ảnh & AI inpainting dịch tiếng Việt...</span>`;
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+      }
+
+      // Show progress container
+      const progressContainer = document.getElementById('manga-progress-container');
+      const progressBar = document.getElementById('manga-progress-bar');
+      const progressText = document.getElementById('manga-progress-text');
+      const progressPercent = document.getElementById('manga-progress-percent');
+      if (progressContainer) progressContainer.classList.remove('hidden');
+      if (progressBar) progressBar.style.width = '25%';
+      if (progressPercent) progressPercent.innerText = '25%';
+      if (progressText) progressText.innerText = 'Đang gửi ảnh sang bộ dịch AI Inpainting đa luồng...';
+
+      let fakeProgress = 25;
+      const fakeTimer = setInterval(() => {
+        if (fakeProgress < 85) {
+          fakeProgress += 15;
+          if (progressBar) progressBar.style.width = fakeProgress + '%';
+          if (progressPercent) progressPercent.innerText = fakeProgress + '%';
+          if (progressText) progressText.innerText = `AI Gemini Vision đang nhận diện thoại & inpainting (${fakeProgress}%)...`;
+        }
+      }, 600);
+
+      const targetLang = document.getElementById('manga-target-lang') ? document.getElementById('manga-target-lang').value : 'vi';
+
+      const formData = new FormData();
+      formData.append('file', file, file.name || `clipboard_${Date.now()}.png`);
+      formData.append('target_lang', targetLang);
+
+      try {
+        const res = await fetch('/api/manga/paste-and-translate', {
+          method: 'POST',
+          body: formData
+        });
+        clearInterval(fakeTimer);
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Lỗi dịch ảnh từ Clipboard");
+        }
+
+        if (progressBar) progressBar.style.width = '100%';
+        if (progressPercent) progressPercent.innerText = '100%';
+        if (progressText) progressText.innerText = 'Hoàn tất dịch ảnh từ Clipboard!';
+
+        mangaState.sessionId = data.session_id;
+        mangaState.pages = data.pages || [];
+        mangaState.viewMode = 'translated';
+
+        if (statusEl) {
+          statusEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-400 font-semibold"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Đã dịch thành công từ Clipboard!</span>`;
+        }
+
+        renderMangaWorkspace();
+
+        const workspace = document.getElementById('manga-workspace');
+        if (workspace) {
+          workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        setTimeout(() => {
+          if (progressContainer) progressContainer.classList.add('hidden');
+        }, 2500);
+
+      } catch (err) {
+        clearInterval(fakeTimer);
+        if (progressContainer) progressContainer.classList.add('hidden');
+        if (statusEl) {
+          statusEl.innerHTML = `<span class="text-rose-400 font-medium">Lỗi: ${err.message}</span>`;
+        }
+        alert("Lỗi khi xử lý ảnh dán từ Clipboard: " + err.message);
+      } finally {
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+        if (typeof fetchPoolStatus === 'function') fetchPoolStatus();
+      }
+    }
+
+    function handleGlobalPaste(e) {
+      const activeEl = document.activeElement;
+      const isTextInput = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable);
+
+      const clipboardData = e.clipboardData || window.clipboardData;
+      if (!clipboardData || !clipboardData.items) return;
+
+      let imageItem = null;
+      for (let i = 0; i < clipboardData.items.length; i++) {
+        const item = clipboardData.items[i];
+        if (item.type && item.type.startsWith('image/')) {
+          imageItem = item;
+          break;
+        }
+      }
+
+      // If user is pasting text into input field, allow standard behavior
+      if (!imageItem) {
+        return;
+      }
+
+      // If image is present, intercept paste!
+      e.preventDefault();
+      e.stopPropagation();
+
+      const file = imageItem.getAsFile();
+      if (!file) return;
+
+      showPasteToast("Đã nhận diện ảnh từ Clipboard! Đang nạp & dịch...");
+      pasteAndTranslateImage(file);
+    }
+
+    async function pasteImageFromClipboardButton(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      if (navigator.clipboard && navigator.clipboard.read) {
+        try {
+          const items = await navigator.clipboard.read();
+          for (const item of items) {
+            for (const type of item.types) {
+              if (type.startsWith('image/')) {
+                const blob = await item.getType(type);
+                const file = new File([blob], `clipboard_${Date.now()}.${type.split('/')[1] || 'png'}`, { type });
+                showPasteToast("Đang dịch ảnh từ Clipboard...");
+                await pasteAndTranslateImage(file);
+                return;
+              }
+            }
+          }
+          alert("Không tìm thấy dữ liệu ảnh trong Clipboard. Vui lòng Copy ảnh hoặc Chụp màn hình (Snipping Tool / Ctrl+PrtScn) rồi bấm Ctrl + V!");
+        } catch (err) {
+          console.warn("Clipboard read API:", err);
+          alert("Trình duyệt yêu cầu phím tắt: Hãy bấm [Ctrl + V] trực tiếp trên màn hình để dán ảnh từ Clipboard!");
+        }
+      } else {
+        alert("Hãy bấm phím tắt [Ctrl + V] trên bàn phím để dán ảnh từ bộ nhớ tạm!");
+      }
     }
 
     function handleMangaDragOver(e) {
@@ -3599,7 +4611,7 @@
       }
 
       if (emptyState) emptyState.classList.add('hidden');
-      if (chapterInfo) chapterInfo.innerText = "Session #" + mangaState.sessionId.substring(0, 8);
+      if (chapterInfo) chapterInfo.innerText = "Session #" + (mangaState.sessionId || '').substring(0, 8);
       if (pageBadge) pageBadge.innerText = mangaState.pages.length + " trang";
 
       let html = '';
@@ -3610,37 +4622,66 @@
         html += `
           <div class="w-full bg-slate-900 rounded-2xl border border-slate-800/90 shadow-xl overflow-hidden transition-all duration-200" id="manga-page-card-${p.page_index}">
             <!-- Header bar of page -->
-            <div class="px-4 py-2 bg-slate-900/95 border-b border-slate-800 flex items-center justify-between text-xs">
+            <div class="px-4 py-2.5 bg-slate-900/95 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
               <div class="flex items-center gap-2">
                 <span class="font-bold text-slate-200">Trang ${p.page_index}</span>
                 <span class="text-[10px] font-mono px-2 py-0.5 rounded-full ${isTrans ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'}">
-                  ${isTrans ? 'Đã dịch AI' : 'Bản gốc'}
+                  ${isTrans ? (p.bubbles ? `Đã dịch AI (${p.bubbles.length} thoại)` : 'Đã dịch AI') : 'Bản gốc'}
                 </span>
               </div>
               <div class="flex items-center gap-2">
-                <button onclick="translateSingleMangaPage(${p.page_index})" id="btn-trans-page-${p.page_index}" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center gap-1.5 cursor-pointer">
+                <!-- Hold to view original button -->
+                ${isTrans ? `
+                <button type="button" 
+                        onmousedown="holdCompareManga(${p.page_index}, true)" 
+                        onmouseup="holdCompareManga(${p.page_index}, false)" 
+                        onmouseleave="holdCompareManga(${p.page_index}, false)" 
+                        ontouchstart="holdCompareManga(${p.page_index}, true)" 
+                        ontouchend="holdCompareManga(${p.page_index}, false)"
+                        class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center gap-1 cursor-pointer select-none border border-slate-700/60" 
+                        title="Nhấn giữ chuột để xem bản gốc, thả ra để về bản dịch">
+                  <i data-lucide="eye" class="w-3 h-3 text-indigo-400"></i>
+                  <span class="text-[11px] font-medium" data-i18n="manga_hold_orig">Giữ xem Gốc</span>
+                </button>
+                ` : ''}
+
+                <button onclick="translateSingleMangaPage(${p.page_index})" id="btn-trans-page-${p.page_index}" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center gap-1.5 cursor-pointer border border-slate-700/60">
                   <i data-lucide="sparkles" class="w-3 h-3 text-indigo-400"></i>
                   <span>${isTrans ? 'Dịch lại' : 'Dịch trang này'}</span>
                 </button>
-                <a href="${currentSrc}" target="_blank" class="p-1 rounded text-slate-400 hover:text-white" title="Mở ảnh gốc trong tab mới">
-                  <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
-                </a>
+
+                <button onclick="openMangaLightbox(${p.page_index})" class="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition border border-slate-700/60" title="Phóng to & So sánh chi tiết">
+                  <i data-lucide="maximize" class="w-3.5 h-3.5 text-cyan-400"></i>
+                </button>
               </div>
             </div>
 
-            <!-- Image Container -->
-            <div class="relative w-full flex justify-center bg-black/50 select-none overflow-hidden" id="manga-img-container-${p.page_index}">
-              <img src="${currentSrc}" 
-                   alt="Page ${p.page_index}" 
-                   id="manga-img-${p.page_index}"
-                   class="w-full h-auto object-contain block transition-opacity duration-300"
-                   loading="lazy">
-
-              <!-- Interactive Bilingual Tooltip Overlay -->
-              <div id="manga-overlay-${p.page_index}" class="absolute inset-0 pointer-events-none ${mangaState.bilingualActive ? '' : 'hidden'}">
-                ${renderBubbleOverlays(p)}
+            <!-- Image Content Container -->
+            ${mangaState.viewMode === 'split' ? `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-black/70 p-3 sm:p-4">
+                <div class="flex flex-col items-center">
+                  <div class="text-[11px] font-semibold text-slate-400 mb-1.5 flex items-center gap-1">Bản gốc</div>
+                  <img src="${p.original_url}" alt="Original Page ${p.page_index}" class="w-full h-auto object-contain rounded-lg border border-slate-800" loading="lazy">
+                </div>
+                <div class="flex flex-col items-center">
+                  <div class="text-[11px] font-semibold text-emerald-400 mb-1.5 flex items-center gap-1">Bản dịch AI Inpainting</div>
+                  <img src="${isTrans ? p.translated_url : p.original_url}" alt="Translated Page ${p.page_index}" class="w-full h-auto object-contain rounded-lg border border-slate-800" loading="lazy">
+                </div>
               </div>
-            </div>
+            ` : `
+              <div class="relative w-full flex justify-center bg-black/50 select-none overflow-hidden" id="manga-img-container-${p.page_index}">
+                <img src="${currentSrc}" 
+                     alt="Page ${p.page_index}" 
+                     id="manga-img-${p.page_index}"
+                     class="w-full h-auto object-contain block transition-opacity duration-300"
+                     loading="lazy">
+
+                <!-- Interactive Bilingual Tooltip Overlay -->
+                <div id="manga-overlay-${p.page_index}" class="absolute inset-0 pointer-events-none ${mangaState.bilingualActive ? '' : 'hidden'}">
+                  ${renderBubbleOverlays(p)}
+                </div>
+              </div>
+            `}
           </div>
         `;
       });
@@ -3650,17 +4691,17 @@
         html += `
           <div class="w-full py-6 mt-6 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 p-4 rounded-2xl">
             <div class="flex items-center gap-2">
-              <button id="btn-manga-bottom-prev" onclick="changeChapterOffset(-1)" ${mangaState.currentChapterIndex <= 0 ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold text-slate-200 hover:text-white flex items-center gap-1.5 transition border border-slate-700/60 shadow cursor-pointer">
+              <button id="btn-manga-bottom-prev" onclick="changeChapterOffset(-1)" ${mangaState.currentChapterIndex <= 0 ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold text-slate-200 hover:text-white flex items-center gap-1.5 transition border border-slate-700/60 shadow cursor-pointer">
                 <i data-lucide="chevron-left" class="w-4 h-4 text-indigo-400"></i>
-                <span>◀ Chương Trước</span>
+                <span>Chương trước</span>
               </button>
 
-              <select id="manga-bottom-chapter-dropdown" onchange="onChapterDropdownChange(this.value)" class="bg-slate-950 border border-indigo-500/50 hover:border-indigo-400 focus:border-indigo-400 text-indigo-300 font-bold rounded-xl px-3 py-1.5 text-xs focus:outline-none transition shadow-inner max-w-[200px] sm:max-w-[280px] truncate cursor-pointer">
+              <select id="manga-bottom-chapter-dropdown" onchange="onChapterDropdownChange(this.value)" class="bg-slate-950 border border-indigo-500/50 hover:border-indigo-400 focus:border-indigo-400 text-indigo-300 font-semibold rounded-xl px-3 py-1.5 text-xs focus:outline-none transition shadow-inner max-w-[200px] sm:max-w-[280px] truncate cursor-pointer">
                 ${mangaState.chapters.map((c, idx) => `<option value="${c.url}" ${idx === mangaState.currentChapterIndex ? 'selected' : ''}>${c.name}</option>`).join('')}
               </select>
 
-              <button id="btn-manga-bottom-next" onclick="changeChapterOffset(1)" ${mangaState.currentChapterIndex >= mangaState.chapters.length - 1 ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold text-slate-200 hover:text-white flex items-center gap-1.5 transition border border-slate-700/60 shadow cursor-pointer">
-                <span>Chương Tiếp ▶</span>
+              <button id="btn-manga-bottom-next" onclick="changeChapterOffset(1)" ${mangaState.currentChapterIndex >= mangaState.chapters.length - 1 ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold text-slate-200 hover:text-white flex items-center gap-1.5 transition border border-slate-700/60 shadow cursor-pointer">
+                <span>Chương tiếp</span>
                 <i data-lucide="chevron-right" class="w-4 h-4 text-indigo-400"></i>
               </button>
             </div>
@@ -3698,9 +4739,9 @@
                style="top: ${top}; left: ${left}; width: ${width}; height: ${height};"
                title="Nguyên tác: ${orig}">
             <div class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-30 w-max max-w-xs p-2 rounded-lg bg-slate-900 border border-slate-700 shadow-2xl text-[11px] text-white">
-              <p class="text-indigo-300 font-semibold mb-0.5">💬 Gốc:</p>
+              <p class="text-indigo-300 font-semibold mb-0.5">Gốc:</p>
               <p class="italic text-slate-300">${orig || '(Không có chữ)'}</p>
-              <p class="text-emerald-400 font-semibold mt-1 mb-0.5">🇻🇳 Dịch:</p>
+              <p class="text-emerald-400 font-semibold mt-1 mb-0.5">Dịch:</p>
               <p class="text-slate-200">${trans}</p>
             </div>
           </div>
@@ -3712,31 +4753,148 @@
       mangaState.viewMode = mode;
       const btnTrans = document.getElementById('manga-view-btn-trans');
       const btnOrig = document.getElementById('manga-view-btn-orig');
+      const btnSplit = document.getElementById('manga-view-btn-split');
 
-      if (mode === 'translated') {
-        if (btnTrans) {
-          btnTrans.className = "px-2.5 py-1 rounded-md text-xs font-semibold transition bg-indigo-600 text-white shadow";
-        }
-        if (btnOrig) {
-          btnOrig.className = "px-2.5 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white";
-        }
-      } else {
-        if (btnOrig) {
-          btnOrig.className = "px-2.5 py-1 rounded-md text-xs font-semibold transition bg-indigo-600 text-white shadow";
-        }
-        if (btnTrans) {
-          btnTrans.className = "px-2.5 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white";
+      const activeCls = "px-2.5 py-1 rounded-md text-xs font-semibold transition bg-indigo-600 text-white shadow";
+      const inactiveCls = "px-2.5 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white";
+
+      if (btnTrans) btnTrans.className = mode === 'translated' ? activeCls : inactiveCls;
+      if (btnOrig) btnOrig.className = mode === 'original' ? activeCls : inactiveCls;
+      if (btnSplit) btnSplit.className = mode === 'split' ? activeCls : inactiveCls;
+
+      const list = document.getElementById('manga-pages-list');
+      if (list) {
+        if (mode === 'split') {
+          list.classList.remove('max-w-2xl');
+          const targetWidth = Math.round(1400 * (mangaState.zoomLevel / 100));
+          list.style.maxWidth = targetWidth + 'px';
+        } else {
+          list.classList.add('max-w-2xl');
+          const targetWidth = Math.round(672 * (mangaState.zoomLevel / 100));
+          list.style.maxWidth = targetWidth + 'px';
         }
       }
 
-      // Update image sources instantly
-      mangaState.pages.forEach(p => {
-        const img = document.getElementById('manga-img-' + p.page_index);
-        if (img) {
-          const isTrans = p.status === 'translated' && p.translated_url;
-          img.src = (mode === 'translated' && isTrans) ? p.translated_url : p.original_url;
-        }
-      });
+      renderMangaWorkspace();
+    }
+
+    function holdCompareManga(pageIndex, isHolding) {
+      const p = mangaState.pages.find(item => item.page_index === pageIndex);
+      if (!p) return;
+      const img = document.getElementById('manga-img-' + pageIndex);
+      if (!img) return;
+
+      if (isHolding) {
+        img.src = p.original_url;
+      } else {
+        const isTrans = p.status === 'translated' && p.translated_url;
+        img.src = (mangaState.viewMode === 'translated' && isTrans) ? p.translated_url : p.original_url;
+      }
+    }
+
+    function zoomMangaReset() {
+      mangaState.zoomLevel = 100;
+      const zoomText = document.getElementById('manga-zoom-text');
+      if (zoomText) zoomText.innerText = "100%";
+      const list = document.getElementById('manga-pages-list');
+      if (list) {
+        const base = mangaState.viewMode === 'split' ? 1400 : 672;
+        list.style.maxWidth = base + 'px';
+      }
+    }
+
+    // ==========================================
+    // LIGHTBOX / ZOOM / FULLSCREEN COMPARISON
+    // ==========================================
+
+    function openMangaLightbox(pageIndex) {
+      mangaState.lightboxPageIndex = pageIndex;
+      mangaState.lightboxMode = mangaState.viewMode === 'split' ? 'split' : 'translated';
+      mangaState.lightboxZoom = 100;
+
+      const modal = document.getElementById('manga-lightbox-modal');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+
+      setLightboxMode(mangaState.lightboxMode);
+    }
+
+    function closeMangaLightbox(e) {
+      if (e && e.target && e.target.closest('#manga-lightbox-content')) return;
+      const modal = document.getElementById('manga-lightbox-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function setLightboxMode(mode) {
+      mangaState.lightboxMode = mode;
+      const btnTrans = document.getElementById('lb-btn-trans');
+      const btnOrig = document.getElementById('lb-btn-orig');
+      const btnSplit = document.getElementById('lb-btn-split');
+
+      const activeCls = "px-2.5 py-1 rounded font-semibold bg-indigo-600 text-white transition";
+      const inactiveCls = "px-2.5 py-1 rounded font-semibold text-slate-400 hover:text-white transition";
+
+      if (btnTrans) btnTrans.className = mode === 'translated' ? activeCls : inactiveCls;
+      if (btnOrig) btnOrig.className = mode === 'original' ? activeCls : inactiveCls;
+      if (btnSplit) btnSplit.className = mode === 'split' ? activeCls : inactiveCls;
+
+      renderLightboxContent();
+    }
+
+    function zoomLightbox(delta) {
+      mangaState.lightboxZoom = Math.max(40, Math.min(250, mangaState.lightboxZoom + delta));
+      const zoomVal = document.getElementById('manga-lightbox-zoom-val');
+      if (zoomVal) zoomVal.innerText = mangaState.lightboxZoom + '%';
+      const content = document.getElementById('manga-lightbox-content');
+      if (content) content.style.transform = `scale(${mangaState.lightboxZoom / 100})`;
+    }
+
+    function resetLightboxZoom() {
+      mangaState.lightboxZoom = 100;
+      const zoomVal = document.getElementById('manga-lightbox-zoom-val');
+      if (zoomVal) zoomVal.innerText = '100%';
+      const content = document.getElementById('manga-lightbox-content');
+      if (content) content.style.transform = 'scale(1)';
+    }
+
+    function renderLightboxContent() {
+      const p = mangaState.pages.find(item => item.page_index === mangaState.lightboxPageIndex) || mangaState.pages[0];
+      if (!p) return;
+
+      const titleEl = document.getElementById('manga-lightbox-title');
+      if (titleEl) titleEl.innerHTML = `<i data-lucide="image" class="w-4 h-4 text-indigo-400"></i> Trang ${p.page_index} / ${mangaState.pages.length} - ${p.filename}`;
+
+      const infoEl = document.getElementById('manga-lightbox-info');
+      if (infoEl) infoEl.innerText = p.bubbles ? `${p.bubbles.length} bóng thoại được dịch` : '';
+
+      const container = document.getElementById('manga-lightbox-content');
+      if (!container) return;
+
+      const isTrans = p.status === 'translated' && p.translated_url;
+      const mode = mangaState.lightboxMode;
+
+      if (mode === 'split') {
+        container.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-[1700px] w-full">
+            <div class="flex flex-col items-center bg-slate-900/90 p-3 rounded-2xl border border-slate-800 shadow-2xl">
+              <span class="text-xs font-semibold text-slate-300 mb-2 flex items-center gap-1.5">Bản gốc</span>
+              <img src="${p.original_url}" class="max-h-[80vh] w-auto object-contain rounded-lg">
+            </div>
+            <div class="flex flex-col items-center bg-slate-900/90 p-3 rounded-2xl border border-slate-800 shadow-2xl">
+              <span class="text-xs font-semibold text-emerald-400 mb-2 flex items-center gap-1.5">Bản dịch AI Inpainting</span>
+              <img src="${isTrans ? p.translated_url : p.original_url}" class="max-h-[80vh] w-auto object-contain rounded-lg">
+            </div>
+          </div>
+        `;
+      } else {
+        const src = (mode === 'translated' && isTrans) ? p.translated_url : p.original_url;
+        container.innerHTML = `
+          <div class="relative max-w-5xl flex justify-center">
+            <img src="${src}" class="max-h-[82vh] w-auto object-contain rounded-xl shadow-2xl border border-slate-800">
+          </div>
+        `;
+      }
+      if (window.lucide && lucide.createIcons) lucide.createIcons();
     }
 
     function toggleMangaBilingualTooltip() {
@@ -3769,8 +4927,8 @@
 
       const list = document.getElementById('manga-pages-list');
       if (list) {
-        // Base width 672px (max-w-2xl)
-        const targetWidth = Math.round(672 * (mangaState.zoomLevel / 100));
+        const base = mangaState.viewMode === 'split' ? 1400 : 672;
+        const targetWidth = Math.round(base * (mangaState.zoomLevel / 100));
         list.style.maxWidth = targetWidth + 'px';
       }
     }
@@ -3948,10 +5106,65 @@
       }
     }
 
+    // Register Global Paste Listener (Ctrl+V from anywhere)
+    window.addEventListener('paste', handleGlobalPaste);
+
+    // Register Escape key to close Lightbox modal
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('manga-lightbox-modal');
+        if (modal && !modal.classList.contains('hidden')) {
+          closeMangaLightbox();
+        }
+      }
+    });
+
     // Initialize Language, Hash Routing and Icons on page load
     setLanguage(currentLang);
     initHashRouting();
     updateSubtitleStyle(false);
   </script>
+
+  <!-- MANGA IMAGE LIGHTBOX / ZOOM / COMPARISON MODAL -->
+  <div id="manga-lightbox-modal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md hidden flex flex-col justify-between p-3 sm:p-5 select-none" onclick="closeMangaLightbox(event)">
+    <!-- Top Modal Header -->
+    <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 shadow-2xl" onclick="event.stopPropagation()">
+      <div class="flex items-center gap-3">
+        <span id="manga-lightbox-title" class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+          <i data-lucide="image" class="w-4 h-4 text-indigo-400"></i> Trang 1
+        </span>
+        <!-- Lightbox View Mode Toggle -->
+        <div class="inline-flex p-0.5 rounded-lg bg-slate-800 border border-slate-700 text-xs">
+          <button onclick="setLightboxMode('translated')" id="lb-btn-trans" class="px-2.5 py-1 rounded font-semibold bg-indigo-600 text-white transition">Bản dịch</button>
+          <button onclick="setLightboxMode('original')" id="lb-btn-orig" class="px-2.5 py-1 rounded font-semibold text-slate-400 hover:text-white transition">Bản gốc</button>
+          <button onclick="setLightboxMode('split')" id="lb-btn-split" class="px-2.5 py-1 rounded font-semibold text-slate-400 hover:text-white transition">Song song</button>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <button onclick="zoomLightbox(-15)" class="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700 cursor-pointer" title="Thu nhỏ"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+        <span id="manga-lightbox-zoom-val" class="text-xs font-mono text-slate-300 px-1">100%</span>
+        <button onclick="zoomLightbox(15)" class="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700 cursor-pointer" title="Phóng to"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+        <button onclick="resetLightboxZoom()" class="px-2.5 py-1 rounded-lg bg-slate-800 text-xs font-medium text-slate-300 hover:text-white border border-slate-700 cursor-pointer">100%</button>
+        <button onclick="closeMangaLightbox()" class="p-1.5 rounded-lg bg-rose-900/40 text-rose-300 hover:bg-rose-800 hover:text-white border border-rose-800/60 ml-2 cursor-pointer" title="Đóng (ESC)"><i data-lucide="x" class="w-4 h-4"></i></button>
+      </div>
+    </div>
+
+    <!-- Center Image Content Viewport -->
+    <div id="manga-lightbox-viewport" class="flex-1 flex items-center justify-center overflow-auto p-2 sm:p-4 my-2" onclick="closeMangaLightbox(event)">
+      <div id="manga-lightbox-content" class="transition-transform duration-150 flex items-center justify-center max-w-full max-h-full" onclick="event.stopPropagation()">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Bottom Modal Bar: Prev/Next & Tip -->
+    <div class="flex items-center justify-between text-xs text-slate-400 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-800" onclick="event.stopPropagation()">
+      <span class="flex items-center gap-1.5">
+        <i data-lucide="help-circle" class="w-3.5 h-3.5 text-indigo-400"></i>
+        <span>Nhấn phím ESC hoặc bấm vùng trống bên ngoài để đóng.</span>
+      </span>
+      <span class="font-mono text-slate-400" id="manga-lightbox-info"></span>
+    </div>
+  </div>
+
 </body>
 </html>

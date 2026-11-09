@@ -259,65 +259,73 @@ class KeyPool:
         mime_type: str,
         prompt: str,
         system_instruction: str = "",
-        model_name: str = "gemini-3.5-flash",
+        model_name: str = "gemini-3.5-flash-lite",
         response_mime_type: Optional[str] = None
     ) -> str:
         encoded_data = base64.b64encode(audio_bytes).decode("utf-8")
         
-        retries = 3
-        while retries > 0:
-            key = self.acquire_key()
-            url = f"{self.api_base}/{model_name}:generateContent?key={key}"
-            
-            parts = [
-                {"text": prompt},
-                {
-                    "inlineData": {
-                        "mimeType": mime_type,
-                        "data": encoded_data
+        fallback_models = [model_name, "gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.6-flash"]
+        # Remove duplicates preserving order
+        candidate_models = list(dict.fromkeys(fallback_models))
+
+        for current_model in candidate_models:
+            retries = 2
+            while retries > 0:
+                key = self.acquire_key()
+                url = f"{self.api_base}/{current_model}:generateContent?key={key}"
+                
+                parts = [
+                    {"text": prompt},
+                    {
+                        "inlineData": {
+                            "mimeType": mime_type,
+                            "data": encoded_data
+                        }
                     }
+                ]
+                gen_config: Dict[str, Any] = {
+                    "temperature": 0.2,
+                    "maxOutputTokens": 8192
                 }
-            ]
-            gen_config: Dict[str, Any] = {
-                "temperature": 0.2,
-                "maxOutputTokens": 8192
-            }
-            if response_mime_type:
-                gen_config["responseMimeType"] = response_mime_type
+                if response_mime_type:
+                    gen_config["responseMimeType"] = response_mime_type
 
-            payload: Dict[str, Any] = {
-                "contents": [{"parts": parts}],
-                "generationConfig": gen_config
-            }
-            if system_instruction:
-                payload["systemInstruction"] = {
-                    "parts": [{"text": system_instruction}]
+                payload: Dict[str, Any] = {
+                    "contents": [{"parts": parts}],
+                    "generationConfig": gen_config
                 }
+                if system_instruction:
+                    payload["systemInstruction"] = {
+                        "parts": [{"text": system_instruction}]
+                    }
 
-            try:
-                async with httpx.AsyncClient(timeout=self.request_timeout * 2.0) as client:
-                    resp = await client.post(url, json=payload)
-                    if resp.status_code != 200:
-                        self.record_usage(key, success=False, status_code=resp.status_code)
-                        retries -= 1
-                        await asyncio.sleep(0.5)
-                        continue
-                    
-                    self.record_usage(key, success=True, status_code=200)
-                    data = resp.json()
-                    candidates = data.get("candidates", [])
-                    if candidates:
-                        text_parts = []
-                        for p in candidates[0].get("content", {}).get("parts", []):
-                            text_parts.append(p.get("text", ""))
-                        return "".join(text_parts)
-                    return ""
-            except Exception:
-                self.record_usage(key, success=False, status_code=500)
-                retries -= 1
-                await asyncio.sleep(0.5)
+                try:
+                    async with httpx.AsyncClient(timeout=self.request_timeout * 2.0) as client:
+                        resp = await client.post(url, json=payload)
+                        if resp.status_code != 200:
+                            self.record_usage(key, success=False, status_code=resp.status_code)
+                            retries -= 1
+                            if resp.status_code in [404, 400]:
+                                # Switch to next candidate model immediately
+                                break
+                            await asyncio.sleep(0.5)
+                            continue
+                        
+                        self.record_usage(key, success=True, status_code=200)
+                        data = resp.json()
+                        candidates = data.get("candidates", [])
+                        if candidates:
+                            text_parts = []
+                            for p in candidates[0].get("content", {}).get("parts", []):
+                                text_parts.append(p.get("text", ""))
+                            return "".join(text_parts)
+                        return ""
+                except Exception:
+                    self.record_usage(key, success=False, status_code=500)
+                    retries -= 1
+                    await asyncio.sleep(0.5)
 
-        raise RuntimeError("Không thể xử lý multimodal qua Gemini Pool sau 3 lần thử.")
+        raise RuntimeError("Không thể xử lý multimodal qua Gemini Pool sau khi thử các model dự phòng.")
 
     async def generate_content(
         self,

@@ -14,6 +14,7 @@ import aiofiles
 import zipfile
 from core.manga_helper import (
     detect_and_translate_manga,
+    detect_image_mime,
     render_translated_page,
     fetch_images_from_url,
     analyze_manga_site_with_ai,
@@ -23,6 +24,7 @@ from core.manga_helper import (
 )
 
 from core.key_pool import KeyPool, MODEL_TIERS
+from core.webpage_helper import process_and_translate_webpage
 from core.video_helper import (
     get_video_info,
     extract_youtube_id,
@@ -99,6 +101,12 @@ class MangaTranslateAllRequest(BaseModel):
 class MangaExportZipRequest(BaseModel):
     session_id: str
 
+class WebpageTranslateRequest(BaseModel):
+    url: str
+    target_lang: str = "vi"
+    tier: str = "bulk"
+    bypass_cache: bool = False
+
 class BurnSubRequest(BaseModel):
     video_id: str
     subtitles: List[Dict[str, Any]]
@@ -151,6 +159,117 @@ async def translate_text(req: TranslateRequest):
     else:
         result = await pool.generate_content(req.text, system_instruction, req.tier)
         return {"translated_text": result}
+
+@app.post("/api/webpage/translate")
+async def translate_webpage(req: WebpageTranslateRequest):
+    if not req.url or not req.url.strip():
+        raise HTTPException(status_code=400, detail="Vui lòng nhập đường dẫn URL trang web.")
+    try:
+        result = await process_and_translate_webpage(
+            url=req.url.strip(),
+            target_lang=req.target_lang,
+            pool=pool,
+            tier=req.tier,
+            bypass_cache=req.bypass_cache
+        )
+        return result
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        print(f"Error translating webpage: {e}")
+        raise HTTPException(status_code=500, detail=f"Lỗi khi tải hoặc dịch trang web: {str(e)}")
+
+@app.post("/api/webpage/cache/clear")
+def clear_webpage_cache(req: Optional[Dict[str, Any]] = Body(None)):
+    from core.webpage_helper import web_cache
+    target_url = req.get("url") if req else None
+    web_cache.invalidate(target_url) if target_url else web_cache.invalidate("")
+    return {"status": "success", "message": "Cache invalidated"}
+
+@app.get("/test-article", response_class=HTMLResponse)
+def get_test_article():
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Artificial Intelligence and Future of Machine Learning</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.8; margin: 40px auto; max-width: 800px; padding: 0 20px; color: #1e293b; background: #ffffff; }
+        h1 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; }
+        h2 { color: #334155; margin-top: 32px; }
+        p { margin: 16px 0; font-size: 16px; }
+        .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 24px 0; }
+        li { margin-bottom: 8px; }
+        .nav-box { margin-top: 30px; padding: 18px; background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 10px; }
+        .demo-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: #0284c7; color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: background 0.2s; }
+        .demo-link:hover { background: #0369a1; }
+    </style>
+</head>
+<body>
+    <h1>Artificial Intelligence and Future of Machine Learning</h1>
+    <p>Artificial Intelligence (AI) has emerged as one of the most transformative technological innovations of the twenty-first century. From automated reasoning to deep neural networks, AI systems are reshaping industries and society.</p>
+    <div class="card">
+        <h2>Core Innovations in Modern AI Architectures</h2>
+        <p>Modern machine learning models leverage massive datasets and transformer architectures to generate human-like reasoning, synthesize software code, and analyze visual information at unprecedented scale.</p>
+        <ul>
+            <li>Multimodal foundation models capable of reasoning across text, voice, and vision.</li>
+            <li>Low-latency edge deployment optimized for real-time translation and embedded agents.</li>
+            <li>Context-aware attention mechanisms improving natural language comprehension.</li>
+        </ul>
+    </div>
+    <h2>Impact on Global Communication and Real-time Translation</h2>
+    <p>Cross-lingual communication barriers are rapidly collapsing. Neural translation pipelines preserve syntactic subtleties, cultural idioms, and original document presentation with high precision.</p>
+    
+    <div class="nav-box">
+        <h3 style="margin-top:0; color: #0369a1;">Featured Deep-Dive Exploration</h3>
+        <p style="margin-bottom: 14px;">Continue reading our next article on distributed autonomous intelligence:</p>
+        <a id="link-to-article-2" class="demo-link" href="/test-article-2">
+            <span>Next Article: Autonomous Multi-Agent Architectures</span> &rarr;
+        </a>
+    </div>
+
+    <h2>The Roadmap Ahead</h2>
+    <p>As computational efficiency increases, next-generation AI agents will collaborate autonomously to orchestrate distributed workflows, verify correctness, and eliminate language barriers globally.</p>
+    <p>Continued advances in ethical alignment, low-resource language preservation, and zero-storage processing guarantee enhanced user privacy and data sovereignty.</p>
+    <p style="margin-top: 150px; color: #64748b; font-size: 14px;">Published by Tech Innovations Journal &copy; 2026. All rights reserved.</p>
+</body>
+</html>"""
+
+@app.get("/test-article-2", response_class=HTMLResponse)
+def get_test_article_2():
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Autonomous Multi-Agent Architectures</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.8; margin: 40px auto; max-width: 800px; padding: 0 20px; color: #1e293b; background: #ffffff; }
+        h1 { color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; }
+        h2 { color: #334155; margin-top: 32px; }
+        p { margin: 16px 0; font-size: 16px; }
+        .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 24px 0; }
+        .nav-box { margin-top: 30px; padding: 18px; background: #fef3c7; border: 1px solid #fde68a; border-radius: 10px; }
+        .demo-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: #d97706; color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: background 0.2s; }
+        .demo-link:hover { background: #b45309; }
+    </style>
+</head>
+<body>
+    <h1>Autonomous Multi-Agent Architectures</h1>
+    <p>Autonomous multi-agent systems represent a paradigm shift in software engineering, moving from monolithic single-prompt models to orchestrated teams of specialist agents.</p>
+    <div class="card">
+        <h2>Key Benefits of Agentic Collaboration</h2>
+        <p>Specialized agents coordinate through explicit protocols, separating responsibilities into architecture design, automated testing, and security verification.</p>
+    </div>
+    <div class="nav-box">
+        <h3 style="margin-top:0; color: #b45309;">Navigation Back to Foundation Article</h3>
+        <p style="margin-bottom: 14px;">Return to the foundational article on Machine Learning and AI:</p>
+        <a id="link-back-to-article-1" class="demo-link" href="/test-article">
+            &larr; <span>Back to Artificial Intelligence Overview</span>
+        </a>
+    </div>
+    <p style="margin-top: 150px; color: #64748b; font-size: 14px;">Published by Tech Innovations Journal &copy; 2026. All rights reserved.</p>
+</body>
+</html>"""
 
 @app.post("/api/transcribe")
 async def transcribe_audio(
@@ -517,6 +636,87 @@ async def upload_manga(
         "session_id": sid,
         "total_pages": len(pages),
         "pages": pages
+    }
+
+@app.post("/api/manga/paste-and-translate")
+async def paste_and_translate_manga(
+    file: UploadFile = File(...),
+    target_lang: str = Form("vi"),
+    session_id: Optional[str] = Form(None)
+):
+    if not file:
+        raise HTTPException(status_code=400, detail="Không có dữ liệu ảnh tải lên từ Clipboard")
+
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Dữ liệu ảnh từ Clipboard bị rỗng")
+
+    orig_ext = Path(file.filename or "").suffix.lower()
+    if orig_ext not in [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".avif"]:
+        mime = detect_image_mime(content)
+        if "jpeg" in mime or "jpg" in mime:
+            ext = ".jpg"
+        elif "webp" in mime:
+            ext = ".webp"
+        else:
+            ext = ".png"
+    else:
+        ext = orig_ext
+
+    sid = session_id or uuid.uuid4().hex[:12]
+    orig_dir = MANGA_UPLOAD_DIR / sid / "original"
+    trans_dir = MANGA_OUTPUT_DIR / sid / "translated"
+    bubble_dir = MANGA_OUTPUT_DIR / sid / "bubbles"
+    orig_dir.mkdir(parents=True, exist_ok=True)
+    trans_dir.mkdir(parents=True, exist_ok=True)
+    bubble_dir.mkdir(parents=True, exist_ok=True)
+
+    timestamp_ms = int(time.time() * 1000)
+    filename = f"paste_{timestamp_ms}{ext}"
+    dest = orig_dir / filename
+    async with aiofiles.open(dest, "wb") as f:
+        await f.write(content)
+
+    # Perform AI Inpainting + Speech Bubble Detection & Translation
+    bubbles = []
+    try:
+        bubbles = await detect_and_translate_manga(content, target_lang=target_lang, pool=pool)
+    except Exception as e:
+        print(f"Error in detect_and_translate_manga for pasted image: {e}")
+
+    loop = asyncio.get_event_loop()
+    translated_bytes = await loop.run_in_executor(None, render_translated_page, content, bubbles)
+
+    out_file = trans_dir / filename
+    async with aiofiles.open(out_file, "wb") as f:
+        await f.write(translated_bytes)
+
+    bubble_file = bubble_dir / f"{Path(filename).stem}.json"
+    async with aiofiles.open(bubble_file, "w", encoding="utf-8") as f:
+        await f.write(json.dumps(bubbles, ensure_ascii=False, indent=2))
+
+    orig_url = f"/uploads/manga/{sid}/original/{filename}"
+    trans_url = f"/outputs/manga/{sid}/translated/{filename}?t={int(time.time())}"
+
+    page_item = {
+        "page_index": 1,
+        "filename": filename,
+        "original_url": orig_url,
+        "translated_url": trans_url,
+        "status": "translated",
+        "bubbles": bubbles
+    }
+
+    return {
+        "status": "success",
+        "session_id": sid,
+        "total_pages": 1,
+        "page_index": 1,
+        "filename": filename,
+        "original_url": orig_url,
+        "translated_url": trans_url,
+        "bubbles": bubbles,
+        "pages": [page_item]
     }
 
 @app.post("/api/manga/chapters")
