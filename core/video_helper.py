@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import uuid
 import shutil
 import asyncio
 import subprocess
@@ -48,6 +49,57 @@ def get_video_info(url: str) -> Dict[str, Any]:
             "youtube_id": yt_id,
             "error": str(e)
         }
+
+def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
+    """
+    Tải video trực tuyến (YouTube, Vimeo, MP4 direct) bằng yt-dlp vào thư mục uploads
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    video_id = str(uuid.uuid4())[:8]
+    output_template = str(output_dir / f"{video_id}_%(title).50s.%(ext)s")
+    
+    cmd = [
+        "yt-dlp",
+        "-f", "bv*[height<=720]+ba/b[height<=720]/best",
+        "--merge-output-format", "mp4",
+        "--no-playlist",
+        "-o", output_template,
+        url
+    ]
+    try:
+        subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=180)
+        matches = list(output_dir.glob(f"{video_id}_*"))
+        if matches:
+            saved_file = matches[0]
+            # Trích xuất audio luôn để sẵn sàng cho AI quét
+            audio_path = output_dir / f"{video_id}_audio.mp3"
+            extract_audio_from_video(saved_file, audio_path)
+            
+            return {
+                "success": True,
+                "video_id": video_id,
+                "filename": saved_file.name,
+                "video_url": f"/uploads/{saved_file.name}",
+                "size_bytes": saved_file.stat().st_size
+            }
+    except Exception as e:
+        print(f"[ERROR] Tải video thất bại: {e}")
+        # Thử fallback chỉ tải audio nếu định dạng video quá nặng
+        try:
+            audio_template = str(output_dir / f"{video_id}_audio.%(ext)s")
+            cmd_audio = ["yt-dlp", "-x", "--audio-format", "mp3", "--no-playlist", "-o", audio_template, url]
+            subprocess.run(cmd_audio, capture_output=True, text=True, check=True, timeout=90)
+            return {
+                "success": True,
+                "video_id": video_id,
+                "filename": f"Audio_{video_id}.mp3",
+                "video_url": "",
+                "is_audio_only": True
+            }
+        except Exception as e2:
+            print(f"[ERROR] Fallback audio thất bại: {e2}")
+
+    return {"success": False, "error": "Không thể tải video từ đường dẫn này."}
 
 def extract_audio_from_video(video_path: Path, output_audio: Path) -> bool:
     """
@@ -98,7 +150,6 @@ def seconds_to_vtt_time(sec: float) -> str:
     return f"{hours:02d}:{minutes:02d}:{secs:02d}.{millis:03d}"
 
 def clean_gemini_json(raw_text: str) -> str:
-    """Loại bỏ markdown codeblock json nếu có"""
     text = raw_text.strip()
     if "```json" in text:
         text = text.split("```json", 1)[1].split("```", 1)[0].strip()
@@ -128,8 +179,6 @@ def parse_subtitles_from_ai(ai_output: str) -> List[Dict[str, Any]]:
     except Exception:
         pass
 
-    # Regex fallback nếu AI không trả về json thuần
-    # Mẫu tìm: [00:01 --> 00:04] hoặc 00:01 - 00:04
     pattern = r'(?:\[)?(\d{1,2}:\d{2}(?::\d{2})?(?:[.,]\d+)?)\s*(?:-->|-)\s*(\d{1,2}:\d{2}(?::\d{2})?(?:[.,]\d+)?)(?:\])?\s*[:\-|]?\s*(.*?)(?=\n(?:\[)?\d{1,2}:\d{2}|$)'
     matches = re.findall(pattern, ai_output, re.DOTALL)
     result = []
@@ -162,7 +211,6 @@ def export_srt(subtitles: List[Dict[str, Any]], output_path: Path):
             f.write(f"{idx}\n{s_str} --> {e_str}\n{text}\n\n")
 
 def hex_color_to_ass(hex_color: str) -> str:
-    """Chuyển đổi #RRGGBB sang &H00BBGGRR chuẩn ASS"""
     hex_color = hex_color.lstrip("#")
     if len(hex_color) == 6:
         r, g, b = hex_color[0:2], hex_color[2:4], hex_color[4:6]
@@ -180,18 +228,10 @@ def burn_subtitles_to_video(
     mask_old_sub: bool = True,
     vertical_margin: int = 35
 ) -> bool:
-    """
-    Burn phụ đề vào video bằng ffmpeg với tùy chỉnh màu sắc, cỡ chữ và hộp che phụ đề cũ
-    """
     output_video.parent.mkdir(parents=True, exist_ok=True)
-    
-    # Tính toán ASS styles
     primary_color = hex_color_to_ass(text_color)
-    
-    # Alpha của ASS: 00 là 100% đục, FF là 100% trong suốt
     alpha_int = int(round((1.0 - bg_opacity) * 255))
     alpha_hex = f"{alpha_int:02X}"
-    
     bg_hex = bg_color.lstrip("#")
     if len(bg_hex) == 6:
         br, bg, bb = bg_hex[0:2], bg_hex[2:4], bg_hex[4:6]
@@ -199,11 +239,7 @@ def burn_subtitles_to_video(
     else:
         back_color = f"&H{alpha_hex}000000"
 
-    # Đường dẫn file SRT chuẩn hóa cho ffmpeg filter (escape dấu hai chấm và gạch chéo)
     srt_clean = str(srt_path).replace("\\", "/").replace(":", "\\:")
-    
-    # Nếu mask_old_sub được bật, BorderStyle=3 (Opaque bounding box behind text)
-    # được dùng với BackColour che sạch phụ đề cũ
     border_style = 3 if mask_old_sub else 1
     outline_val = 0 if mask_old_sub else 2
     

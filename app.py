@@ -14,6 +14,7 @@ from core.video_helper import (
     get_video_info,
     extract_youtube_id,
     extract_audio_from_video,
+    download_video_from_url,
     parse_subtitles_from_ai,
     export_srt,
     burn_subtitles_to_video
@@ -43,6 +44,9 @@ class TranslateRequest(BaseModel):
     stream: bool = True
 
 class VideoInfoRequest(BaseModel):
+    url: str
+
+class VideoProcessUrlRequest(BaseModel):
     url: str
 
 class VideoChunkTranslateRequest(BaseModel):
@@ -138,6 +142,20 @@ async def fetch_video_info(req: VideoInfoRequest):
     info = await loop.run_in_executor(None, get_video_info, req.url)
     return info
 
+@app.post("/api/video/process-url")
+async def process_video_url(req: VideoProcessUrlRequest):
+    """
+    Xử lý link video trực tuyến (YouTube, v.v.): tải video về server để sẵn sàng quét sub & burn sub
+    """
+    if not req.url.strip():
+        raise HTTPException(status_code=400, detail="Vui lòng cung cấp link video")
+    
+    loop = asyncio.get_event_loop()
+    res = await loop.run_in_executor(None, download_video_from_url, req.url.strip(), UPLOAD_DIR)
+    if not res.get("success"):
+        raise HTTPException(status_code=500, detail=res.get("error", "Lỗi tải video từ đường dẫn"))
+    return res
+
 @app.post("/api/video/translate-chunk")
 async def translate_video_chunk(req: VideoChunkTranslateRequest):
     system_instruction = (
@@ -150,10 +168,6 @@ async def translate_video_chunk(req: VideoChunkTranslateRequest):
         "translated": translated.strip(),
         "key_index": (pool.current_index % len(pool.keys)) if pool.keys else 1
     }
-
-# ==============================================================================
-# TÍNH NĂNG MỚI: QUÉT VIDEO, TỰ ĐỘNG SINH SUB VÀ BURN PHỤ ĐỀ CHE SUB CŨ
-# ==============================================================================
 
 @app.post("/api/video/upload")
 async def upload_video(file: UploadFile = File(...)):
@@ -169,6 +183,11 @@ async def upload_video(file: UploadFile = File(...)):
         while chunk := await file.read(1024 * 1024):
             f.write(chunk)
             
+    # Tự động trích audio sẵn sàng cho quét
+    audio_path = UPLOAD_DIR / f"{video_id}_audio.mp3"
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, extract_audio_from_video, saved_path, audio_path)
+
     return {
         "video_id": video_id,
         "filename": file.filename,
@@ -182,24 +201,21 @@ async def auto_subtitle_video(req: AutoSubRequest):
     """
     Quét video bằng ffmpeg -> Trích audio -> Gửi Gemini Multimodal -> Sinh danh sách phụ đề song ngữ
     """
-    # Tìm file video theo video_id
-    matches = list(UPLOAD_DIR.glob(f"{req.video_id}_*"))
-    if not matches:
-        raise HTTPException(status_code=404, detail="Không tìm thấy file video đã tải lên.")
-    
-    video_path = matches[0]
+    # Tìm file audio hoặc video theo video_id
     audio_path = UPLOAD_DIR / f"{req.video_id}_audio.mp3"
-    
-    # 1. Trích xuất audio
-    loop = asyncio.get_event_loop()
-    success = await loop.run_in_executor(None, extract_audio_from_video, video_path, audio_path)
-    if not success or not audio_path.exists():
-        raise HTTPException(status_code=500, detail="Không thể trích xuất âm thanh từ video.")
+    if not audio_path.exists():
+        matches = list(UPLOAD_DIR.glob(f"{req.video_id}_*"))
+        if not matches:
+            raise HTTPException(status_code=404, detail="Không tìm thấy file video/audio đã xử lý.")
+        video_path = matches[0]
+        loop = asyncio.get_event_loop()
+        success = await loop.run_in_executor(None, extract_audio_from_video, video_path, audio_path)
+        if not success or not audio_path.exists():
+            raise HTTPException(status_code=500, detail="Không thể trích xuất âm thanh từ video.")
 
     with open(audio_path, "rb") as f:
         audio_bytes = f.read()
 
-    # 2. Gửi audio đến Gemini Multimodal Model thông qua Smart Key Pool
     lang_map = {
         "vi": "Tiếng Việt",
         "en": "Tiếng Anh",
@@ -228,7 +244,6 @@ async def auto_subtitle_video(req: AutoSubRequest):
         )
         subtitles = parse_subtitles_from_ai(ai_response)
         
-        # Nếu danh sách rỗng, tạo fallback subtitle tối thiểu
         if not subtitles:
             subtitles = [{
                 "id": 1,
@@ -240,7 +255,6 @@ async def auto_subtitle_video(req: AutoSubRequest):
                 "translated": "Đã hoàn thành nhận diện âm thanh"
             }]
 
-        # Lưu file .srt ban đầu
         srt_path = OUTPUT_DIR / f"{req.video_id}.srt"
         export_srt(subtitles, srt_path)
 
@@ -257,15 +271,14 @@ async def burn_subtitles_endpoint(req: BurnSubRequest):
     """
     Burn phụ đề vào video bằng ffmpeg với tùy biến màu sắc, cỡ chữ và che mờ/xóa sub cũ
     """
-    matches = list(UPLOAD_DIR.glob(f"{req.video_id}_*"))
+    matches = [p for p in UPLOAD_DIR.glob(f"{req.video_id}_*") if not p.name.endswith(".mp3")]
     if not matches:
-        raise HTTPException(status_code=404, detail="Không tìm thấy file video.")
+        raise HTTPException(status_code=404, detail="Không tìm thấy file video gốc để in phụ đề.")
     
     video_path = matches[0]
     srt_path = OUTPUT_DIR / f"{req.video_id}.srt"
     output_video_path = OUTPUT_DIR / f"{req.video_id}_subtitled.mp4"
 
-    # Cập nhật lại file srt từ danh sách phụ đề người dùng đã duyệt/sửa
     export_srt(req.subtitles, srt_path)
 
     loop = asyncio.get_event_loop()

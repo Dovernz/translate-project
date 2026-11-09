@@ -183,10 +183,10 @@
               
               <!-- Action Buttons -->
               <div class="flex items-center gap-2">
-                <button onclick="startAutoSubtitling()" id="btn-auto-sub" class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-indigo-500/25 transition disabled:opacity-50" disabled>
+                <button onclick="startAutoSubtitling()" id="btn-auto-sub" class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-indigo-500/25 transition cursor-pointer">
                   <i data-lucide="sparkles" class="w-4 h-4"></i> AI Quét & Dịch Toàn Bộ Video
                 </button>
-                <button onclick="burnAndExportVideo()" id="btn-burn-video" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-emerald-600/25 transition disabled:opacity-50" disabled>
+                <button onclick="burnAndExportVideo()" id="btn-burn-video" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-emerald-600/25 transition cursor-pointer">
                   <i data-lucide="download" class="w-4 h-4"></i> Xuất Video Hardsub
                 </button>
               </div>
@@ -631,8 +631,16 @@
 
     // AI AUTO SUBTITLING
     async function startAutoSubtitling() {
+      // Nếu chưa có videoId nhưng có link trong ô input, tự động nạp link trước
       if (!currentVideoId) {
-        alert("Vui lòng tải video lên trước!");
+        const urlInput = document.getElementById('video-url-input').value.trim();
+        if (urlInput) {
+          await loadYouTubeVideo();
+        }
+      }
+
+      if (!currentVideoId) {
+        alert("Vui lòng chọn file video từ máy (Cách 1) hoặc dán link YouTube rồi bấm 'Nạp Link' (Cách 2) trước khi quét phụ đề!");
         return;
       }
 
@@ -726,7 +734,15 @@
 
     // BURN SUBTITLES VIA FFMPEG (HARD-SUB)
     async function burnAndExportVideo() {
-      if (!currentVideoId || !currentVideoSubtitles.length) {
+      if (!currentVideoId) {
+        alert("Vui lòng tải video từ máy hoặc dán link YouTube rồi bấm 'Nạp Link' trước!");
+        return;
+      }
+      if (!currentVideoSubtitles.length) {
+        alert("Vui lòng bấm 'AI Quét & Dịch Toàn Bộ Video' để tạo phụ đề trước khi xuất video!");
+        return;
+      }
+      if (false) {
         alert("Chưa có video hoặc danh sách phụ đề!");
         return;
       }
@@ -783,11 +799,19 @@
       }
     }
 
-    // YouTube Stream Player
-    function loadYouTubeVideo() {
+    // YouTube / Web Stream Video Loader
+    async function loadYouTubeVideo() {
       const url = document.getElementById('video-url-input').value.trim();
-      if (!url) return;
+      if (!url) {
+        alert("Vui lòng nhập đường dẫn video YouTube hoặc web stream!");
+        return;
+      }
+
       const match = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+      const videoBadge = document.getElementById('current-video-badge');
+      const btnAuto = document.getElementById('btn-auto-sub');
+
+      // Tạm thời hiển thị iframe YouTube trong lúc tải video
       if (match) {
         const id = match[1];
         document.getElementById('player-placeholder').classList.add('hidden');
@@ -795,9 +819,46 @@
         const box = document.getElementById('yt-player-box');
         box.classList.remove('hidden');
         box.innerHTML = `<iframe class="w-full h-full rounded-2xl" src="https://www.youtube.com/embed/${id}?autoplay=1" frameborder="0" allowfullscreen></iframe>`;
-        document.getElementById('current-video-badge').innerText = `YouTube: ${id}`;
-      } else {
-        alert("Đã nhận link stream: " + url);
+      }
+
+      videoBadge.innerText = "Đang tải video & audio về server...";
+      videoBadge.className = "text-xs px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 font-medium animate-pulse";
+      btnAuto.innerHTML = `<span class="w-3.5 h-3.5 rounded-full bg-white animate-ping mr-1"></span> Đang Tải Video & Dữ Liệu...`;
+
+      try {
+        const res = await fetch('/api/video/process-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url })
+        });
+        const data = await res.json();
+        if (data.video_id) {
+          currentVideoId = data.video_id;
+          videoBadge.innerText = `Đã nạp: ${data.filename || 'YouTube Video'}`;
+          videoBadge.className = "text-xs px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 font-medium";
+
+          // Chuyển sang HTML5 player nếu có video_url để overlay phụ đề hoạt động hoàn hảo
+          if (data.video_url) {
+            document.getElementById('yt-player-box').classList.add('hidden');
+            uploadedVideo.classList.remove('hidden');
+            uploadedVideo.src = data.video_url;
+            uploadedVideo.load();
+            uploadedVideo.play().catch(() => {});
+          }
+
+          subtitleOverlay.classList.remove('hidden');
+          updateSubtitleStyle();
+          alert("Nạp video thành công! Bạn có thể bấm 'AI Quét & Dịch Toàn Bộ Video' để bắt đầu tạo phụ đề.");
+        } else {
+          throw new Error(data.detail || "Không nhận diện được video");
+        }
+      } catch (err) {
+        videoBadge.innerText = "Lỗi nạp video: " + err.message;
+        videoBadge.className = "text-xs px-2.5 py-1 rounded-md bg-red-500/20 text-red-400 font-medium";
+        alert("Lỗi tải video: " + err.message);
+      } finally {
+        btnAuto.innerHTML = `<i data-lucide="sparkles" class="w-4 h-4"></i> AI Quét & Dịch Toàn Bộ Video`;
+        lucide.createIcons();
       }
     }
 
