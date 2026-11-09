@@ -103,56 +103,135 @@
 
   <!-- Header -->
   <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-40 backdrop-blur">
-    <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-2">
-      <a href="/" id="header-logo" data-href="/" class="flex items-center space-x-2 sm:space-x-3 cursor-pointer select-none group min-w-0">
-        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform flex-shrink-0">
-          <i data-lucide="languages" class="w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
+    <div class="max-w-7xl mx-auto px-4 py-2.5 sm:py-3 flex items-center justify-between gap-3">
+      <!-- Logo: clean and minimal -->
+      <a href="/" id="header-logo" data-href="/" class="flex items-center space-x-2.5 cursor-pointer select-none group min-w-0">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform flex-shrink-0">
+          <i data-lucide="languages" class="w-5 h-5 text-white"></i>
         </div>
-        <div class="min-w-0">
-          <h1 class="font-bold text-base sm:text-lg leading-tight flex items-center gap-1.5 truncate">
-            GeminiTrans <span class="text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-normal border border-indigo-500/30 hidden xs:inline">AI Studio Pool</span>
-          </h1>
-          <p class="text-[11px] sm:text-xs text-slate-400 truncate hidden md:block" data-i18n="header_tagline">Dịch đa phương tiện & Thêm phụ đề phim tự động (Che sub cũ)</p>
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="font-bold text-base sm:text-lg tracking-tight text-white truncate">GeminiTrans</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-medium border border-indigo-500/30">AI Pool</span>
         </div>
       </a>
 
-      <!-- Right Header Actions (i18n Switcher & Key Pool) -->
-      <div class="flex items-center space-x-1.5 sm:space-x-3 flex-shrink-0">
+      <!-- Desktop Header Actions (hidden on < lg, shown on lg+) -->
+      <div class="hidden lg:flex items-center space-x-3 flex-shrink-0">
         <!-- Language Switcher Toggle [ 🇻🇳 Tiếng Việt | 🇬🇧 English ] -->
-        <div class="flex items-center bg-slate-800/90 rounded-xl p-0.5 sm:p-1 border border-slate-700/80 shadow-sm">
-          <button id="lang-btn-vi" onclick="setLanguage('vi')" class="px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition bg-indigo-600 text-white shadow">
-            <span>🇻🇳</span> <span class="hidden sm:inline">Tiếng Việt</span>
+        <div class="flex items-center bg-slate-800/90 rounded-xl p-1 border border-slate-700/80 shadow-sm">
+          <button id="lang-btn-vi" onclick="setLanguage('vi')" class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow">
+            <span>🇻🇳</span> <span>Tiếng Việt</span>
           </button>
-          <button id="lang-btn-en" onclick="setLanguage('en')" class="px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition text-slate-400 hover:text-white">
-            <span>🇬🇧</span> <span class="hidden sm:inline">English</span>
+          <button id="lang-btn-en" onclick="setLanguage('en')" class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white">
+            <span>🇬🇧</span> <span>English</span>
           </button>
         </div>
 
         <!-- Live Pool Status Indicator -->
-        <div id="pool-badge" class="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs cursor-pointer hover:border-indigo-500 transition shadow-sm select-none" onclick="togglePoolModal()">
-          <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0"></span>
-          <span id="pool-status-text" class="text-slate-300 font-medium text-[11px] sm:text-xs max-w-[120px] sm:max-w-none truncate" data-i18n="pool_loading">Pool: Đang tải...</span>
-          <i data-lucide="chevron-down" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400 flex-shrink-0"></i>
+        <div id="pool-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs cursor-pointer hover:border-indigo-500 transition shadow-sm select-none" onclick="togglePoolModal()">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0"></span>
+          <span id="pool-status-text" class="text-slate-300 font-medium text-xs truncate" data-i18n="pool_loading">Pool: Đang tải...</span>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 flex-shrink-0"></i>
         </div>
-        <a href="https://aistudio.google.com" target="_blank" class="hidden md:flex text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-xl hover:bg-slate-800 border border-transparent hover:border-slate-700 transition items-center gap-1">
+        <a href="https://aistudio.google.com" target="_blank" class="text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-xl hover:bg-slate-800 border border-transparent hover:border-slate-700 transition flex items-center gap-1">
           <i data-lucide="external-link" class="w-3.5 h-3.5"></i> <span>AI Studio</span>
         </a>
       </div>
+
+      <!-- Mobile & Tablet Hamburger Button (< lg) -->
+      <div class="flex lg:hidden items-center">
+        <button id="btn-mobile-menu" onclick="toggleMobileMenu()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition cursor-pointer active:scale-95" aria-label="Open menu">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+      </div>
     </div>
 
-    <!-- Navigation Tabs -->
-    <div class="max-w-7xl mx-auto px-3 sm:px-4 flex space-x-4 sm:space-x-6 border-t border-slate-800/60 text-xs sm:text-sm overflow-x-auto whitespace-nowrap scrollbar-none scroll-smooth">
-      <button onclick="switchTab('video')" id="tab-btn-video" data-tab-link="video" class="py-2.5 font-medium border-b-2 border-indigo-500 text-indigo-400 flex items-center gap-1.5 sm:gap-2 transition whitespace-nowrap cursor-pointer touch-manipulation">
-        <i data-lucide="film" class="w-4 h-4"></i> <span data-i18n="tab_video">Dịch & Thêm Phụ Đề Video (AI Hardsub)</span>
+    <!-- Navigation Tabs for Desktop (hidden on < lg, shown on lg+) -->
+    <div class="hidden lg:flex max-w-7xl mx-auto px-4 space-x-6 border-t border-slate-800/60 text-xs sm:text-sm">
+      <button onclick="switchTab('video')" id="tab-btn-video" data-tab-link="video" class="py-2.5 font-medium border-b-2 border-indigo-500 text-indigo-400 flex items-center gap-2 transition whitespace-nowrap cursor-pointer touch-manipulation">
+        <i data-lucide="film" class="w-4 h-4"></i> <span data-i18n="tab_video">🎬 Phụ đề Video</span>
       </button>
-      <button onclick="switchTab('translate')" id="tab-btn-translate" data-tab-link="translate" class="py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 sm:gap-2 transition whitespace-nowrap cursor-pointer touch-manipulation">
-        <i data-lucide="file-text" class="w-4 h-4"></i> <span data-i18n="tab_translate">Dịch Văn Bản & Tài Liệu</span>
+      <button onclick="switchTab('translate')" id="tab-btn-translate" data-tab-link="translate" class="py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap cursor-pointer touch-manipulation">
+        <i data-lucide="file-text" class="w-4 h-4"></i> <span data-i18n="tab_translate">📝 Dịch văn bản</span>
       </button>
-      <button onclick="switchTab('transcribe')" id="tab-btn-transcribe" data-tab-link="transcribe" class="py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 sm:gap-2 transition whitespace-nowrap cursor-pointer touch-manipulation">
-        <i data-lucide="mic" class="w-4 h-4"></i> <span data-i18n="tab_transcribe">Transcribe & Giọng Nói</span>
+      <button onclick="switchTab('transcribe')" id="tab-btn-transcribe" data-tab-link="transcribe" class="py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap cursor-pointer touch-manipulation">
+        <i data-lucide="mic" class="w-4 h-4"></i> <span data-i18n="tab_transcribe">🎙️ Giọng nói</span>
       </button>
     </div>
   </header>
+
+  <!-- ========================================== -->
+  <!-- MOBILE & TABLET DRAWER / OVERLAY MENU (< lg) -->
+  <!-- ========================================== -->
+  <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
+    <!-- Backdrop with blur -->
+    <div id="mobile-drawer-backdrop" onclick="closeMobileMenu()" class="fixed inset-0 bg-black/70 backdrop-blur-sm opacity-0 transition-opacity duration-200"></div>
+
+    <!-- Slide-over Drawer Panel -->
+    <div id="mobile-drawer-panel" class="fixed top-0 right-0 bottom-0 w-80 max-w-[85vw] bg-slate-900 border-l border-slate-800 shadow-2xl p-5 flex flex-col justify-between translate-x-full transition-transform duration-200 ease-out z-10">
+      <div class="space-y-6">
+        <!-- Drawer Header -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shadow">
+              <i data-lucide="languages" class="w-4 h-4 text-white"></i>
+            </div>
+            <span class="font-bold text-base text-white">GeminiTrans</span>
+          </div>
+          <button onclick="closeMobileMenu()" class="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition" aria-label="Close menu">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- 3 Main Tabs Navigation -->
+        <div class="space-y-2">
+          <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-1">Chức năng</div>
+          <button id="mobile-tab-btn-video" data-tab-link="video" onclick="switchMobileTab('video')" class="w-full py-2.5 px-3.5 rounded-xl font-medium text-sm flex items-center gap-3 transition cursor-pointer bg-indigo-600 text-white shadow">
+            <i data-lucide="film" class="w-4 h-4"></i> <span data-i18n="tab_video">🎬 Phụ đề Video</span>
+          </button>
+          <button id="mobile-tab-btn-translate" data-tab-link="translate" onclick="switchMobileTab('translate')" class="w-full py-2.5 px-3.5 rounded-xl font-medium text-sm flex items-center gap-3 transition cursor-pointer bg-slate-800/80 text-slate-300 hover:bg-slate-800">
+            <i data-lucide="file-text" class="w-4 h-4"></i> <span data-i18n="tab_translate">📝 Dịch văn bản</span>
+          </button>
+          <button id="mobile-tab-btn-transcribe" data-tab-link="transcribe" onclick="switchMobileTab('transcribe')" class="w-full py-2.5 px-3.5 rounded-xl font-medium text-sm flex items-center gap-3 transition cursor-pointer bg-slate-800/80 text-slate-300 hover:bg-slate-800">
+            <i data-lucide="mic" class="w-4 h-4"></i> <span data-i18n="tab_transcribe">🎙️ Giọng nói</span>
+          </button>
+        </div>
+
+        <!-- Language Selector -->
+        <div class="space-y-2 pt-2">
+          <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-1">Ngôn ngữ</div>
+          <div class="flex items-center gap-2 p-1 rounded-xl bg-slate-800/60 border border-slate-700/60">
+            <button id="mobile-lang-btn-vi" onclick="setLanguage('vi')" class="flex-1 py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition bg-indigo-600 text-white shadow">
+              <span>🇻🇳</span> <span>Tiếng Việt</span>
+            </button>
+            <button id="mobile-lang-btn-en" onclick="setLanguage('en')" class="flex-1 py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition text-slate-400 hover:text-white">
+              <span>🇬🇧</span> <span>English</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Key Pool Status -->
+        <div class="space-y-2 pt-2">
+          <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-1">Key Pool</div>
+          <div onclick="openMobilePoolModal()" class="flex items-center justify-between p-3 rounded-xl bg-slate-800/70 border border-slate-700 hover:border-indigo-500 cursor-pointer transition">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0"></span>
+              <span id="mobile-pool-status-text" class="text-xs text-slate-200 font-medium truncate" data-i18n="pool_loading">Pool: Đang tải...</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 flex-shrink-0"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drawer Footer -->
+      <div class="pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+        <a href="https://aistudio.google.com" target="_blank" class="flex items-center gap-1.5 hover:text-white transition">
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i> <span>AI Studio</span>
+        </a>
+        <span class="text-[11px] text-slate-500">GeminiTrans</span>
+      </div>
+    </div>
+  </div>
 
   <!-- Main Content Container -->
   <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
@@ -163,42 +242,34 @@
     <section id="tab-video" class="space-y-4">
       
       <!-- Video Input Options (Upload & URL) -->
-      <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 grid grid-cols-1 md:grid-cols-2 gap-4 shadow-sm">
+      <div class="p-3 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 shadow-sm">
         <!-- Option A: Upload local video -->
-        <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700/60 flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
-                <i data-lucide="upload" class="w-4 h-4"></i> <span data-i18n="video_opt1_title">Cách 1: Tải Video Lên Để Dịch & Thêm Sub</span>
-              </span>
-              <span class="text-[11px] text-slate-400" data-i18n="video_opt1_formats">Hỗ trợ MP4, MOV, MKV, WEBM</span>
-            </div>
-            <p class="text-xs text-slate-400 mb-3" data-i18n="video_opt1_desc">Tải video từ máy tính lên. AI sẽ quét toàn bộ lời thoại, dịch tự động và che mờ/xóa sub cũ chuẩn vị trí.</p>
+        <div class="p-3 sm:p-3.5 rounded-xl bg-slate-800/50 border border-slate-700/60 flex flex-col justify-between gap-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-indigo-400 flex items-center gap-1.5">
+              <i data-lucide="upload" class="w-4 h-4"></i> <span data-i18n="video_opt1_title">Tải tệp video (.mp4, .mkv, .mov)</span>
+            </span>
           </div>
           <div class="flex items-center gap-2">
-            <label class="flex-1 cursor-pointer py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium flex items-center justify-center gap-2 transition shadow-md shadow-indigo-600/20">
-              <i data-lucide="file-video" class="w-4 h-4"></i> <span id="upload-btn-label" data-i18n="video_opt1_btn">Chọn File Video Từ Máy...</span>
+            <label class="flex-1 cursor-pointer py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium flex items-center justify-center gap-2 transition shadow-md shadow-indigo-600/20 active:scale-98">
+              <i data-lucide="file-video" class="w-4 h-4"></i> <span id="upload-btn-label" data-i18n="video_opt1_btn">Chọn file</span>
               <input type="file" id="video-file-input" class="hidden" accept="video/*" onchange="handleVideoUpload(event)">
             </label>
-            <span id="upload-status-text" class="text-xs text-slate-400 hidden">0%</span>
+            <span id="upload-status-text" class="text-xs text-slate-400 hidden font-mono">0%</span>
           </div>
         </div>
 
         <!-- Option B: YouTube URL -->
-        <div class="p-4 rounded-xl bg-slate-800/50 border border-slate-700/60 flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                <i data-lucide="link" class="w-4 h-4"></i> <span data-i18n="video_opt2_title">Cách 2: Dán Link YouTube / Web Stream</span>
-              </span>
-              <span class="text-[11px] text-slate-400" data-i18n="video_opt2_formats">YouTube, Direct MP4 URL</span>
-            </div>
-            <p class="text-xs text-slate-400 mb-3" data-i18n="video_opt2_desc">Xem trực tiếp kèm luồng dịch phụ đề nổi thời gian thực.</p>
+        <div class="p-3 sm:p-3.5 rounded-xl bg-slate-800/50 border border-slate-700/60 flex flex-col justify-between gap-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+              <i data-lucide="link" class="w-4 h-4"></i> <span data-i18n="video_opt2_title">Dán link YouTube / Web stream</span>
+            </span>
           </div>
           <div class="flex gap-2">
             <input type="text" id="video-url-input" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500" placeholder="https://www.youtube.com/watch?v=..." data-i18n-placeholder="video_opt2_placeholder">
-            <button onclick="loadYouTubeVideo()" class="px-4 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium transition" data-i18n="video_opt2_btn">
-              Nạp Link
+            <button onclick="loadYouTubeVideo()" class="px-4 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium transition active:scale-98 cursor-pointer" data-i18n="video_opt2_btn">
+              Nạp
             </button>
           </div>
         </div>
@@ -258,92 +329,83 @@
               <!-- Action Buttons -->
               <div class="flex items-center gap-2 flex-wrap">
                 <button onclick="startAutoSubtitling()" id="btn-auto-sub" class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-indigo-500/25 transition cursor-pointer touch-manipulation">
-                  <i data-lucide="sparkles" class="w-4 h-4"></i> <span data-i18n="btn_auto_sub">AI Quét & Dịch Toàn Bộ Video</span>
+                  <i data-lucide="sparkles" class="w-4 h-4"></i> <span data-i18n="btn_auto_sub">AI Quét Sub</span>
                 </button>
                 <!-- Export Hardsub Button (Opens Export Choice Modal) -->
                 <button onclick="openExportModal()" id="btn-burn-video" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-emerald-600/25 transition cursor-pointer touch-manipulation">
-                  <i data-lucide="download" class="w-4 h-4"></i> <span data-i18n="btn_export_video">Xuất Video Hardsub</span>
+                  <i data-lucide="download" class="w-4 h-4"></i> <span data-i18n="btn_export_video">Xuất Hardsub</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- SUBTITLE CUSTOMIZATION CONTROLS (Tùy chỉnh phụ đề & Che sub cũ) -->
-          <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
-              <h3 class="font-bold text-sm text-slate-200 flex items-center gap-2">
-                <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i> <span data-i18n="customizer_title">Bảng Tùy Chỉnh Phụ Đề & Che Mờ Sub Cũ</span>
+          <!-- SUBTITLE CUSTOMIZATION CONTROLS -->
+          <div class="p-3 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <h3 class="font-semibold text-xs sm:text-sm text-slate-200 flex items-center gap-1.5">
+                <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i> <span data-i18n="customizer_title">Tùy chỉnh phụ đề</span>
               </h3>
-              <span class="text-xs text-emerald-400 font-mono hidden sm:inline" data-i18n="realtime_preview_note">Xem trước thời gian thực (Realtime Preview)</span>
-            </div>
-
-            <!-- DUAL SUBTITLES (BILINGUAL MODE) TOGGLE -->
-            <div class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
-              <label class="flex items-center gap-3 cursor-pointer select-none">
+              <!-- DUAL SUBTITLES (BILINGUAL MODE) TOGGLE -->
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <span class="font-medium text-slate-300 text-xs" data-i18n="dual_sub_title">Song ngữ</span>
                 <div class="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" id="dual-sub-toggle" class="sr-only peer" onchange="toggleDualSubtitles(this.checked)">
-                  <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                </div>
-                <div class="flex flex-col">
-                  <span class="font-semibold text-slate-200 text-xs flex items-center gap-1.5" data-i18n="dual_sub_title">
-                    <i data-lucide="split" class="w-3.5 h-3.5 text-indigo-400"></i> Phụ đề song ngữ (Bilingual: Gốc + Dịch)
-                  </span>
-                  <span class="text-[11px] text-slate-400" data-i18n="dual_sub_desc">Dòng 1: Tiếng gốc (75%, màu xám bạc) | Dòng 2: Bản dịch chuẩn</span>
+                  <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
                 </div>
               </label>
-              <span class="text-[11px] px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-mono hidden md:inline">Live + WebVTT Synced</span>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 text-xs">
               
-              <!-- 1. Che mờ / đè sub cũ -->
-              <div class="space-y-2 p-3 sm:p-3.5 rounded-xl bg-slate-800/40 border border-slate-800">
-                <label class="flex items-center justify-between font-semibold text-slate-300 cursor-pointer">
-                  <span data-i18n="mask_old_sub">Che Sub Cũ Của Video</span>
+              <!-- 1. Che sub cũ & Độ mờ đục -->
+              <div class="space-y-1.5 p-2.5 sm:p-3 rounded-xl bg-slate-800/40 border border-slate-800/80">
+                <label class="flex items-center justify-between font-medium text-slate-300 cursor-pointer">
+                  <span data-i18n="mask_old_sub">Che sub cũ</span>
                   <input type="checkbox" id="mask-old-sub" class="w-4 h-4 rounded text-indigo-600 focus:ring-0 cursor-pointer" checked onchange="updateSubtitleStyle(true)">
                 </label>
-                <p class="text-[11px] text-slate-400" data-i18n="mask_old_sub_desc">Phủ hộp nền đè trọn vẹn vị trí sub cũ</p>
                 <div class="pt-1 flex items-center justify-between">
-                  <span class="text-slate-400" data-i18n="opacity_label">Độ mờ đục (Opacity):</span>
-                  <span id="opacity-val" class="font-mono text-indigo-300 font-bold">85%</span>
+                  <span class="text-slate-400 text-[11px]" data-i18n="opacity_label">Độ mờ đục:</span>
+                  <span id="opacity-val" class="font-mono text-indigo-300 font-bold text-[11px]">85%</span>
                 </div>
-                <input type="range" id="sub-opacity" min="0" max="100" value="85" class="w-full h-2.5 sm:h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 touch-manipulation my-1" oninput="updateSubtitleStyle(true)">
+                <input type="range" id="sub-opacity" min="0" max="100" value="85" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 touch-manipulation" oninput="updateSubtitleStyle(true)">
               </div>
 
-              <!-- 2. Màu chữ & Màu nền -->
-              <div class="space-y-2 p-3 sm:p-3.5 rounded-xl bg-slate-800/40 border border-slate-800">
-                <span class="font-semibold text-slate-300 block" data-i18n="color_title">Màu Sắc Phụ Đề</span>
-                <div class="flex items-center justify-between pt-1">
-                  <span class="text-slate-400" data-i18n="text_color_label">Màu chữ:</span>
-                  <div class="flex items-center gap-2">
-                    <input type="color" id="sub-color" value="#fbbf24" class="w-7 h-7 sm:w-6 sm:h-6 rounded cursor-pointer border-0 bg-transparent touch-manipulation" onchange="updateSubtitleStyle(true)">
-                    <span id="color-hex-text" class="font-mono text-amber-300 font-bold">#FBBF24</span>
+              <!-- 2. Màu sắc -->
+              <div class="space-y-1.5 p-2.5 sm:p-3 rounded-xl bg-slate-800/40 border border-slate-800/80">
+                <span class="font-medium text-slate-300 block" data-i18n="color_title">Màu sắc</span>
+                <div class="flex items-center justify-between pt-0.5">
+                  <span class="text-slate-400 text-[11px]" data-i18n="text_color_label">Màu chữ:</span>
+                  <div class="flex items-center gap-1.5">
+                    <input type="color" id="sub-color" value="#fbbf24" class="w-5 h-5 rounded cursor-pointer border-0 bg-transparent touch-manipulation" onchange="updateSubtitleStyle(true)">
+                    <span id="color-hex-text" class="font-mono text-amber-300 font-bold text-[10px]">#FBBF24</span>
                   </div>
                 </div>
-                <div class="flex items-center justify-between pt-1">
-                  <span class="text-slate-400" data-i18n="bg_color_label">Màu nền hộp:</span>
-                  <input type="color" id="sub-bg-color" value="#000000" class="w-7 h-7 sm:w-6 sm:h-6 rounded cursor-pointer border-0 bg-transparent touch-manipulation" onchange="updateSubtitleStyle(true)">
+                <div class="flex items-center justify-between">
+                  <span class="text-slate-400 text-[11px]" data-i18n="bg_color_label">Màu nền:</span>
+                  <input type="color" id="sub-bg-color" value="#000000" class="w-5 h-5 rounded cursor-pointer border-0 bg-transparent touch-manipulation" onchange="updateSubtitleStyle(true)">
                 </div>
               </div>
 
               <!-- 3. Cỡ chữ -->
-              <div class="space-y-2 p-3 sm:p-3.5 rounded-xl bg-slate-800/40 border border-slate-800">
+              <div class="space-y-1.5 p-2.5 sm:p-3 rounded-xl bg-slate-800/40 border border-slate-800/80">
                 <div class="flex items-center justify-between">
-                  <span class="font-semibold text-slate-300" data-i18n="font_size_label">Cỡ Chữ (Font Size)</span>
-                  <span id="font-size-val" class="font-mono text-indigo-300 font-bold">22px</span>
+                  <span class="font-medium text-slate-300" data-i18n="font_size_label">Cỡ chữ</span>
+                  <span id="font-size-val" class="font-mono text-indigo-300 font-bold text-[11px]">22px</span>
                 </div>
-                <p class="text-[11px] text-slate-400" data-i18n="font_size_desc">Kích thước hiển thị trên màn hình</p>
-                <input type="range" id="sub-font-size" min="14" max="36" value="22" class="w-full h-2.5 sm:h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 touch-manipulation my-1" oninput="updateSubtitleStyle(true)">
+                <div class="pt-2">
+                  <input type="range" id="sub-font-size" min="14" max="36" value="22" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 touch-manipulation" oninput="updateSubtitleStyle(true)">
+                </div>
               </div>
 
-              <!-- 4. Vị trí cách đáy màn hình -->
-              <div class="space-y-2 p-3 sm:p-3.5 rounded-xl bg-slate-800/40 border border-slate-800">
+              <!-- 4. Vị trí đáy -->
+              <div class="space-y-1.5 p-2.5 sm:p-3 rounded-xl bg-slate-800/40 border border-slate-800/80">
                 <div class="flex items-center justify-between">
-                  <span class="font-semibold text-slate-300" data-i18n="margin_label">Vị Trí Đáy (Margin Y)</span>
-                  <span id="margin-val" class="font-mono text-indigo-300 font-bold">35px</span>
+                  <span class="font-medium text-slate-300" data-i18n="margin_label">Vị trí đáy</span>
+                  <span id="margin-val" class="font-mono text-indigo-300 font-bold text-[11px]">35px</span>
                 </div>
-                <p class="text-[11px] text-slate-400" data-i18n="margin_desc">Khoảng cách từ phụ đề tới đáy video</p>
-                <input type="range" id="sub-margin-v" min="15" max="90" value="35" class="w-full h-2.5 sm:h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 touch-manipulation my-1" oninput="updateSubtitleStyle(true)">
+                <div class="pt-2">
+                  <input type="range" id="sub-margin-v" min="15" max="90" value="35" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 touch-manipulation" oninput="updateSubtitleStyle(true)">
+                </div>
               </div>
 
             </div>
@@ -352,13 +414,10 @@
 
         <!-- Live Subtitles Timeline & Editor (1 col) -->
         <div class="rounded-2xl bg-slate-900 border border-slate-800 p-3 sm:p-4 flex flex-col h-[480px] sm:h-[550px] lg:h-[650px] shadow-lg">
-          <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-2">
-            <div>
-              <span class="text-xs font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
-                <i data-lucide="list" class="w-4 h-4 text-indigo-400"></i> <span data-i18n="timeline_title">Dòng Phụ Đề Video</span>
-              </span>
-              <p class="text-[11px] text-slate-400" data-i18n="timeline_desc">Bấm câu để tua video, click để sửa chữ</p>
-            </div>
+          <div class="flex items-center justify-between pb-2.5 border-b border-slate-800 mb-2">
+            <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+              <i data-lucide="list" class="w-4 h-4 text-indigo-400"></i> <span data-i18n="timeline_title">Phụ đề</span>
+            </span>
             <span id="sub-count-badge" class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">0 câu</span>
           </div>
 
@@ -422,8 +481,8 @@
     <section id="tab-translate" class="space-y-4 hidden">
       <div class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-slate-900 border border-slate-800">
         <div class="flex items-center space-x-2">
-          <select id="source-lang" class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500">
-            <option value="auto" data-i18n="lang_auto">Tự phát hiện ngôn ngữ</option>
+          <select id="source-lang" class="bg-slate-800 border border-slate-700 text-xs sm:text-sm rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+            <option value="auto" data-i18n="lang_auto">Tự nhận diện ngôn ngữ</option>
             <option value="en">Tiếng Anh (English)</option>
             <option value="vi">Tiếng Việt</option>
             <option value="zh">Tiếng Trung</option>
@@ -435,7 +494,7 @@
           <button onclick="swapLanguages()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Đổi chiều dịch">
             <i data-lucide="arrow-right-left" class="w-4 h-4"></i>
           </button>
-          <select id="target-lang" class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+          <select id="target-lang" class="bg-slate-800 border border-slate-700 text-xs sm:text-sm rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500">
             <option value="vi" selected>Tiếng Việt</option>
             <option value="en">Tiếng Anh (English)</option>
             <option value="zh">Tiếng Trung</option>
@@ -447,15 +506,15 @@
         </div>
 
         <div class="flex items-center space-x-2">
-          <span class="text-xs text-slate-400" data-i18n="tier_label">Model Tier:</span>
-          <select id="tier-select" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-3 py-1.5 text-indigo-300 font-medium focus:outline-none focus:border-indigo-500">
-            <option value="bulk" selected data-i18n="tier_bulk">Gemini 3.5 Flash Lite (Bulk - Siêu tốc)</option>
-            <option value="ultra" data-i18n="tier_ultra">Gemma 4 26B (Ultra - 100K reqs/ngày)</option>
-            <option value="standard" data-i18n="tier_standard">Gemini 3.6 Flash (Standard - Văn phong sâu)</option>
-            <option value="deep" data-i18n="tier_deep">Gemini 3.8 Flash (Deep - Học thuật/Y khoa)</option>
+          <span class="text-xs text-slate-400" data-i18n="tier_label">Model:</span>
+          <select id="tier-select" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2.5 py-1.5 text-indigo-300 font-medium focus:outline-none focus:border-indigo-500">
+            <option value="bulk" selected data-i18n="tier_bulk">Gemini 3.5 Flash Lite (Bulk)</option>
+            <option value="ultra" data-i18n="tier_ultra">Gemma 4 26B (Ultra)</option>
+            <option value="standard" data-i18n="tier_standard">Gemini 3.6 Flash (Standard)</option>
+            <option value="deep" data-i18n="tier_deep">Gemini 3.8 Flash (Deep)</option>
           </select>
-          <label class="cursor-pointer px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
-            <i data-lucide="upload" class="w-3.5 h-3.5"></i> <span data-i18n="file_upload_btn">Nạp file (.txt, .md, .srt)</span>
+          <label class="cursor-pointer px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
+            <i data-lucide="upload" class="w-3.5 h-3.5"></i> <span data-i18n="file_upload_btn">Nạp file</span>
             <input type="file" id="file-upload" class="hidden" accept=".txt,.md,.srt,.vtt,.json,.csv" onchange="handleFileUpload(event)">
           </label>
         </div>
@@ -465,17 +524,17 @@
         <div class="flex flex-col h-[520px] rounded-2xl bg-slate-900 border border-slate-800 p-4 shadow-sm">
           <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <i data-lucide="edit-3" class="w-3.5 h-3.5 text-indigo-400"></i> <span data-i18n="src_box_title">Văn Bản Gốc</span>
+              <i data-lucide="edit-3" class="w-3.5 h-3.5 text-indigo-400"></i> <span data-i18n="src_box_title">Văn bản gốc</span>
             </span>
-            <span id="src-char-count" class="text-xs text-slate-500">0 ký tự</span>
+            <span id="src-char-count" class="text-xs text-slate-500 font-mono">0 ký tự</span>
           </div>
-          <textarea id="src-text" class="flex-1 w-full bg-transparent resize-none border-0 text-slate-200 placeholder-slate-600 focus:outline-none text-base leading-relaxed" placeholder="Nhập hoặc dán văn bản cần dịch vào đây..." data-i18n-placeholder="src_placeholder" oninput="updateCharCount()"></textarea>
+          <textarea id="src-text" class="flex-1 w-full bg-transparent resize-none border-0 text-slate-200 placeholder-slate-600 focus:outline-none text-base leading-relaxed" placeholder="Nhập văn bản cần dịch..." data-i18n-placeholder="src_placeholder" oninput="updateCharCount()"></textarea>
           <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
-            <button onclick="clearSourceText()" class="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1">
+            <button onclick="clearSourceText()" class="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1 transition">
               <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> <span data-i18n="btn_clear">Xóa</span>
             </button>
-            <button onclick="startTranslation()" id="btn-translate" class="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium text-sm flex items-center gap-2 shadow-lg shadow-indigo-500/25 transition cursor-pointer">
-              <i data-lucide="sparkles" class="w-4 h-4"></i> <span data-i18n="btn_translate">Dịch Ngay (Stream)</span>
+            <button onclick="startTranslation()" id="btn-translate" class="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-indigo-500/25 transition cursor-pointer">
+              <i data-lucide="sparkles" class="w-4 h-4"></i> <span data-i18n="btn_translate">Dịch</span>
             </button>
           </div>
         </div>
@@ -483,14 +542,14 @@
         <div class="flex flex-col h-[520px] rounded-2xl bg-slate-900 border border-slate-800 p-4 shadow-sm relative">
           <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i> <span data-i18n="target_box_title">Bản Dịch Kết Quả</span>
+              <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i> <span data-i18n="target_box_title">Bản dịch</span>
             </span>
             <div id="translate-status" class="text-xs text-indigo-400 hidden flex items-center gap-1">
-              <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span> <span data-i18n="streaming_status">Đang stream...</span>
+              <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span> <span data-i18n="streaming_status">Đang dịch...</span>
             </div>
           </div>
           <div id="target-text" class="flex-1 w-full overflow-y-auto text-slate-200 text-base leading-relaxed whitespace-pre-wrap select-text">
-            <span class="text-slate-600 italic" data-i18n="target_placeholder">Bản dịch trực tiếp sẽ hiển thị tại đây...</span>
+            <span class="text-slate-600 italic" data-i18n="target_placeholder">Bản dịch sẽ hiển thị ở đây...</span>
           </div>
           <div class="pt-3 border-t border-slate-800/80 flex items-center justify-end space-x-2">
             <button onclick="copyTargetText()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
@@ -511,10 +570,9 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="rounded-2xl bg-slate-900 border border-slate-800 p-5 flex flex-col justify-between">
           <div>
-            <h3 class="font-bold text-base mb-1 flex items-center gap-2">
-              <i data-lucide="mic" class="w-5 h-5 text-indigo-400"></i> <span data-i18n="transcribe_title">Thu Âm Hoặc Tải File</span>
+            <h3 class="font-bold text-base mb-3 flex items-center gap-2">
+              <i data-lucide="mic" class="w-5 h-5 text-indigo-400"></i> <span data-i18n="transcribe_title">Ghi âm hoặc tải file</span>
             </h3>
-            <p class="text-xs text-slate-400 mb-6" data-i18n="transcribe_desc">Nhận diện giọng nói & dịch chuẩn xác sang tiếng Việt qua Gemini Multimodal Audio.</p>
 
             <div class="text-center py-6 bg-slate-950/60 rounded-xl border border-slate-800/80 mb-4">
               <button id="btn-record" onclick="toggleRecord()" class="w-16 h-16 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 hover:scale-105 active:scale-95 flex items-center justify-center mx-auto transition shadow-lg shadow-red-500/10 cursor-pointer">
@@ -527,22 +585,22 @@
             <div class="text-center">
               <span class="text-xs text-slate-500 block mb-2" data-i18n="record_or">- hoặc -</span>
               <label class="cursor-pointer block w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700/80 border border-slate-700 text-xs text-slate-300 font-medium transition">
-                <i data-lucide="upload-cloud" class="w-4 h-4 inline mr-1.5"></i> <span data-i18n="btn_audio_file">Chọn file (.mp3, .wav, .m4a)</span>
+                <i data-lucide="upload-cloud" class="w-4 h-4 inline mr-1.5"></i> <span data-i18n="btn_audio_file">Chọn file âm thanh</span>
                 <input type="file" id="audio-file-input" class="hidden" accept="audio/*" onchange="handleAudioUpload(event)">
               </label>
-              <p id="audio-file-name" class="text-[11px] text-indigo-400 mt-2 truncate"></p>
+              <p id="audio-file-name" class="text-[11px] text-indigo-400 mt-2 truncate font-mono"></p>
             </div>
           </div>
 
           <button onclick="startTranscribe()" id="btn-start-transcribe" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 mt-4 transition cursor-pointer">
-            <i data-lucide="sparkles" class="w-4 h-4"></i> <span data-i18n="btn_start_transcribe">Phân Tích & Dịch Âm Thanh</span>
+            <i data-lucide="sparkles" class="w-4 h-4"></i> <span data-i18n="btn_start_transcribe">Phân tích âm thanh</span>
           </button>
         </div>
 
         <div class="md:col-span-2 rounded-2xl bg-slate-900 border border-slate-800 p-5 flex flex-col h-[520px]">
           <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-2">
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-              <i data-lucide="file-audio" class="w-3.5 h-3.5 text-indigo-400"></i> <span data-i18n="transcribe_result_title">Kết Quả Transcribe & Dịch Thuật</span>
+              <i data-lucide="file-audio" class="w-3.5 h-3.5 text-indigo-400"></i> <span data-i18n="transcribe_result_title">Kết quả phiên âm</span>
             </span>
             <button onclick="copyTranscribeText()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 flex items-center gap-1 transition">
               <i data-lucide="copy" class="w-3 h-3"></i> <span data-i18n="btn_copy">Sao chép</span>
@@ -699,246 +757,230 @@
     // ==========================================
     const I18N = {
       vi: {
-        header_tagline: "Dịch đa phương tiện & Thêm phụ đề phim tự động (Che sub cũ)",
+        header_tagline: "",
         pool_loading: "Pool: Đang tải...",
-        pool_status: "7 Keys Pool: Đang dùng Key #{pointer}",
-        tab_video: "Dịch & Thêm Phụ Đề Video (AI Hardsub)",
-        tab_translate: "Dịch Văn Bản & Tài Liệu",
-        tab_transcribe: "Transcribe & Giọng Nói",
-        video_opt1_title: "Cách 1: Tải Video Lên Để Dịch & Thêm Sub",
-        video_opt1_formats: "Hỗ trợ MP4, MOV, MKV, WEBM",
-        video_opt1_desc: "Tải video từ máy tính lên. AI sẽ quét toàn bộ lời thoại, dịch tự động và che mờ/xóa sub cũ chuẩn vị trí.",
-        video_opt1_btn: "Chọn File Video Từ Máy...",
-        video_opt1_btn_change: "Đổi Video Khác...",
-        video_opt1_uploading: "Đang tải video lên...",
-        video_opt1_success: "Tải thành công!",
-        video_opt2_title: "Cách 2: Dán Link YouTube / Web Stream",
-        video_opt2_formats: "YouTube, Direct MP4 URL",
-        video_opt2_desc: "Xem trực tiếp kèm luồng dịch phụ đề nổi thời gian thực.",
+        pool_status: "7 Keys: #{pointer}",
+        tab_video: "🎬 Phụ đề Video",
+        tab_translate: "📝 Dịch văn bản",
+        tab_transcribe: "🎙️ Giọng nói",
+        video_opt1_title: "Tải tệp video (.mp4, .mkv, .mov)",
+        video_opt1_formats: "MP4, MOV, MKV, WEBM",
+        video_opt1_btn: "Chọn file",
+        video_opt1_btn_change: "Đổi file",
+        video_opt1_uploading: "Đang tải lên...",
+        video_opt1_success: "Đã tải xong!",
+        video_opt2_title: "Dán link YouTube / Web stream",
+        video_opt2_formats: "YouTube, Direct MP4",
         video_opt2_placeholder: "https://www.youtube.com/watch?v=...",
-        video_opt2_btn: "Nạp Link",
-        player_placeholder: "Hãy chọn file video từ máy hoặc dán link video để bắt đầu",
+        video_opt2_btn: "Nạp",
+        player_placeholder: "Chọn file video hoặc dán link để bắt đầu",
         badge_no_video: "Chưa tải video",
         badge_video_prefix: "Video: ",
-        badge_url_loading: "Đang tải video & audio về server...",
+        badge_url_loading: "Đang tải video...",
         badge_url_loaded: "Đã nạp: ",
-        btn_auto_sub: "AI Quét & Dịch Toàn Bộ Video",
-        btn_auto_sub_scanning: "Đang Quét & Dịch Lời Thoại...",
-        btn_export_video: "Xuất Video Hardsub",
-        dual_sub_title: "Phụ đề song ngữ (Bilingual: Gốc + Dịch)",
-        dual_sub_desc: "Dòng 1: Tiếng gốc (75%, màu xám bạc) | Dòng 2: Bản dịch chuẩn",
-        cache_loaded_badge: "⚡ Đã nạp từ bộ nhớ đệm (0 token)",
-        btn_rescan_cache: "Quét lại (Bỏ cache)",
+        btn_auto_sub: "AI Quét Sub",
+        btn_auto_sub_scanning: "Đang quét sub...",
+        btn_export_video: "Xuất Hardsub",
+        dual_sub_title: "Song ngữ",
+        cache_loaded_badge: "⚡ Bộ nhớ đệm (0 token)",
+        btn_rescan_cache: "Quét lại",
         btn_fullscreen: "Toàn màn hình",
-        customizer_title: "Bảng Tùy Chỉnh Phụ Đề & Che Mờ Sub Cũ",
-        realtime_preview_note: "Xem trước thời gian thực (Realtime Preview)",
-        mask_old_sub: "Che Sub Cũ Của Video",
-        mask_old_sub_desc: "Phủ hộp nền đè trọn vẹn vị trí sub cũ",
-        opacity_label: "Độ mờ đục (Opacity):",
-        color_title: "Màu Sắc Phụ Đề",
+        customizer_title: "Tùy chỉnh phụ đề",
+        realtime_preview_note: "Xem trước trực tiếp",
+        mask_old_sub: "Che sub cũ",
+        opacity_label: "Độ mờ đục:",
+        color_title: "Màu sắc",
         text_color_label: "Màu chữ:",
-        bg_color_label: "Màu nền hộp:",
-        font_size_label: "Cỡ Chữ (Font Size)",
-        font_size_desc: "Kích thước hiển thị trên màn hình",
-        margin_label: "Vị Trí Đáy (Margin Y)",
-        margin_desc: "Khoảng cách từ phụ đề tới đáy video",
-        timeline_title: "Dòng Phụ Đề Video",
-        timeline_desc: "Bấm câu để tua video, click để sửa chữ",
-        timeline_empty: "Tải video lên và bấm \"AI Quét & Dịch Toàn Bộ Video\" để tự động tạo danh sách phụ đề song ngữ.",
+        bg_color_label: "Màu nền:",
+        font_size_label: "Cỡ chữ",
+        margin_label: "Vị trí đáy",
+        timeline_title: "Phụ đề",
+        timeline_empty: "Chưa có phụ đề. Tải video và bấm \"AI Quét Sub\".",
         timeline_count_cues: "{count} câu",
-        timeline_scanning_msg: "Gemini Multimodal Model đang nghe & chia câu thoại theo mốc thời gian...",
-        timeline_scanning_sub: "Sử dụng Smart Key Pool tự động luân chuyển hạn ngạch",
-        timeline_no_subs: "Không phát hiện thấy câu thoại trong đoạn video.",
+        timeline_scanning_msg: "Gemini đang nhận diện thoại & mốc thời gian...",
+        timeline_scanning_sub: "Smart Key Pool tự động luân chuyển hạn ngạch",
+        timeline_no_subs: "Không phát hiện thấy câu thoại trong video.",
         export_ready_title: "Phụ đề & Video đã sẵn sàng:",
         btn_client_burn: "Xuất Zero-Storage",
         btn_server_burn: "Xuất Server FFmpeg",
-        btn_dl_srt: "Tải Tệp .SRT",
-        btn_dl_vtt: "Tải Tệp .VTT",
-        btn_dl_video: "Tải MP4 Hardsub (Server)",
+        btn_dl_srt: "Tải .SRT",
+        btn_dl_vtt: "Tải .VTT",
+        btn_dl_video: "Tải MP4 Hardsub",
         btn_clean_server: "Dọn Server (0-Byte)",
-        lang_auto: "Tự phát hiện ngôn ngữ",
-        tier_label: "Model Tier:",
-        tier_bulk: "Gemini 3.5 Flash Lite (Bulk - Siêu tốc)",
-        tier_ultra: "Gemma 4 26B (Ultra - 100K reqs/ngày)",
-        tier_standard: "Gemini 3.6 Flash (Standard - Văn phong sâu)",
-        tier_deep: "Gemini 3.8 Flash (Deep - Học thuật/Y khoa)",
-        file_upload_btn: "Nạp file (.txt, .md, .srt)",
-        src_box_title: "Văn Bản Gốc",
-        src_placeholder: "Nhập hoặc dán văn bản cần dịch vào đây...",
+        lang_auto: "Tự nhận diện ngôn ngữ",
+        tier_label: "Model:",
+        tier_bulk: "Gemini 3.5 Flash Lite (Bulk)",
+        tier_ultra: "Gemma 4 26B (Ultra)",
+        tier_standard: "Gemini 3.6 Flash (Standard)",
+        tier_deep: "Gemini 3.8 Flash (Deep)",
+        file_upload_btn: "Nạp file",
+        src_box_title: "Văn bản gốc",
+        src_placeholder: "Nhập văn bản cần dịch...",
         char_count_format: "{count} ký tự",
         btn_clear: "Xóa",
-        btn_translate: "Dịch Ngay (Stream)",
-        target_box_title: "Bản Dịch Kết Quả",
-        streaming_status: "Đang stream...",
-        target_placeholder: "Bản dịch trực tiếp sẽ hiển thị tại đây...",
+        btn_translate: "Dịch",
+        target_box_title: "Bản dịch",
+        streaming_status: "Đang dịch...",
+        target_placeholder: "Bản dịch sẽ hiển thị ở đây...",
         btn_copy: "Sao chép",
         btn_download_txt: "Tải về (.txt)",
-        transcribe_title: "Thu Âm Hoặc Tải File",
-        transcribe_desc: "Nhận diện giọng nói & dịch chuẩn xác sang tiếng Việt qua Gemini Multimodal Audio.",
+        transcribe_title: "Ghi âm hoặc tải file",
         record_idle: "Bấm micro để bắt đầu nói",
         record_listening: "Đang lắng nghe...",
-        record_done: "Đã lưu bản ghi âm. Bấm nút bên dưới để Transcribe!",
+        record_done: "Đã ghi âm xong. Bấm nút để phân tích!",
         record_or: "- hoặc -",
-        btn_audio_file: "Chọn file (.mp3, .wav, .m4a)",
-        btn_start_transcribe: "Phân Tích & Dịch Âm Thanh",
-        transcribe_result_title: "Kết Quả Transcribe & Dịch Thuật",
-        transcribe_placeholder: "Kết quả nhận diện giọng nói và bản dịch sẽ hiển thị tại đây...",
-        transcribe_analyzing: "Đang phân tích qua Gemini Multimodal Pool...",
-        modal_export_title: "Tùy Chọn Xuất Video Hardsub",
-        modal_export_desc: "Chọn phương thức in phụ đề phù hợp với nhu cầu của bạn",
-        opt_client_title: "Xuất Zero-Storage (Trực Tiếp Trên Trình Duyệt)",
+        btn_audio_file: "Chọn file âm thanh",
+        btn_start_transcribe: "Phân tích âm thanh",
+        transcribe_result_title: "Kết quả phiên âm",
+        transcribe_placeholder: "Kết quả sẽ hiển thị tại đây...",
+        transcribe_analyzing: "Gemini đang phân tích âm thanh...",
+        modal_export_title: "Tùy chọn xuất Hardsub",
+        modal_export_desc: "Chọn phương thức in phụ đề vào video",
+        opt_client_title: "Xuất Zero-Storage (Trình duyệt)",
         badge_recommended: "Khuyên Dùng",
-        opt_client_desc: "Dùng Canvas & MediaRecorder API in sub trực tiếp trên máy của bạn. Tốc độ cực nhanh, bảo mật tuyệt đối, 100% không tốn 1 byte ổ đĩa của server!",
-        opt_server_title: "Xuất Bằng Server FFmpeg (MP4 H.264)",
-        opt_server_desc: "Mã hóa H.264 qua FFmpeg trên server. Hỗ trợ cơ chế tự động xóa sạch tệp tạm ngay sau khi tải về.",
-        opt_subs_title: "Chỉ Tải Gói Phụ Đề (.SRT / .VTT)",
-        opt_subs_desc: "Tải tệp phụ đề song ngữ chuẩn để mở bằng trình phát ngoại tuyến (VLC, PotPlayer) mà không cần re-encode video.",
-        burn_modal_title: "Đang Xuất Hardsub Trên Trình Duyệt (Zero-Storage)",
-        burn_modal_desc: "Đang đọc video và in phụ đề trực tiếp qua Canvas & MediaRecorder API...",
+        opt_client_desc: "In sub trực tiếp qua Canvas & MediaRecorder. Tốc độ cực nhanh, 0 byte ổ cứng server!",
+        opt_server_title: "Xuất Server FFmpeg (MP4 H.264)",
+        opt_server_desc: "Mã hóa qua FFmpeg trên server. Tự động xóa file tạm sau khi tải.",
+        opt_subs_title: "Chỉ tải phụ đề (.SRT / .VTT)",
+        opt_subs_desc: "Tải tệp phụ đề song ngữ để xem ngoại tuyến không cần render lại video.",
+        burn_modal_title: "Đang xuất Hardsub (Zero-Storage)",
+        burn_modal_desc: "Đang đọc video và in phụ đề qua Canvas & MediaRecorder...",
         burn_init: "Đang khởi tạo burner...",
-        burn_encoding: "Đang render & encode frames...",
-        burn_done: "Hoàn tất! Đang tạo file tải về...",
-        burn_safe_note: "Video được xử lý 100% trong RAM của trình duyệt bạn, không gửi lên server, bảo đảm an toàn dữ liệu và không tốn dung lượng máy chủ.",
-        burn_success_alert: "Xuất video Hardsub thành công! File đã được lưu về máy mà không tốn 1 byte dung lượng server.",
-        btn_cancel: "Hủy Xuất Video",
-        pool_modal_title: "Quản Lý Smart Key Pool (7 Cloud Projects)",
-        pool_modal_desc: "Tự động xoay vòng Round-Robin & chống chạm hạn ngạch RPM/TPM",
+        burn_encoding: "Đang render & encode...",
+        burn_done: "Hoàn tất! Đang tạo file...",
+        burn_safe_note: "Xử lý trực tiếp trong RAM trình duyệt, bảo mật 100%, 0 tốn dung lượng server.",
+        burn_success_alert: "Xuất video Hardsub thành công! File đã tải về máy.",
+        btn_cancel: "Hủy",
+        pool_modal_title: "Quản lý Smart Key Pool (7 Keys)",
+        pool_modal_desc: "Tự động xoay vòng Round-Robin & chống chạm hạn ngạch",
         th_stt: "STT",
-        th_key: "Khóa (Masked)",
-        th_status: "Trạng Thái",
+        th_key: "Khóa",
+        th_status: "Trạng thái",
         th_cooldown: "Cooldown",
-        th_requests: "Lượt Gọi",
-        pool_footer: "Unlimited RPD cho Live Models | Tự động cách ly key khi gặp 429",
+        th_requests: "Lượt gọi",
+        pool_footer: "Tự động cách ly key khi gặp rate limit (429)",
         btn_refresh: "Làm mới",
         status_ready: "🟢 SẴN SÀNG",
         status_cooldown: "🟡 COOLDOWN ({sec}s)",
-        alert_no_video: "Vui lòng chọn file video từ máy hoặc dán link video trước!",
-        alert_no_subs: "Vui lòng bấm 'AI Quét & Dịch Toàn Bộ Video' để tạo phụ đề trước khi xuất video!",
-        alert_clean_success: "Đã dọn dẹp sạch sẽ toàn bộ video và phụ đề tạm trên server! 0-byte ổ đĩa tồn đọng.",
-        alert_copied: "Đã sao chép vào bộ nhớ tạm!",
+        alert_no_video: "Vui lòng chọn video trước!",
+        alert_no_subs: "Vui lòng quét phụ đề trước khi xuất video!",
+        alert_clean_success: "Đã dọn dẹp sạch sẽ server! 0-byte tồn đọng.",
+        alert_copied: "Đã sao chép!",
         alert_no_text: "Vui lòng nhập nội dung!",
-        alert_no_audio: "Vui lòng ghi âm hoặc tải file âm thanh trước!"
+        alert_no_audio: "Vui lòng ghi âm hoặc tải file âm thanh!"
       },
       en: {
-        header_tagline: "Multimedia Translation & Auto Movie Subtitling (Blur Old Subs)",
+        header_tagline: "",
         pool_loading: "Pool: Loading...",
-        pool_status: "7 Keys Pool: Using Key #{pointer}",
-        tab_video: "Video Subtitle & AI Hardsub",
-        tab_translate: "Text & Document Translation",
-        tab_transcribe: "Speech & Transcription",
-        video_opt1_title: "Option 1: Upload Video to Translate & Add Subs",
-        video_opt1_formats: "Supports MP4, MOV, MKV, WEBM",
-        video_opt1_desc: "Upload video from your device. AI scans dialogue, auto-translates, and masks old subtitles seamlessly.",
-        video_opt1_btn: "Choose Video File From Device...",
-        video_opt1_btn_change: "Change Video File...",
-        video_opt1_uploading: "Uploading video...",
-        video_opt1_success: "Upload successful!",
-        video_opt2_title: "Option 2: Paste YouTube / Web Stream URL",
-        video_opt2_formats: "YouTube, Direct MP4 URL",
-        video_opt2_desc: "Watch video stream with real-time floating translated subtitles.",
+        pool_status: "7 Keys: #{pointer}",
+        tab_video: "🎬 Video Subtitles",
+        tab_translate: "📝 Text Translation",
+        tab_transcribe: "🎙️ Voice",
+        video_opt1_title: "Upload video (.mp4, .mkv, .mov)",
+        video_opt1_formats: "MP4, MOV, MKV, WEBM",
+        video_opt1_btn: "Choose file",
+        video_opt1_btn_change: "Change file",
+        video_opt1_uploading: "Uploading...",
+        video_opt1_success: "Uploaded!",
+        video_opt2_title: "Paste YouTube / Web stream link",
+        video_opt2_formats: "YouTube, Direct MP4",
         video_opt2_placeholder: "https://www.youtube.com/watch?v=...",
-        video_opt2_btn: "Load URL",
-        player_placeholder: "Select a video file from your device or paste a URL to begin",
+        video_opt2_btn: "Load",
+        player_placeholder: "Choose a video file or paste a link to start",
         badge_no_video: "No video loaded",
         badge_video_prefix: "Video: ",
-        badge_url_loading: "Loading video & audio to server...",
+        badge_url_loading: "Loading video...",
         badge_url_loaded: "Loaded: ",
-        btn_auto_sub: "AI Scan & Translate Entire Video",
-        btn_auto_sub_scanning: "Scanning & Translating Dialogue...",
-        btn_export_video: "Export Hardsub Video",
-        dual_sub_title: "Dual Subtitles (Bilingual: Original + Translation)",
-        dual_sub_desc: "Line 1: Spoken line (75%, silver) | Line 2: Translated line",
-        cache_loaded_badge: "⚡ Loaded from cache (0 tokens)",
-        btn_rescan_cache: "Rescan (Bypass cache)",
+        btn_auto_sub: "AI Scan Sub",
+        btn_auto_sub_scanning: "Scanning sub...",
+        btn_export_video: "Export Hardsub",
+        dual_sub_title: "Bilingual",
+        cache_loaded_badge: "⚡ Cached (0 tokens)",
+        btn_rescan_cache: "Rescan",
         btn_fullscreen: "Fullscreen",
-        customizer_title: "Subtitle Customization & Old Subtitle Masking",
-        realtime_preview_note: "Realtime Preview",
-        mask_old_sub: "Mask Old Video Subtitles",
-        mask_old_sub_desc: "Overlay background box covering old subtitles",
+        customizer_title: "Subtitle Settings",
+        realtime_preview_note: "Live Preview",
+        mask_old_sub: "Mask old sub",
         opacity_label: "Opacity:",
-        color_title: "Subtitle Colors",
-        text_color_label: "Text Color:",
-        bg_color_label: "Box Background:",
-        font_size_label: "Font Size",
-        font_size_desc: "Display size on video screen",
-        margin_label: "Bottom Margin (Margin Y)",
-        margin_desc: "Distance from subtitle to video bottom",
-        timeline_title: "Video Subtitle Timeline",
-        timeline_desc: "Click timestamp to jump, click text to edit",
-        timeline_empty: "Upload video and click \"AI Scan & Translate Entire Video\" to generate bilingual subtitles.",
+        color_title: "Colors",
+        text_color_label: "Text:",
+        bg_color_label: "Background:",
+        font_size_label: "Font size",
+        margin_label: "Bottom margin",
+        timeline_title: "Subtitles",
+        timeline_empty: "No subtitles yet. Upload video and click \"AI Scan Sub\".",
         timeline_count_cues: "{count} cues",
-        timeline_scanning_msg: "Gemini Multimodal Model is listening & segmenting dialogue timestamps...",
-        timeline_scanning_sub: "Using Smart Key Pool with auto quota rotation",
-        timeline_no_subs: "No dialogue detected in this video segment.",
-        export_ready_title: "Subtitles & Video are ready:",
+        timeline_scanning_msg: "Gemini is recognizing dialogue & timestamps...",
+        timeline_scanning_sub: "Smart Key Pool with auto quota rotation",
+        timeline_no_subs: "No dialogue detected in video.",
+        export_ready_title: "Subtitles & Video ready:",
         btn_client_burn: "Export Zero-Storage",
         btn_server_burn: "Export Server FFmpeg",
         btn_dl_srt: "Download .SRT",
         btn_dl_vtt: "Download .VTT",
-        btn_dl_video: "Download Hardsub MP4 (Server)",
+        btn_dl_video: "Download Hardsub MP4",
         btn_clean_server: "Clean Server (0-Byte)",
-        lang_auto: "Detect language",
-        tier_label: "Model Tier:",
-        tier_bulk: "Gemini 3.5 Flash Lite (Bulk - Ultra Fast)",
-        tier_ultra: "Gemma 4 26B (Ultra - 100K req/day)",
-        tier_standard: "Gemini 3.6 Flash (Standard - High Quality)",
-        tier_deep: "Gemini 3.8 Flash (Deep - Academic/Medical)",
-        file_upload_btn: "Load file (.txt, .md, .srt)",
-        src_box_title: "Source Text",
-        src_placeholder: "Type or paste text to translate here...",
+        lang_auto: "Auto-detect language",
+        tier_label: "Model:",
+        tier_bulk: "Gemini 3.5 Flash Lite (Bulk)",
+        tier_ultra: "Gemma 4 26B (Ultra)",
+        tier_standard: "Gemini 3.6 Flash (Standard)",
+        tier_deep: "Gemini 3.8 Flash (Deep)",
+        file_upload_btn: "Upload file",
+        src_box_title: "Source",
+        src_placeholder: "Type text to translate...",
         char_count_format: "{count} characters",
         btn_clear: "Clear",
-        btn_translate: "Translate Now (Stream)",
-        target_box_title: "Translation Result",
-        streaming_status: "Streaming...",
-        target_placeholder: "Live translation will appear here...",
+        btn_translate: "Translate",
+        target_box_title: "Translation",
+        streaming_status: "Translating...",
+        target_placeholder: "Translation will appear here...",
         btn_copy: "Copy",
         btn_download_txt: "Download (.txt)",
-        transcribe_title: "Record Audio or Upload File",
-        transcribe_desc: "Speech recognition & accurate translation via Gemini Multimodal Audio.",
+        transcribe_title: "Record or upload file",
         record_idle: "Click microphone to start speaking",
         record_listening: "Listening...",
-        record_done: "Recording saved. Click the button below to transcribe!",
+        record_done: "Recording done. Click button to analyze!",
         record_or: "- or -",
-        btn_audio_file: "Choose file (.mp3, .wav, .m4a)",
-        btn_start_transcribe: "Analyze & Translate Audio",
-        transcribe_result_title: "Transcription & Translation Result",
-        transcribe_placeholder: "Speech recognition and translation results will appear here...",
-        transcribe_analyzing: "Analyzing via Gemini Multimodal Pool...",
-        modal_export_title: "Hardsub Video Export Options",
-        modal_export_desc: "Choose the subtitle burning method that suits your needs",
-        opt_client_title: "Export Zero-Storage (Directly in Browser)",
+        btn_audio_file: "Choose audio file",
+        btn_start_transcribe: "Analyze audio",
+        transcribe_result_title: "Transcription result",
+        transcribe_placeholder: "Results will appear here...",
+        transcribe_analyzing: "Gemini analyzing audio...",
+        modal_export_title: "Hardsub Export Options",
+        modal_export_desc: "Choose subtitle burning method",
+        opt_client_title: "Export Zero-Storage (In Browser)",
         badge_recommended: "Recommended",
-        opt_client_desc: "Uses Canvas & MediaRecorder API to burn subtitles directly on your machine. Ultra-fast, 100% private, consumes 0 bytes of server storage!",
-        opt_server_title: "Export with Server FFmpeg (MP4 H.264)",
-        opt_server_desc: "H.264 encoding via server FFmpeg. Includes instant auto-cleanup of temporary files after download.",
-        opt_subs_title: "Download Subtitle Files Only (.SRT / .VTT)",
-        opt_subs_desc: "Download standard bilingual subtitle files to use in offline media players (VLC, PotPlayer) without re-encoding video.",
-        burn_modal_title: "Burning Hardsub in Browser (Zero-Storage)",
-        burn_modal_desc: "Reading video and burning subtitles directly via Canvas & MediaRecorder API...",
+        opt_client_desc: "Burn subtitles directly via Canvas & MediaRecorder. Fast, 100% private, 0 server disk usage!",
+        opt_server_title: "Export Server FFmpeg (MP4 H.264)",
+        opt_server_desc: "Encode with server FFmpeg. Temp files automatically cleaned after download.",
+        opt_subs_title: "Download Subtitles (.SRT / .VTT)",
+        opt_subs_desc: "Download bilingual subtitles to watch in VLC or PotPlayer without re-encoding.",
+        burn_modal_title: "Exporting Hardsub (Zero-Storage)",
+        burn_modal_desc: "Reading video and burning subtitles in browser...",
         burn_init: "Initializing burner...",
-        burn_encoding: "Rendering & encoding frames...",
-        burn_done: "Done! Preparing download file...",
-        burn_safe_note: "Video is processed 100% inside your browser memory, never uploaded to server, ensuring complete privacy and zero server disk usage.",
-        burn_success_alert: "Hardsub video exported successfully! File downloaded to your machine with 0 server disk usage.",
-        btn_cancel: "Cancel Export",
-        pool_modal_title: "Smart Key Pool Management (7 Cloud Projects)",
-        pool_modal_desc: "Auto Round-Robin rotation & RPM/TPM quota rate limit avoidance",
+        burn_encoding: "Rendering & encoding...",
+        burn_done: "Done! Preparing download...",
+        burn_safe_note: "Processed directly in browser RAM, 100% private, 0 server storage used.",
+        burn_success_alert: "Hardsub video exported successfully! Saved to your device.",
+        btn_cancel: "Cancel",
+        pool_modal_title: "Smart Key Pool Management (7 Keys)",
+        pool_modal_desc: "Auto Round-Robin rotation & RPM/TPM limit avoidance",
         th_stt: "No.",
-        th_key: "Key (Masked)",
+        th_key: "Key",
         th_status: "Status",
         th_cooldown: "Cooldown",
         th_requests: "Calls",
-        pool_footer: "Unlimited RPD for Live Models | Auto-quarantine keys on 429",
+        pool_footer: "Auto-quarantine keys on rate limit (429)",
         btn_refresh: "Refresh",
         status_ready: "🟢 READY",
         status_cooldown: "🟡 COOLDOWN ({sec}s)",
-        alert_no_video: "Please select a video file or load a video URL first!",
-        alert_no_subs: "Please click 'AI Scan & Translate Entire Video' to generate subtitles before exporting!",
-        alert_clean_success: "Cleaned up all temporary video and subtitle files from server! 0 bytes remaining.",
+        alert_no_video: "Please choose a video first!",
+        alert_no_subs: "Please scan subtitles before exporting video!",
+        alert_clean_success: "Server cleaned up! 0 bytes remaining.",
         alert_copied: "Copied to clipboard!",
         alert_no_text: "Please enter text to translate!",
-        alert_no_audio: "Please record audio or upload an audio file first!"
+        alert_no_audio: "Please record or upload an audio file first!"
       }
     };
 
@@ -958,15 +1000,30 @@
       currentLang = lang;
       localStorage.setItem('geminitrans_lang', lang);
 
-      // Update Header toggle buttons style
+      // Update Desktop Header toggle buttons
       const btnVi = document.getElementById('lang-btn-vi');
       const btnEn = document.getElementById('lang-btn-en');
-      if (lang === 'vi') {
-        btnVi.className = "px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow";
-        btnEn.className = "px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white";
-      } else {
-        btnEn.className = "px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow";
-        btnVi.className = "px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white";
+      if (btnVi && btnEn) {
+        if (lang === 'vi') {
+          btnVi.className = "px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow";
+          btnEn.className = "px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white";
+        } else {
+          btnEn.className = "px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow";
+          btnVi.className = "px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white";
+        }
+      }
+
+      // Update Mobile Drawer toggle buttons
+      const mBtnVi = document.getElementById('mobile-lang-btn-vi');
+      const mBtnEn = document.getElementById('mobile-lang-btn-en');
+      if (mBtnVi && mBtnEn) {
+        if (lang === 'vi') {
+          mBtnVi.className = "flex-1 py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition bg-indigo-600 text-white shadow";
+          mBtnEn.className = "flex-1 py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition text-slate-400 hover:text-white";
+        } else {
+          mBtnEn.className = "flex-1 py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition bg-indigo-600 text-white shadow";
+          mBtnVi.className = "flex-1 py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition text-slate-400 hover:text-white";
+        }
       }
 
       // Update text in elements with data-i18n
@@ -987,7 +1044,10 @@
 
       // Update dynamic elements
       if (poolData) {
-        document.getElementById('pool-status-text').innerText = t('pool_status', { pointer: poolData.current_pointer });
+        const pst = document.getElementById('pool-status-text');
+        if (pst) pst.innerText = t('pool_status', { pointer: poolData.current_pointer });
+        const mpst = document.getElementById('mobile-pool-status-text');
+        if (mpst) mpst.innerText = t('pool_status', { pointer: poolData.current_pointer });
       }
       if (!currentVideoId) {
         document.getElementById('current-video-badge').innerText = t('badge_no_video');
@@ -1063,7 +1123,6 @@
         tab = 'video';
       }
 
-      // Tạm dừng video nếu chuyển khỏi tab Video để không phát âm thanh ngầm
       if (tab !== 'video' && uploadedVideo) {
         uploadedVideo.pause();
       }
@@ -1072,19 +1131,35 @@
       validTabs.forEach(t => {
         const tabEl = document.getElementById(`tab-${t}`);
         if (tabEl) tabEl.classList.add('hidden');
+        
+        // Desktop tab buttons
         const btn = document.getElementById(`tab-btn-${t}`);
         if (btn) {
           btn.classList.remove('border-indigo-500', 'text-indigo-400');
           btn.classList.add('border-transparent', 'text-slate-400');
         }
+
+        // Mobile drawer tab buttons
+        const mBtn = document.getElementById(`mobile-tab-btn-${t}`);
+        if (mBtn) {
+          mBtn.classList.remove('bg-indigo-600', 'text-white', 'shadow');
+          mBtn.classList.add('bg-slate-800/80', 'text-slate-300', 'hover:bg-slate-800');
+        }
       });
 
       const activeTabEl = document.getElementById(`tab-${tab}`);
       if (activeTabEl) activeTabEl.classList.remove('hidden');
+      
       const activeBtn = document.getElementById(`tab-btn-${tab}`);
       if (activeBtn) {
         activeBtn.classList.remove('border-transparent', 'text-slate-400');
         activeBtn.classList.add('border-indigo-500', 'text-indigo-400');
+      }
+
+      const activeMBtn = document.getElementById(`mobile-tab-btn-${tab}`);
+      if (activeMBtn) {
+        activeMBtn.classList.remove('bg-slate-800/80', 'text-slate-300', 'hover:bg-slate-800');
+        activeMBtn.classList.add('bg-indigo-600', 'text-white', 'shadow');
       }
 
       if (updateHash) {
@@ -1097,6 +1172,59 @@
         lucide.createIcons();
       }
     }
+
+    // ==========================================
+    // MOBILE DRAWER CONTROLS
+    // ==========================================
+    function toggleMobileMenu() {
+      const drawer = document.getElementById('mobile-drawer');
+      const backdrop = document.getElementById('mobile-drawer-backdrop');
+      const panel = document.getElementById('mobile-drawer-panel');
+      if (!drawer || !backdrop || !panel) return;
+
+      if (drawer.classList.contains('hidden')) {
+        drawer.classList.remove('hidden');
+        requestAnimationFrame(() => {
+          backdrop.classList.remove('opacity-0');
+          backdrop.classList.add('opacity-100');
+          panel.classList.remove('translate-x-full');
+          panel.classList.add('translate-x-0');
+        });
+      } else {
+        closeMobileMenu();
+      }
+    }
+
+    function closeMobileMenu() {
+      const drawer = document.getElementById('mobile-drawer');
+      const backdrop = document.getElementById('mobile-drawer-backdrop');
+      const panel = document.getElementById('mobile-drawer-panel');
+      if (!drawer || !backdrop || !panel || drawer.classList.contains('hidden')) return;
+
+      backdrop.classList.remove('opacity-100');
+      backdrop.classList.add('opacity-0');
+      panel.classList.remove('translate-x-0');
+      panel.classList.add('translate-x-full');
+      setTimeout(() => {
+        drawer.classList.add('hidden');
+      }, 200);
+    }
+
+    function switchMobileTab(tab) {
+      switchTab(tab);
+      closeMobileMenu();
+    }
+
+    function openMobilePoolModal() {
+      closeMobileMenu();
+      togglePoolModal();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeMobileMenu();
+      }
+    });
 
     function initHashRouting() {
       const hash = window.location.hash.replace('#', '').toLowerCase();
@@ -2270,7 +2398,10 @@
       try {
         const res = await fetch('/api/pool-status');
         poolData = await res.json();
-        document.getElementById('pool-status-text').innerText = t('pool_status', { pointer: poolData.current_pointer });
+        const pst = document.getElementById('pool-status-text');
+        if (pst) pst.innerText = t('pool_status', { pointer: poolData.current_pointer });
+        const mpst = document.getElementById('mobile-pool-status-text');
+        if (mpst) mpst.innerText = t('pool_status', { pointer: poolData.current_pointer });
         const tbody = document.getElementById('pool-table-body');
         tbody.innerHTML = '';
         poolData.keys.forEach(k => {
