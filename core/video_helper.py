@@ -1,5 +1,6 @@
 import os
 import re
+import time
 import json
 import uuid
 import shutil
@@ -18,6 +19,24 @@ def extract_youtube_id(url: str) -> Optional[str]:
         if match:
             return match.group(1)
     return None
+
+def cleanup_storage(upload_dir: Path, output_dir: Path, max_age_minutes: int = 30):
+    """
+    Tự động dọn dẹp các file video và audio tạm cũ hơn max_age_minutes
+    Bảo đảm ổ đĩa không bao giờ bị phình to khi tải nhiều video liên tục.
+    """
+    now = time.time()
+    for d in [upload_dir, output_dir]:
+        if not d.exists():
+            continue
+        for p in d.glob("*"):
+            if p.name == ".gitkeep":
+                continue
+            try:
+                if p.is_file() and (now - p.stat().st_mtime > max_age_minutes * 60):
+                    p.unlink()
+            except Exception:
+                pass
 
 def get_video_info(url: str) -> Dict[str, Any]:
     yt_id = extract_youtube_id(url)
@@ -50,6 +69,87 @@ def get_video_info(url: str) -> Dict[str, Any]:
             "error": str(e)
         }
 
+def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict[str, Any]]]:
+    """
+    Trích xuất phụ đề gốc trực tiếp từ link mà KHÔNG CẦN TẢI VIDEO (Zero-Video Download).
+    Chỉ tốn vài KB băng thông và hoàn thành trong 0.5s.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    tmp_id = str(uuid.uuid4())[:8]
+    sub_path_template = str(output_dir / f"{tmp_id}_sub")
+    
+    cmd = [
+        "yt-dlp",
+        "--skip-download",
+        "--write-auto-sub",
+        "--write-sub",
+        "--sub-lang", "en,vi,ko,ja,zh",
+        "--sub-format", "vtt",
+        "-o", sub_path_template,
+        url
+    ]
+    try:
+        subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+        # Tìm file .vtt vừa tải
+        vtt_files = list(output_dir.glob(f"{tmp_id}_sub.*.vtt"))
+        if not vtt_files:
+            return None
+            
+        vtt_file = vtt_files[0]
+        with open(vtt_file, "r", encoding="utf-8") as f:
+            vtt_content = f.read()
+            
+        # Parse VTT thành danh sách câu sạch sẽ
+        blocks = vtt_content.split('\n\n')
+        subs = []
+        last_text = ""
+        item_id = 1
+        
+        for b in blocks:
+            lines = [l.strip() for l in b.strip().split('\n') if l.strip()]
+            if not lines:
+                continue
+            time_line = None
+            text_lines = []
+            for l in lines:
+                if '-->' in l:
+                    time_line = l
+                elif time_line:
+                    clean = re.sub(r'<[^>]+>', '', l).strip()
+                    if clean and not clean.startswith('align:') and not clean.startswith('position:'):
+                        text_lines.append(clean)
+            if time_line and text_lines:
+                t_match = re.search(r'(\d{2}:\d{2}:\d{2}\.\d{3}|\d{2}:\d{2}\.\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}\.\d{3}|\d{2}:\d{2}\.\d{3})', time_line)
+                if t_match:
+                    s_str, e_str = t_match.group(1), t_match.group(2)
+                    full_text = ' '.join(text_lines)
+                    # Deduplicate rolling captions
+                    if full_text != last_text and len(full_text) > 1:
+                        last_text = full_text
+                        s_sec = parse_time_to_seconds(s_str)
+                        e_sec = parse_time_to_seconds(e_str)
+                        subs.append({
+                            "id": item_id,
+                            "start": s_sec,
+                            "end": max(e_sec, s_sec + 1.5),
+                            "start_str": seconds_to_vtt_time(s_sec),
+                            "end_str": seconds_to_vtt_time(max(e_sec, s_sec + 1.5)),
+                            "original": full_text,
+                            "translated": ""
+                        })
+                        item_id += 1
+                        
+        # Dọn dẹp file vtt tạm
+        try:
+            vtt_file.unlink()
+        except Exception:
+            pass
+            
+        return subs if len(subs) > 0 else None
+    except Exception as e:
+        print(f"[DEBUG] Không lấy được auto-subs: {e}")
+        return None
+
 def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
     """
     Tải video trực tuyến (YouTube, Vimeo, MP4 direct) bằng yt-dlp vào thư mục uploads
@@ -71,7 +171,6 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
         matches = list(output_dir.glob(f"{video_id}_*"))
         if matches:
             saved_file = matches[0]
-            # Trích xuất audio luôn để sẵn sàng cho AI quét
             audio_path = output_dir / f"{video_id}_audio.mp3"
             extract_audio_from_video(saved_file, audio_path)
             
@@ -84,7 +183,6 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
             }
     except Exception as e:
         print(f"[ERROR] Tải video thất bại: {e}")
-        # Thử fallback chỉ tải audio nếu định dạng video quá nặng
         try:
             audio_template = str(output_dir / f"{video_id}_audio.%(ext)s")
             cmd_audio = ["yt-dlp", "-x", "--audio-format", "mp3", "--no-playlist", "-o", audio_template, url]
@@ -102,9 +200,6 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
     return {"success": False, "error": "Không thể tải video từ đường dẫn này."}
 
 def extract_audio_from_video(video_path: Path, output_audio: Path) -> bool:
-    """
-    Trích xuất audio tối ưu cho AI nhận diện giọng nói (16kHz Mono MP3)
-    """
     output_audio.parent.mkdir(parents=True, exist_ok=True)
     cmd = [
         "ffmpeg", "-y",

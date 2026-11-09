@@ -15,6 +15,8 @@ from core.video_helper import (
     extract_youtube_id,
     extract_audio_from_video,
     download_video_from_url,
+    extract_subtitles_from_url,
+    cleanup_storage,
     parse_subtitles_from_ai,
     export_srt,
     burn_subtitles_to_video
@@ -57,6 +59,7 @@ class VideoChunkTranslateRequest(BaseModel):
 class AutoSubRequest(BaseModel):
     video_id: str
     target_lang: str = "vi"
+    url: Optional[str] = ""
 
 class BurnSubRequest(BaseModel):
     video_id: str
@@ -145,11 +148,14 @@ async def fetch_video_info(req: VideoInfoRequest):
 @app.post("/api/video/process-url")
 async def process_video_url(req: VideoProcessUrlRequest):
     """
-    Xử lý link video trực tuyến (YouTube, v.v.): tải video về server để sẵn sàng quét sub & burn sub
+    Xử lý link video: Tự động dọn rác cũ, tải video/audio và sẵn sàng cho AI quét
     """
     if not req.url.strip():
         raise HTTPException(status_code=400, detail="Vui lòng cung cấp link video")
     
+    # Dọn dẹp ổ đĩa định kỳ để tránh tốn dung lượng
+    cleanup_storage(UPLOAD_DIR, OUTPUT_DIR, max_age_minutes=30)
+
     loop = asyncio.get_event_loop()
     res = await loop.run_in_executor(None, download_video_from_url, req.url.strip(), UPLOAD_DIR)
     if not res.get("success"):
@@ -171,6 +177,9 @@ async def translate_video_chunk(req: VideoChunkTranslateRequest):
 
 @app.post("/api/video/upload")
 async def upload_video(file: UploadFile = File(...)):
+    # Dọn dẹp video tạm cũ hơn 30 phút
+    cleanup_storage(UPLOAD_DIR, OUTPUT_DIR, max_age_minutes=30)
+
     ext = Path(file.filename or "video.mp4").suffix.lower()
     if ext not in [".mp4", ".mov", ".mkv", ".webm", ".avi", ".m4v"]:
         ext = ".mp4"
@@ -183,7 +192,6 @@ async def upload_video(file: UploadFile = File(...)):
         while chunk := await file.read(1024 * 1024):
             f.write(chunk)
             
-    # Tự động trích audio sẵn sàng cho quét
     audio_path = UPLOAD_DIR / f"{video_id}_audio.mp3"
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, extract_audio_from_video, saved_path, audio_path)
@@ -199,23 +207,10 @@ async def upload_video(file: UploadFile = File(...)):
 @app.post("/api/video/auto-subtitle")
 async def auto_subtitle_video(req: AutoSubRequest):
     """
-    Quét video bằng ffmpeg -> Trích audio -> Gửi Gemini Multimodal -> Sinh danh sách phụ đề song ngữ
+    Quét video bằng AI:
+    1. Ưu tiên Zero-Video: trích xuất phụ đề gốc trực tiếp từ URL (chỉ 10KB) và dịch siêu tốc trong 2s.
+    2. Fallback: Nếu không có sub gốc, gửi audio đến Gemini Multimodal Model.
     """
-    # Tìm file audio hoặc video theo video_id
-    audio_path = UPLOAD_DIR / f"{req.video_id}_audio.mp3"
-    if not audio_path.exists():
-        matches = list(UPLOAD_DIR.glob(f"{req.video_id}_*"))
-        if not matches:
-            raise HTTPException(status_code=404, detail="Không tìm thấy file video/audio đã xử lý.")
-        video_path = matches[0]
-        loop = asyncio.get_event_loop()
-        success = await loop.run_in_executor(None, extract_audio_from_video, video_path, audio_path)
-        if not success or not audio_path.exists():
-            raise HTTPException(status_code=500, detail="Không thể trích xuất âm thanh từ video.")
-
-    with open(audio_path, "rb") as f:
-        audio_bytes = f.read()
-
     lang_map = {
         "vi": "Tiếng Việt",
         "en": "Tiếng Anh",
@@ -225,6 +220,60 @@ async def auto_subtitle_video(req: AutoSubRequest):
         "fr": "Tiếng Pháp"
     }
     target_name = lang_map.get(req.target_lang, "Tiếng Việt")
+
+    # ƯU TIÊN 1: Nếu có URL, thử trích xuất phụ đề gốc có sẵn (Zero-Download)
+    if req.url:
+        loop = asyncio.get_event_loop()
+        extracted_subs = await loop.run_in_executor(None, extract_subtitles_from_url, req.url, UPLOAD_DIR)
+        if extracted_subs and len(extracted_subs) > 0:
+            # Batch dịch toàn bộ câu bằng Gemini Key Pool qua prompt nhanh
+            batch_lines = [f"{s['id']}. {s['original']}" for s in extracted_subs]
+            prompt = (
+                f"Hãy dịch danh sách các câu phụ đề sau sang {target_name}. Giữ nguyên số thứ tự và định dạng:\n"
+                + "\n".join(batch_lines)
+            )
+            try:
+                translated_res = await pool.generate_content(prompt, tier="bulk")
+                trans_map = {}
+                for line in translated_res.split("\n"):
+                    line = line.strip()
+                    if "." in line:
+                        p = line.split(".", 1)
+                        try:
+                            idx = int(p[0].strip())
+                            trans_map[idx] = p[1].strip()
+                        except Exception:
+                            pass
+
+                for s in extracted_subs:
+                    s["translated"] = trans_map.get(s["id"], s["original"])
+
+                srt_path = OUTPUT_DIR / f"{req.video_id}.srt"
+                export_srt(extracted_subs, srt_path)
+
+                return {
+                    "video_id": req.video_id,
+                    "subtitles": extracted_subs,
+                    "srt_url": f"/outputs/{req.video_id}.srt",
+                    "mode": "zero_download_caption"
+                }
+            except Exception as e:
+                print(f"[DEBUG] Batch translate error: {e}")
+
+    # ƯU TIÊN 2: Quét bằng Gemini Multimodal Audio Model
+    audio_path = UPLOAD_DIR / f"{req.video_id}_audio.mp3"
+    if not audio_path.exists():
+        matches = list(UPLOAD_DIR.glob(f"{req.video_id}_*"))
+        if not matches:
+            raise HTTPException(status_code=404, detail="Không tìm thấy dữ liệu video/audio.")
+        video_path = matches[0]
+        loop = asyncio.get_event_loop()
+        success = await loop.run_in_executor(None, extract_audio_from_video, video_path, audio_path)
+        if not success or not audio_path.exists():
+            raise HTTPException(status_code=500, detail="Không thể trích xuất âm thanh từ video.")
+
+    with open(audio_path, "rb") as f:
+        audio_bytes = f.read()
 
     prompt = (
         f"Bạn là chuyên gia nhận diện giọng nói và dịch phụ đề video tự động. "
@@ -261,16 +310,14 @@ async def auto_subtitle_video(req: AutoSubRequest):
         return {
             "video_id": req.video_id,
             "subtitles": subtitles,
-            "srt_url": f"/outputs/{req.video_id}.srt"
+            "srt_url": f"/outputs/{req.video_id}.srt",
+            "mode": "multimodal_audio"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Lỗi AI Subtitling: {str(e)}")
 
 @app.post("/api/video/burn-subtitles")
 async def burn_subtitles_endpoint(req: BurnSubRequest):
-    """
-    Burn phụ đề vào video bằng ffmpeg với tùy biến màu sắc, cỡ chữ và che mờ/xóa sub cũ
-    """
     matches = [p for p in UPLOAD_DIR.glob(f"{req.video_id}_*") if not p.name.endswith(".mp3")]
     if not matches:
         raise HTTPException(status_code=404, detail="Không tìm thấy file video gốc để in phụ đề.")

@@ -661,7 +661,7 @@
         const res = await fetch('/api/video/auto-subtitle', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ video_id: currentVideoId, target_lang: 'vi' })
+          body: JSON.stringify({ video_id: currentVideoId, target_lang: 'vi', url: document.getElementById('video-url-input').value.trim() })
         });
         const data = await res.json();
         currentVideoSubtitles = data.subtitles || [];
