@@ -50,6 +50,38 @@
       line-height: 1.35;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     }
+    .video-sub-overlay .sub-original {
+      font-size: 0.75em;
+      color: #e2e8f0;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+      margin-bottom: 2px;
+      font-weight: 500;
+      line-height: 1.25;
+      opacity: 0.9;
+    }
+    .video-sub-overlay .sub-translated {
+      line-height: 1.3;
+    }
+    /* WebVTT Native Cue Styling in Fullscreen */
+    video::cue {
+      visibility: hidden;
+    }
+    :fullscreen video::cue,
+    :-webkit-full-screen video::cue {
+      visibility: visible;
+      background-color: rgba(0, 0, 0, 0.85);
+      color: #fbbf24;
+      font-size: 1.1em;
+      text-shadow: 0 2px 4px #000;
+    }
+    /* Hide scrollbar for clean horizontal swipes */
+    .scrollbar-none::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-none {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
     /* Custom Scrollbars */
     ::-webkit-scrollbar {
       width: 6px;
@@ -71,52 +103,52 @@
 
   <!-- Header -->
   <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-40 backdrop-blur">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-      <a href="/" id="header-logo" data-href="/" class="flex items-center space-x-3 cursor-pointer select-none group">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform">
-          <i data-lucide="languages" class="w-6 h-6 text-white"></i>
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-2">
+      <a href="/" id="header-logo" data-href="/" class="flex items-center space-x-2 sm:space-x-3 cursor-pointer select-none group min-w-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform flex-shrink-0">
+          <i data-lucide="languages" class="w-5 h-5 sm:w-6 sm:h-6 text-white"></i>
         </div>
-        <div>
-          <h1 class="font-bold text-lg leading-tight flex items-center gap-2">
-            GeminiTrans <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-normal border border-indigo-500/30">AI Studio Pool</span>
+        <div class="min-w-0">
+          <h1 class="font-bold text-base sm:text-lg leading-tight flex items-center gap-1.5 truncate">
+            GeminiTrans <span class="text-[10px] sm:text-xs px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-normal border border-indigo-500/30 hidden xs:inline">AI Studio Pool</span>
           </h1>
-          <p class="text-xs text-slate-400" data-i18n="header_tagline">Dịch đa phương tiện & Thêm phụ đề phim tự động (Che sub cũ)</p>
+          <p class="text-[11px] sm:text-xs text-slate-400 truncate hidden md:block" data-i18n="header_tagline">Dịch đa phương tiện & Thêm phụ đề phim tự động (Che sub cũ)</p>
         </div>
       </a>
 
       <!-- Right Header Actions (i18n Switcher & Key Pool) -->
-      <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-1.5 sm:space-x-3 flex-shrink-0">
         <!-- Language Switcher Toggle [ 🇻🇳 Tiếng Việt | 🇬🇧 English ] -->
-        <div class="flex items-center bg-slate-800/90 rounded-xl p-1 border border-slate-700/80 shadow-sm">
-          <button id="lang-btn-vi" onclick="setLanguage('vi')" class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow">
+        <div class="flex items-center bg-slate-800/90 rounded-xl p-0.5 sm:p-1 border border-slate-700/80 shadow-sm">
+          <button id="lang-btn-vi" onclick="setLanguage('vi')" class="px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition bg-indigo-600 text-white shadow">
             <span>🇻🇳</span> <span class="hidden sm:inline">Tiếng Việt</span>
           </button>
-          <button id="lang-btn-en" onclick="setLanguage('en')" class="px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white">
+          <button id="lang-btn-en" onclick="setLanguage('en')" class="px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition text-slate-400 hover:text-white">
             <span>🇬🇧</span> <span class="hidden sm:inline">English</span>
           </button>
         </div>
 
         <!-- Live Pool Status Indicator -->
-        <div id="pool-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs cursor-pointer hover:border-indigo-500 transition shadow-sm" onclick="togglePoolModal()">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span id="pool-status-text" class="text-slate-300 font-medium" data-i18n="pool_loading">Pool: Đang tải...</span>
-          <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
+        <div id="pool-badge" class="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-xs cursor-pointer hover:border-indigo-500 transition shadow-sm select-none" onclick="togglePoolModal()">
+          <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0"></span>
+          <span id="pool-status-text" class="text-slate-300 font-medium text-[11px] sm:text-xs max-w-[120px] sm:max-w-none truncate" data-i18n="pool_loading">Pool: Đang tải...</span>
+          <i data-lucide="chevron-down" class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400 flex-shrink-0"></i>
         </div>
-        <a href="https://aistudio.google.com" target="_blank" class="text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-xl hover:bg-slate-800 border border-transparent hover:border-slate-700 transition flex items-center gap-1">
-          <i data-lucide="external-link" class="w-3.5 h-3.5"></i> <span class="hidden md:inline">AI Studio</span>
+        <a href="https://aistudio.google.com" target="_blank" class="hidden md:flex text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-xl hover:bg-slate-800 border border-transparent hover:border-slate-700 transition items-center gap-1">
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i> <span>AI Studio</span>
         </a>
       </div>
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="max-w-7xl mx-auto px-4 flex space-x-6 border-t border-slate-800/60 text-sm overflow-x-auto">
-      <button onclick="switchTab('video')" id="tab-btn-video" data-tab-link="video" class="py-2.5 font-medium border-b-2 border-indigo-500 text-indigo-400 flex items-center gap-2 transition whitespace-nowrap cursor-pointer">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 flex space-x-4 sm:space-x-6 border-t border-slate-800/60 text-xs sm:text-sm overflow-x-auto whitespace-nowrap scrollbar-none scroll-smooth">
+      <button onclick="switchTab('video')" id="tab-btn-video" data-tab-link="video" class="py-2.5 font-medium border-b-2 border-indigo-500 text-indigo-400 flex items-center gap-1.5 sm:gap-2 transition whitespace-nowrap cursor-pointer touch-manipulation">
         <i data-lucide="film" class="w-4 h-4"></i> <span data-i18n="tab_video">Dịch & Thêm Phụ Đề Video (AI Hardsub)</span>
       </button>
-      <button onclick="switchTab('translate')" id="tab-btn-translate" data-tab-link="translate" class="py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap cursor-pointer">
+      <button onclick="switchTab('translate')" id="tab-btn-translate" data-tab-link="translate" class="py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 sm:gap-2 transition whitespace-nowrap cursor-pointer touch-manipulation">
         <i data-lucide="file-text" class="w-4 h-4"></i> <span data-i18n="tab_translate">Dịch Văn Bản & Tài Liệu</span>
       </button>
-      <button onclick="switchTab('transcribe')" id="tab-btn-transcribe" data-tab-link="transcribe" class="py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap cursor-pointer">
+      <button onclick="switchTab('transcribe')" id="tab-btn-transcribe" data-tab-link="transcribe" class="py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 sm:gap-2 transition whitespace-nowrap cursor-pointer touch-manipulation">
         <i data-lucide="mic" class="w-4 h-4"></i> <span data-i18n="tab_transcribe">Transcribe & Giọng Nói</span>
       </button>
     </div>
@@ -186,32 +218,50 @@
                 <p class="text-sm" data-i18n="player_placeholder">Hãy chọn file video từ máy hoặc dán link video để bắt đầu</p>
               </div>
 
-              <!-- HTML5 Uploaded Video Player -->
-              <video id="uploaded-video-player" class="w-full h-full hidden" controls playsinline crossorigin="anonymous"></video>
+              <!-- HTML5 Uploaded Video Player with WebVTT text track -->
+              <video id="uploaded-video-player" class="w-full h-full hidden" controls playsinline crossorigin="anonymous">
+                <track id="uploaded-video-track" kind="subtitles" label="Tiếng Việt" srclang="vi" default>
+              </video>
 
               <!-- YouTube Player Box -->
               <div id="yt-player-box" class="w-full h-full hidden"></div>
 
               <!-- Interactive Floating Subtitle Overlay (Live Preview matching exact custom style) -->
               <div id="video-subtitle" class="video-sub-overlay hidden"></div>
+
+              <!-- 1-Touch Fullscreen Button -->
+              <button id="btn-player-fullscreen" onclick="togglePlayerFullscreen()" class="absolute bottom-3 right-3 p-2 sm:p-2.5 rounded-xl bg-slate-900/85 hover:bg-slate-800 text-slate-200 hover:text-white backdrop-blur border border-slate-700/70 shadow-lg z-30 transition-transform active:scale-95 flex items-center justify-center cursor-pointer touch-manipulation" title="Toàn màn hình">
+                <i data-lucide="maximize" class="w-4 h-4 sm:w-4.5 sm:h-4.5" id="fs-icon"></i>
+              </button>
             </div>
 
             <!-- Video Actions Bar -->
             <div class="p-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-slate-900/90">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 flex-wrap">
                 <span id="current-video-badge" class="text-xs px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 font-medium" data-i18n="badge_no_video">
                   Chưa tải video
                 </span>
                 <span id="video-time-display" class="text-xs font-mono text-slate-400">00:00 / 00:00</span>
+
+                <!-- Local Subtitle Cache Indicator Badge (Zero Token) -->
+                <div id="cache-notice-badge" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+                  <span class="flex items-center gap-1">
+                    <i data-lucide="zap" class="w-3.5 h-3.5 fill-emerald-400 text-emerald-400"></i>
+                    <span data-i18n="cache_loaded_badge">⚡ Đã nạp từ bộ nhớ đệm (0 token)</span>
+                  </span>
+                  <button id="btn-rescan-cache" onclick="rescanBypassCache()" class="ml-1 px-2 py-0.5 rounded bg-emerald-600/30 hover:bg-emerald-600 text-emerald-200 hover:text-white text-[11px] font-medium border border-emerald-500/30 transition flex items-center gap-1 cursor-pointer touch-manipulation">
+                    <i data-lucide="refresh-cw" class="w-3 h-3"></i> <span data-i18n="btn_rescan_cache">Quét lại (Bỏ cache)</span>
+                  </button>
+                </div>
               </div>
               
               <!-- Action Buttons -->
               <div class="flex items-center gap-2 flex-wrap">
-                <button onclick="startAutoSubtitling()" id="btn-auto-sub" class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-indigo-500/25 transition cursor-pointer">
+                <button onclick="startAutoSubtitling()" id="btn-auto-sub" class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-indigo-500/25 transition cursor-pointer touch-manipulation">
                   <i data-lucide="sparkles" class="w-4 h-4"></i> <span data-i18n="btn_auto_sub">AI Quét & Dịch Toàn Bộ Video</span>
                 </button>
                 <!-- Export Hardsub Button (Opens Export Choice Modal) -->
-                <button onclick="openExportModal()" id="btn-burn-video" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-emerald-600/25 transition cursor-pointer">
+                <button onclick="openExportModal()" id="btn-burn-video" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-emerald-600/25 transition cursor-pointer touch-manipulation">
                   <i data-lucide="download" class="w-4 h-4"></i> <span data-i18n="btn_export_video">Xuất Video Hardsub</span>
                 </button>
               </div>
@@ -224,13 +274,30 @@
               <h3 class="font-bold text-sm text-slate-200 flex items-center gap-2">
                 <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i> <span data-i18n="customizer_title">Bảng Tùy Chỉnh Phụ Đề & Che Mờ Sub Cũ</span>
               </h3>
-              <span class="text-xs text-emerald-400 font-mono" data-i18n="realtime_preview_note">Xem trước thời gian thực (Realtime Preview)</span>
+              <span class="text-xs text-emerald-400 font-mono hidden sm:inline" data-i18n="realtime_preview_note">Xem trước thời gian thực (Realtime Preview)</span>
+            </div>
+
+            <!-- DUAL SUBTITLES (BILINGUAL MODE) TOGGLE -->
+            <div class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
+              <label class="flex items-center gap-3 cursor-pointer select-none">
+                <div class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="dual-sub-toggle" class="sr-only peer" onchange="toggleDualSubtitles(this.checked)">
+                  <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                </div>
+                <div class="flex flex-col">
+                  <span class="font-semibold text-slate-200 text-xs flex items-center gap-1.5" data-i18n="dual_sub_title">
+                    <i data-lucide="split" class="w-3.5 h-3.5 text-indigo-400"></i> Phụ đề song ngữ (Bilingual: Gốc + Dịch)
+                  </span>
+                  <span class="text-[11px] text-slate-400" data-i18n="dual_sub_desc">Dòng 1: Tiếng gốc (75%, màu xám bạc) | Dòng 2: Bản dịch chuẩn</span>
+                </div>
+              </label>
+              <span class="text-[11px] px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 font-mono hidden md:inline">Live + WebVTT Synced</span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
               
               <!-- 1. Che mờ / đè sub cũ -->
-              <div class="space-y-1.5 p-3 rounded-xl bg-slate-800/40 border border-slate-800">
+              <div class="space-y-2 p-3 sm:p-3.5 rounded-xl bg-slate-800/40 border border-slate-800">
                 <label class="flex items-center justify-between font-semibold text-slate-300 cursor-pointer">
                   <span data-i18n="mask_old_sub">Che Sub Cũ Của Video</span>
                   <input type="checkbox" id="mask-old-sub" class="w-4 h-4 rounded text-indigo-600 focus:ring-0 cursor-pointer" checked onchange="updateSubtitleStyle(true)">
@@ -240,43 +307,43 @@
                   <span class="text-slate-400" data-i18n="opacity_label">Độ mờ đục (Opacity):</span>
                   <span id="opacity-val" class="font-mono text-indigo-300 font-bold">85%</span>
                 </div>
-                <input type="range" id="sub-opacity" min="0" max="100" value="85" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500" oninput="updateSubtitleStyle(true)">
+                <input type="range" id="sub-opacity" min="0" max="100" value="85" class="w-full h-2.5 sm:h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 touch-manipulation my-1" oninput="updateSubtitleStyle(true)">
               </div>
 
               <!-- 2. Màu chữ & Màu nền -->
-              <div class="space-y-1.5 p-3 rounded-xl bg-slate-800/40 border border-slate-800">
+              <div class="space-y-2 p-3 sm:p-3.5 rounded-xl bg-slate-800/40 border border-slate-800">
                 <span class="font-semibold text-slate-300 block" data-i18n="color_title">Màu Sắc Phụ Đề</span>
                 <div class="flex items-center justify-between pt-1">
                   <span class="text-slate-400" data-i18n="text_color_label">Màu chữ:</span>
-                  <div class="flex items-center gap-1.5">
-                    <input type="color" id="sub-color" value="#fbbf24" class="w-6 h-6 rounded cursor-pointer border-0 bg-transparent" onchange="updateSubtitleStyle(true)">
+                  <div class="flex items-center gap-2">
+                    <input type="color" id="sub-color" value="#fbbf24" class="w-7 h-7 sm:w-6 sm:h-6 rounded cursor-pointer border-0 bg-transparent touch-manipulation" onchange="updateSubtitleStyle(true)">
                     <span id="color-hex-text" class="font-mono text-amber-300 font-bold">#FBBF24</span>
                   </div>
                 </div>
                 <div class="flex items-center justify-between pt-1">
                   <span class="text-slate-400" data-i18n="bg_color_label">Màu nền hộp:</span>
-                  <input type="color" id="sub-bg-color" value="#000000" class="w-6 h-6 rounded cursor-pointer border-0 bg-transparent" onchange="updateSubtitleStyle(true)">
+                  <input type="color" id="sub-bg-color" value="#000000" class="w-7 h-7 sm:w-6 sm:h-6 rounded cursor-pointer border-0 bg-transparent touch-manipulation" onchange="updateSubtitleStyle(true)">
                 </div>
               </div>
 
               <!-- 3. Cỡ chữ -->
-              <div class="space-y-1.5 p-3 rounded-xl bg-slate-800/40 border border-slate-800">
+              <div class="space-y-2 p-3 sm:p-3.5 rounded-xl bg-slate-800/40 border border-slate-800">
                 <div class="flex items-center justify-between">
                   <span class="font-semibold text-slate-300" data-i18n="font_size_label">Cỡ Chữ (Font Size)</span>
                   <span id="font-size-val" class="font-mono text-indigo-300 font-bold">22px</span>
                 </div>
                 <p class="text-[11px] text-slate-400" data-i18n="font_size_desc">Kích thước hiển thị trên màn hình</p>
-                <input type="range" id="sub-font-size" min="14" max="36" value="22" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 pt-3" oninput="updateSubtitleStyle(true)">
+                <input type="range" id="sub-font-size" min="14" max="36" value="22" class="w-full h-2.5 sm:h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 touch-manipulation my-1" oninput="updateSubtitleStyle(true)">
               </div>
 
               <!-- 4. Vị trí cách đáy màn hình -->
-              <div class="space-y-1.5 p-3 rounded-xl bg-slate-800/40 border border-slate-800">
+              <div class="space-y-2 p-3 sm:p-3.5 rounded-xl bg-slate-800/40 border border-slate-800">
                 <div class="flex items-center justify-between">
                   <span class="font-semibold text-slate-300" data-i18n="margin_label">Vị Trí Đáy (Margin Y)</span>
                   <span id="margin-val" class="font-mono text-indigo-300 font-bold">35px</span>
                 </div>
                 <p class="text-[11px] text-slate-400" data-i18n="margin_desc">Khoảng cách từ phụ đề tới đáy video</p>
-                <input type="range" id="sub-margin-v" min="15" max="90" value="35" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 pt-3" oninput="updateSubtitleStyle(true)">
+                <input type="range" id="sub-margin-v" min="15" max="90" value="35" class="w-full h-2.5 sm:h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500 touch-manipulation my-1" oninput="updateSubtitleStyle(true)">
               </div>
 
             </div>
@@ -284,7 +351,7 @@
         </div>
 
         <!-- Live Subtitles Timeline & Editor (1 col) -->
-        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-4 flex flex-col h-[650px] shadow-lg">
+        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-3 sm:p-4 flex flex-col h-[480px] sm:h-[550px] lg:h-[650px] shadow-lg">
           <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-2">
             <div>
               <span class="text-xs font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
@@ -658,6 +725,11 @@
         btn_auto_sub: "AI Quét & Dịch Toàn Bộ Video",
         btn_auto_sub_scanning: "Đang Quét & Dịch Lời Thoại...",
         btn_export_video: "Xuất Video Hardsub",
+        dual_sub_title: "Phụ đề song ngữ (Bilingual: Gốc + Dịch)",
+        dual_sub_desc: "Dòng 1: Tiếng gốc (75%, màu xám bạc) | Dòng 2: Bản dịch chuẩn",
+        cache_loaded_badge: "⚡ Đã nạp từ bộ nhớ đệm (0 token)",
+        btn_rescan_cache: "Quét lại (Bỏ cache)",
+        btn_fullscreen: "Toàn màn hình",
         customizer_title: "Bảng Tùy Chỉnh Phụ Đề & Che Mờ Sub Cũ",
         realtime_preview_note: "Xem trước thời gian thực (Realtime Preview)",
         mask_old_sub: "Che Sub Cũ Của Video",
@@ -774,6 +846,11 @@
         btn_auto_sub: "AI Scan & Translate Entire Video",
         btn_auto_sub_scanning: "Scanning & Translating Dialogue...",
         btn_export_video: "Export Hardsub Video",
+        dual_sub_title: "Dual Subtitles (Bilingual: Original + Translation)",
+        dual_sub_desc: "Line 1: Spoken line (75%, silver) | Line 2: Translated line",
+        cache_loaded_badge: "⚡ Loaded from cache (0 tokens)",
+        btn_rescan_cache: "Rescan (Bypass cache)",
+        btn_fullscreen: "Fullscreen",
         customizer_title: "Subtitle Customization & Old Subtitle Masking",
         realtime_preview_note: "Realtime Preview",
         mask_old_sub: "Mask Old Video Subtitles",
@@ -926,6 +1003,9 @@
     let currentTab = 'video';
     let currentVideoId = null;
     let currentVideoSubtitles = [];
+    let currentFileSignature = null;
+    let currentLoadedUrl = null;
+    let currentTrackBlobUrl = null;
     let poolData = null;
     let audioBlob = null;
     let mediaRecorder = null;
@@ -1092,6 +1172,270 @@
     });
 
     // ==========================================
+    // UTILS & ESCAPING
+    // ==========================================
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, function(m) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        }[m];
+      });
+    }
+
+    // ==========================================
+    // 1. DUAL SUBTITLES (BILINGUAL MODE)
+    // ==========================================
+    function renderOverlaySubtitle(sub) {
+      const isDual = document.getElementById('dual-sub-toggle')?.checked;
+      const original = (sub.original || '').trim();
+      const translated = (sub.translated || '').trim();
+
+      if (isDual && original && translated && original !== translated) {
+        subtitleOverlay.innerHTML = `
+          <div class="sub-original">${escapeHtml(original)}</div>
+          <div class="sub-translated">${escapeHtml(translated)}</div>
+        `;
+      } else {
+        subtitleOverlay.innerHTML = `<div class="sub-translated">${escapeHtml(translated || original)}</div>`;
+      }
+    }
+
+    function toggleDualSubtitles(checked) {
+      try {
+        localStorage.setItem('geminitrans_dual_sub', checked ? '1' : '0');
+      } catch (e) {}
+
+      updateVideoTextTrack(currentVideoSubtitles);
+
+      // Refresh live subtitle preview if playing
+      if (uploadedVideo && !uploadedVideo.paused && currentVideoSubtitles.length) {
+        const cur = uploadedVideo.currentTime;
+        const active = currentVideoSubtitles.find(s => cur >= s.start && cur <= s.end);
+        if (active) {
+          renderOverlaySubtitle(active);
+          subtitleOverlay.classList.remove('hidden');
+        }
+      } else {
+        updateSubtitleStyle(true);
+      }
+    }
+
+    // ==========================================
+    // 3. WEBVTT TEXT TRACK (IOS SAFARI FULLSCREEN)
+    // ==========================================
+    function updateVideoTextTrack(subs) {
+      if (!uploadedVideo) return;
+      const isDual = document.getElementById('dual-sub-toggle')?.checked;
+
+      // Revoke previous blob url to avoid memory leaks
+      if (currentTrackBlobUrl) {
+        try { URL.revokeObjectURL(currentTrackBlobUrl); } catch (e) {}
+        currentTrackBlobUrl = null;
+      }
+
+      let track = document.getElementById('uploaded-video-track');
+      if (!track) {
+        track = document.createElement('track');
+        track.id = 'uploaded-video-track';
+        track.kind = 'subtitles';
+        track.label = isDual ? 'Bilingual Subtitles' : 'Tiếng Việt';
+        track.srclang = 'vi';
+        track.default = true;
+        uploadedVideo.appendChild(track);
+      } else {
+        track.label = isDual ? 'Bilingual Subtitles' : 'Tiếng Việt';
+      }
+
+      if (!subs || !subs.length) {
+        track.removeAttribute('src');
+        return;
+      }
+
+      let vtt = "WEBVTT\n\n";
+      subs.forEach((s, idx) => {
+        const sTime = formatVttTime(s.start);
+        const eTime = formatVttTime(s.end);
+        let text = '';
+        const orig = (s.original || '').trim();
+        const trans = (s.translated || '').trim();
+
+        if (isDual && orig && trans && orig !== trans) {
+          text = `${orig}\n${trans}`;
+        } else {
+          text = trans || orig || '';
+        }
+
+        if (text) {
+          vtt += `${idx + 1}\n${sTime} --> ${eTime}\n${text}\n\n`;
+        }
+      });
+
+      const blob = new Blob([vtt], { type: 'text/vtt;charset=utf-8' });
+      currentTrackBlobUrl = URL.createObjectURL(blob);
+      track.src = currentTrackBlobUrl;
+      track.default = true;
+
+      // Ensure track displays in Safari iOS / native player
+      try {
+        if (uploadedVideo.textTracks && uploadedVideo.textTracks.length > 0) {
+          for (let i = 0; i < uploadedVideo.textTracks.length; i++) {
+            uploadedVideo.textTracks[i].mode = 'showing';
+          }
+        }
+      } catch (e) {
+        console.warn("Could not set textTrack mode:", e);
+      }
+    }
+
+    // ==========================================
+    // 2. LOCAL SUBTITLE CACHE (ZERO TOKEN)
+    // ==========================================
+    function getCacheKeys() {
+      const keys = [];
+      if (currentLoadedUrl) {
+        keys.push(`geminitrans_cache_${currentLoadedUrl.trim()}`);
+        keys.push(`geminitrans_cache_url_${encodeURIComponent(currentLoadedUrl.trim().toLowerCase())}`);
+      }
+      if (currentFileSignature) {
+        keys.push(`geminitrans_cache_${currentFileSignature}`);
+        keys.push(`geminitrans_cache_file_${currentFileSignature}`);
+      }
+      if (currentVideoId) {
+        keys.push(`geminitrans_cache_${currentVideoId}`);
+      }
+      return keys;
+    }
+
+    function checkAndLoadSubtitleCache() {
+      const keys = getCacheKeys();
+      for (const k of keys) {
+        try {
+          const raw = localStorage.getItem(k);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              currentVideoSubtitles = parsed;
+              renderSubtitleTimeline(currentVideoSubtitles);
+              updateVideoTextTrack(currentVideoSubtitles);
+              document.getElementById('export-download-box')?.classList.remove('hidden');
+              showCacheNoticeBadge();
+              return true;
+            }
+          }
+        } catch (e) {
+          console.warn("Error reading cache for", k, e);
+        }
+      }
+      hideCacheNoticeBadge();
+      return false;
+    }
+
+    function saveSubtitleCache(subs) {
+      if (!Array.isArray(subs) || !subs.length) return;
+      const raw = JSON.stringify(subs);
+      const keys = getCacheKeys();
+      for (const k of keys) {
+        try {
+          localStorage.setItem(k, raw);
+        } catch (e) {
+          console.warn("localStorage quota or error", e);
+        }
+      }
+    }
+
+    function clearSubtitleCacheForCurrentVideo() {
+      const keys = getCacheKeys();
+      for (const k of keys) {
+        try {
+          localStorage.removeItem(k);
+        } catch (e) {}
+      }
+    }
+
+    function showCacheNoticeBadge() {
+      const badge = document.getElementById('cache-notice-badge');
+      if (badge) {
+        badge.classList.remove('hidden');
+        badge.classList.add('flex');
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+      }
+    }
+
+    function hideCacheNoticeBadge() {
+      const badge = document.getElementById('cache-notice-badge');
+      if (badge) {
+        badge.classList.add('hidden');
+        badge.classList.remove('flex');
+      }
+    }
+
+    function rescanBypassCache() {
+      clearSubtitleCacheForCurrentVideo();
+      hideCacheNoticeBadge();
+      currentVideoSubtitles = [];
+      renderSubtitleTimeline([]);
+      updateVideoTextTrack([]);
+      startAutoSubtitling(true);
+    }
+
+    // ==========================================
+    // 4. MOBILE / TABLET 1-TOUCH FULLSCREEN
+    // ==========================================
+    function togglePlayerFullscreen() {
+      const container = document.getElementById('player-container');
+      const video = document.getElementById('uploaded-video-player');
+
+      // iOS Safari specific fullscreen for <video>
+      if (video && video.webkitSupportsFullscreen && !document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (typeof video.webkitEnterFullscreen === 'function') {
+          video.webkitEnterFullscreen();
+          return;
+        }
+      }
+
+      if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+        if (container.requestFullscreen) {
+          container.requestFullscreen();
+        } else if (container.webkitRequestFullscreen) {
+          container.webkitRequestFullscreen();
+        } else if (container.mozRequestFullScreen) {
+          container.mozRequestFullScreen();
+        } else if (container.msRequestFullscreen) {
+          container.msRequestFullscreen();
+        } else if (video && video.webkitEnterFullscreen) {
+          video.webkitEnterFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      }
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+    function handleFullscreenChange() {
+      const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      const icon = document.getElementById('fs-icon');
+      if (icon) {
+        icon.setAttribute('data-lucide', isFs ? 'minimize' : 'maximize');
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+      }
+    }
+
+    // ==========================================
     // SUBTITLE CUSTOMIZER & REALTIME PREVIEW
     // ==========================================
     function hexToRgba(hex, alpha) {
@@ -1136,13 +1480,21 @@
 
       // Sample preview if no subtitles loaded yet
       if (triggerPreview && !currentVideoSubtitles.length) {
-        subtitleOverlay.innerText = currentLang === 'vi' ? "Phụ đề mẫu (Preview Style)" : "Sample Subtitle (Preview Style)";
+        const isDual = document.getElementById('dual-sub-toggle')?.checked;
+        if (isDual) {
+          subtitleOverlay.innerHTML = `
+            <div class="sub-original">Original spoken line (75% silver)</div>
+            <div class="sub-translated">${currentLang === 'vi' ? 'Bản dịch tiếng Việt (Mẫu)' : 'Translated subtitle preview'}</div>
+          `;
+        } else {
+          subtitleOverlay.innerHTML = `<div class="sub-translated">${currentLang === 'vi' ? 'Phụ đề mẫu (Preview Style)' : 'Sample Subtitle (Preview Style)'}</div>`;
+        }
         subtitleOverlay.classList.remove('hidden');
         clearTimeout(window._previewTimer);
         window._previewTimer = setTimeout(() => {
           if (!currentVideoSubtitles.length) {
             subtitleOverlay.classList.add('hidden');
-            subtitleOverlay.innerText = "";
+            subtitleOverlay.innerHTML = "";
           }
         }, 2500);
       }
@@ -1162,14 +1514,14 @@
 
       if (!currentVideoSubtitles.length) {
         subtitleOverlay.classList.add('hidden');
-        subtitleOverlay.innerText = '';
+        subtitleOverlay.innerHTML = '';
         return;
       }
 
       // Find active subtitle
       const active = currentVideoSubtitles.find(s => current >= s.start && current <= s.end);
       if (active && (active.translated || active.original)) {
-        subtitleOverlay.innerText = active.translated || active.original;
+        renderOverlaySubtitle(active);
         subtitleOverlay.classList.remove('hidden');
 
         // Highlight active item in timeline
@@ -1208,6 +1560,9 @@
         const data = await res.json();
         
         currentVideoId = data.video_id;
+        currentFileSignature = `${file.name}_${file.size}`;
+        currentLoadedUrl = null;
+
         document.getElementById('current-video-badge').innerText = `${t('badge_video_prefix')}${data.filename}`;
         document.getElementById('upload-btn-label').innerText = t('video_opt1_btn_change');
         statusText.innerText = t('video_opt1_success');
@@ -1227,9 +1582,12 @@
         // Enable Action Buttons
         document.getElementById('btn-auto-sub').disabled = false;
         
-        subtitleOverlay.innerText = '';
+        subtitleOverlay.innerHTML = '';
         subtitleOverlay.classList.add('hidden');
         updateSubtitleStyle();
+
+        // ⚡ Check and restore local cache in 0.05s without calling AI Studio
+        checkAndLoadSubtitleCache();
       } catch (err) {
         alert("Upload error: " + err.message);
         document.getElementById('upload-btn-label').innerText = t('video_opt1_btn');
@@ -1237,7 +1595,7 @@
     }
 
     // AI AUTO SUBTITLING
-    async function startAutoSubtitling() {
+    async function startAutoSubtitling(bypassCache = false) {
       if (!currentVideoId) {
         const urlInput = document.getElementById('video-url-input').value.trim();
         if (urlInput) {
@@ -1248,6 +1606,12 @@
       if (!currentVideoId) {
         alert(t('alert_no_video'));
         return;
+      }
+
+      // Check cache first if not explicitly bypassing
+      if (!bypassCache) {
+        const hasCache = checkAndLoadSubtitleCache();
+        if (hasCache) return;
       }
 
       const btn = document.getElementById('btn-auto-sub');
@@ -1276,10 +1640,13 @@
         const data = await res.json();
         currentVideoSubtitles = data.subtitles || [];
 
-        subtitleOverlay.innerText = '';
+        subtitleOverlay.innerHTML = '';
         subtitleOverlay.classList.add('hidden');
 
         renderSubtitleTimeline(currentVideoSubtitles);
+        updateVideoTextTrack(currentVideoSubtitles);
+        saveSubtitleCache(currentVideoSubtitles);
+        hideCacheNoticeBadge();
 
         // Show export box
         document.getElementById('export-download-box').classList.remove('hidden');
@@ -1311,17 +1678,17 @@
       subs.forEach((s, idx) => {
         const card = document.createElement('div');
         card.id = `sub-card-${s.id}`;
-        card.className = "sub-item-card p-2.5 rounded-xl bg-slate-800/40 border border-slate-700/70 hover:border-indigo-500 transition cursor-pointer space-y-1.5";
+        card.className = "sub-item-card p-3 rounded-xl bg-slate-800/40 border border-slate-700/70 hover:border-indigo-500 active:border-indigo-400 transition cursor-pointer space-y-2 touch-manipulation";
         
         card.innerHTML = `
-          <div class="flex items-center justify-between text-[11px]">
-            <span class="font-mono text-indigo-400 font-semibold flex items-center gap-1" onclick="jumpToTime(${s.start})">
-              <i data-lucide="play-circle" class="w-3.5 h-3.5"></i> ${s.start_str} ➔ ${s.end_str}
+          <div class="flex items-center justify-between text-xs sm:text-[11px]">
+            <span class="font-mono text-indigo-400 font-semibold flex items-center gap-1.5 py-0.5 px-1.5 -ml-1 rounded hover:bg-indigo-500/10 active:bg-indigo-500/20 transition cursor-pointer" onclick="jumpToTime(${s.start})" title="Tua tới mốc thời gian">
+              <i data-lucide="play-circle" class="w-4 h-4 text-indigo-400"></i> ${s.start_str} ➔ ${s.end_str}
             </span>
-            <span class="text-slate-500">#${idx + 1}</span>
+            <span class="text-slate-500 font-mono text-xs">#${idx + 1}</span>
           </div>
-          ${s.original ? `<div class="text-[11px] text-slate-400 italic">${s.original}</div>` : ''}
-          <textarea class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-1.5 text-xs text-amber-300 font-medium focus:outline-none focus:border-indigo-500 resize-none" rows="2" onchange="editSubtitleText(${s.id}, this.value)">${s.translated}</textarea>
+          ${s.original ? `<div class="text-xs text-slate-300/80 italic bg-slate-900/50 p-1.5 rounded-lg border border-slate-800/80">${escapeHtml(s.original)}</div>` : ''}
+          <textarea class="w-full bg-slate-900 border border-slate-700/80 rounded-lg p-2 text-xs sm:text-xs text-amber-300 font-medium focus:outline-none focus:border-indigo-500 resize-none leading-relaxed touch-manipulation" rows="2" onchange="editSubtitleText(${s.id}, this.value)">${escapeHtml(s.translated)}</textarea>
         `;
         listContainer.appendChild(card);
       });
@@ -1338,8 +1705,10 @@
       if (sub) {
         sub.translated = newText;
         if (uploadedVideo.currentTime >= sub.start && uploadedVideo.currentTime <= sub.end) {
-          subtitleOverlay.innerText = newText;
+          renderOverlaySubtitle(sub);
         }
+        updateVideoTextTrack(currentVideoSubtitles);
+        saveSubtitleCache(currentVideoSubtitles);
       }
     }
 
@@ -1377,49 +1746,72 @@
     // 1. CLIENT-SIDE ZERO-STORAGE HARDSUB BURNER
     // (HTML5 Canvas & MediaRecorder API)
     // ==========================================
-    function drawCanvasSubtitle(ctx, text, width, height, opts) {
-      if (!text) return;
+    function drawCanvasSubtitle(ctx, subOrText, width, height, opts) {
+      if (!subOrText) return;
       ctx.save();
-      const font = `bold ${opts.fontSize}px 'Inter', sans-serif, Arial`;
-      ctx.font = font;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      const isDual = document.getElementById('dual-sub-toggle')?.checked;
 
-      // Text wrapping
-      const maxWidth = width * 0.88;
-      const words = text.split(' ');
-      const lines = [];
-      let curLine = '';
-
-      for (let n = 0; n < words.length; n++) {
-        const testLine = curLine ? curLine + ' ' + words[n] : words[n];
-        const metrics = ctx.measureText(testLine);
-        if (metrics.width > maxWidth && n > 0) {
-          lines.push(curLine);
-          curLine = words[n];
-        } else {
-          curLine = testLine;
-        }
+      let origText = '';
+      let transText = '';
+      if (typeof subOrText === 'object') {
+        origText = (subOrText.original || '').trim();
+        transText = (subOrText.translated || '').trim() || origText;
+      } else {
+        transText = String(subOrText).trim();
       }
-      if (curLine) lines.push(curLine);
 
-      const lineHeight = opts.fontSize * 1.35;
-      const totalTextHeight = lines.length * lineHeight;
+      const showDual = isDual && origText && transText && origText !== transText;
+      const maxWidth = width * 0.88;
+
+      const wrapLines = (text, fSize, fWeight = 'bold') => {
+        ctx.font = `${fWeight} ${fSize}px 'Inter', sans-serif, Arial`;
+        const words = text.split(' ');
+        const lines = [];
+        let curLine = '';
+        for (let n = 0; n < words.length; n++) {
+          const testLine = curLine ? curLine + ' ' + words[n] : words[n];
+          const metrics = ctx.measureText(testLine);
+          if (metrics.width > maxWidth && n > 0) {
+            lines.push(curLine);
+            curLine = words[n];
+          } else {
+            curLine = testLine;
+          }
+        }
+        if (curLine) lines.push(curLine);
+        return lines;
+      };
+
+      const transLines = wrapLines(transText, opts.fontSize, 'bold');
+      const origLines = showDual ? wrapLines(origText, Math.round(opts.fontSize * 0.75), 'normal') : [];
+
+      const transLineHeight = opts.fontSize * 1.35;
+      const origLineHeight = Math.round(opts.fontSize * 0.75) * 1.25;
+
+      const totalTextHeight = (transLines.length * transLineHeight) + (origLines.length * origLineHeight);
       const padX = Math.round(opts.fontSize * 1.2);
       const padY = Math.round(opts.fontSize * 0.45);
       const boxHeight = totalTextHeight + (padY * 2);
 
       let maxW = 0;
-      for (const l of lines) {
+      ctx.font = `bold ${opts.fontSize}px 'Inter', sans-serif, Arial`;
+      for (const l of transLines) {
         const w = ctx.measureText(l).width;
         if (w > maxW) maxW = w;
       }
+      if (showDual) {
+        ctx.font = `normal ${Math.round(opts.fontSize * 0.75)}px 'Inter', sans-serif, Arial`;
+        for (const l of origLines) {
+          const w = ctx.measureText(l).width;
+          if (w > maxW) maxW = w;
+        }
+      }
+
       const boxWidth = Math.min(width * 0.94, maxW + (padX * 2));
       const boxX = (width - boxWidth) / 2;
       const boxY = height - opts.marginV - boxHeight;
 
       if (opts.maskOld) {
-        // Draw background mask box
         ctx.fillStyle = opts.bgColorRgba;
         if (typeof ctx.roundRect === 'function') {
           ctx.beginPath();
@@ -1430,24 +1822,40 @@
         }
       }
 
-      // Draw text lines
-      const startY = boxY + padY + (lineHeight / 2);
-      ctx.fillStyle = opts.textColor;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
 
-      if (!opts.maskOld) {
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = Math.max(3, Math.round(opts.fontSize * 0.15));
-        ctx.lineJoin = 'round';
-        for (let i = 0; i < lines.length; i++) {
-          const y = startY + (i * lineHeight);
-          ctx.strokeText(lines[i], width / 2, y);
-          ctx.fillText(lines[i], width / 2, y);
+      let curY = boxY + padY;
+
+      // Draw original lines if dual
+      if (showDual) {
+        const origFontSize = Math.round(opts.fontSize * 0.75);
+        ctx.font = `500 ${origFontSize}px 'Inter', sans-serif, Arial`;
+        ctx.fillStyle = '#e2e8f0';
+        for (let i = 0; i < origLines.length; i++) {
+          const y = curY + (origLineHeight / 2);
+          if (!opts.maskOld) {
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = Math.max(2, Math.round(origFontSize * 0.15));
+            ctx.strokeText(origLines[i], width / 2, y);
+          }
+          ctx.fillText(origLines[i], width / 2, y);
+          curY += origLineHeight;
         }
-      } else {
-        for (let i = 0; i < lines.length; i++) {
-          const y = startY + (i * lineHeight);
-          ctx.fillText(lines[i], width / 2, y);
+      }
+
+      // Draw translated lines
+      ctx.font = `bold ${opts.fontSize}px 'Inter', sans-serif, Arial`;
+      ctx.fillStyle = opts.textColor;
+      for (let i = 0; i < transLines.length; i++) {
+        const y = curY + (transLineHeight / 2);
+        if (!opts.maskOld) {
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = Math.max(3, Math.round(opts.fontSize * 0.15));
+          ctx.strokeText(transLines[i], width / 2, y);
         }
+        ctx.fillText(transLines[i], width / 2, y);
+        curY += transLineHeight;
       }
 
       ctx.restore();
@@ -1574,7 +1982,7 @@
         const curTime = video.currentTime;
         const activeSub = currentVideoSubtitles.find(s => curTime >= s.start && curTime <= s.end);
         if (activeSub && (activeSub.translated || activeSub.original)) {
-          drawCanvasSubtitle(ctx, activeSub.translated || activeSub.original, vWidth, vHeight, {
+          drawCanvasSubtitle(ctx, activeSub, vWidth, vHeight, {
             fontSize,
             marginV,
             textColor,
@@ -1624,6 +2032,18 @@
       const fontSize = parseInt(document.getElementById('sub-font-size').value);
       const marginV = parseInt(document.getElementById('sub-margin-v').value);
       const maskOld = document.getElementById('mask-old-sub').checked;
+      const isDual = document.getElementById('dual-sub-toggle')?.checked;
+
+      const subsPayload = isDual
+        ? currentVideoSubtitles.map(s => {
+            const o = (s.original || '').trim();
+            const tr = (s.translated || '').trim();
+            if (o && tr && o !== tr) {
+              return { ...s, translated: `${o}\n${tr}` };
+            }
+            return s;
+          })
+        : currentVideoSubtitles;
 
       try {
         const res = await fetch('/api/video/burn-subtitles', {
@@ -1631,7 +2051,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             video_id: currentVideoId,
-            subtitles: currentVideoSubtitles,
+            subtitles: subsPayload,
             font_size: fontSize,
             text_color: textColor,
             bg_color: bgColor,
@@ -1711,10 +2131,18 @@
     function downloadCurrentSrt() {
       if (!currentVideoSubtitles.length) return alert(t('alert_no_subs'));
       let srt = '';
+      const isDual = document.getElementById('dual-sub-toggle')?.checked;
       currentVideoSubtitles.forEach((s, idx) => {
         const sTime = formatSrtTime(s.start);
         const eTime = formatSrtTime(s.end);
-        const text = s.translated || s.original || '';
+        let text = '';
+        const orig = (s.original || '').trim();
+        const trans = (s.translated || '').trim();
+        if (isDual && orig && trans && orig !== trans) {
+          text = `${orig}\n${trans}`;
+        } else {
+          text = trans || orig || '';
+        }
         srt += `${idx + 1}\n${sTime} --> ${eTime}\n${text}\n\n`;
       });
       const blob = new Blob([srt], { type: 'text/plain;charset=utf-8' });
@@ -1728,10 +2156,18 @@
     function downloadCurrentVtt() {
       if (!currentVideoSubtitles.length) return alert(t('alert_no_subs'));
       let vtt = 'WEBVTT\n\n';
+      const isDual = document.getElementById('dual-sub-toggle')?.checked;
       currentVideoSubtitles.forEach((s, idx) => {
         const sTime = formatVttTime(s.start);
         const eTime = formatVttTime(s.end);
-        const text = s.translated || s.original || '';
+        let text = '';
+        const orig = (s.original || '').trim();
+        const trans = (s.translated || '').trim();
+        if (isDual && orig && trans && orig !== trans) {
+          text = `${orig}\n${trans}`;
+        } else {
+          text = trans || orig || '';
+        }
         vtt += `${idx + 1}\n${sTime} --> ${eTime}\n${text}\n\n`;
       });
       const blob = new Blob([vtt], { type: 'text/vtt;charset=utf-8' });
@@ -1804,9 +2240,15 @@
           const btnAutoSub = document.getElementById('btn-auto-sub');
           if (btnAutoSub) btnAutoSub.disabled = false;
 
-          subtitleOverlay.innerText = '';
+          currentLoadedUrl = url;
+          currentFileSignature = null;
+
+          subtitleOverlay.innerHTML = '';
           subtitleOverlay.classList.add('hidden');
           updateSubtitleStyle();
+
+          // ⚡ Check and restore local cache in 0.05s without calling AI Studio
+          checkAndLoadSubtitleCache();
         } else {
           throw new Error(data.detail || "Cannot load video");
         }
@@ -2011,9 +2453,19 @@
       alert(t('alert_copied'));
     }
 
+    // Restore Dual Subtitles preference from localStorage
+    try {
+      const savedDual = localStorage.getItem('geminitrans_dual_sub');
+      const dualToggle = document.getElementById('dual-sub-toggle');
+      if (dualToggle && savedDual !== null) {
+        dualToggle.checked = (savedDual === '1');
+      }
+    } catch (e) {}
+
     // Initialize Language, Hash Routing and Icons on page load
     setLanguage(currentLang);
     initHashRouting();
+    updateSubtitleStyle(false);
   </script>
 </body>
 </html>
