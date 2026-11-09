@@ -15,6 +15,8 @@ services:
       - ./templates:/app/templates
       - ./core:/app/core
       - ./app.py:/app/app.py
+      - ./uploads:/app/uploads
+      - ./outputs:/app/outputs
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/api/pool-status"]
       interval: 30s

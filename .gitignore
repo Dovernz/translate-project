@@ -17,6 +17,12 @@ venv/
 !.env.example
 !.env.sample
 
+# Media uploads & render outputs
+uploads/*
+!uploads/.gitkeep
+outputs/*
+!outputs/.gitkeep
+
 # Logs & temp
 *.log
 scratch/

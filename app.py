@@ -1,22 +1,40 @@
 import os
-import re
+import uuid
 import json
 import asyncio
 from pathlib import Path
-from typing import Optional, List
-from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException
-from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
+from typing import Optional, List, Dict, Any
+from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException, Body
+from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from core.key_pool import KeyPool, MODEL_TIERS
-from core.video_helper import get_video_info, extract_youtube_id
+from core.video_helper import (
+    get_video_info,
+    extract_youtube_id,
+    extract_audio_from_video,
+    parse_subtitles_from_ai,
+    export_srt,
+    burn_subtitles_to_video
+)
 
-app = FastAPI(title="Gemini Universal Translator & Realtime Video Subtitler")
+app = FastAPI(title="Gemini Universal Translator & Realtime Subtitler")
+
+BASE_DIR = Path(__file__).resolve().parent
+UPLOAD_DIR = BASE_DIR / "uploads"
+OUTPUT_DIR = BASE_DIR / "outputs"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# Mount thư mục tĩnh để stream và download video
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
+app.mount("/outputs", StaticFiles(directory=str(OUTPUT_DIR)), name="outputs")
 
 # Khởi tạo Smart Key Pool
 pool = KeyPool()
 
+# Data models
 class TranslateRequest(BaseModel):
     text: str
     source_lang: str = "auto"
@@ -31,6 +49,20 @@ class VideoChunkTranslateRequest(BaseModel):
     chunk_text: str
     target_lang: str = "vi"
     context: Optional[str] = ""
+
+class AutoSubRequest(BaseModel):
+    video_id: str
+    target_lang: str = "vi"
+
+class BurnSubRequest(BaseModel):
+    video_id: str
+    subtitles: List[Dict[str, Any]]
+    font_size: int = 22
+    text_color: str = "#FBBF24"
+    bg_color: str = "#000000"
+    bg_opacity: float = 0.85
+    mask_old_sub: bool = True
+    vertical_margin: int = 35
 
 @app.get("/api/pool-status")
 def get_pool_status():
@@ -108,9 +140,6 @@ async def fetch_video_info(req: VideoInfoRequest):
 
 @app.post("/api/video/translate-chunk")
 async def translate_video_chunk(req: VideoChunkTranslateRequest):
-    """
-    Xoay vòng Key Pool để dịch từng câu/chunk phụ đề của video với độ trễ thấp nhất
-    """
     system_instruction = (
         f"Bạn là hệ thống phụ đề video trực tiếp. Hãy dịch câu thoại/đoạn sau sang {req.target_lang}. "
         "Yêu cầu: Ngắn gọn, súc tích, văn phong tự nhiên hợp ngữ cảnh phim. CHỈ trả về câu dịch duy nhất, không giải thích."
@@ -120,6 +149,148 @@ async def translate_video_chunk(req: VideoChunkTranslateRequest):
         "original": req.chunk_text,
         "translated": translated.strip(),
         "key_index": (pool.current_index % len(pool.keys)) if pool.keys else 1
+    }
+
+# ==============================================================================
+# TÍNH NĂNG MỚI: QUÉT VIDEO, TỰ ĐỘNG SINH SUB VÀ BURN PHỤ ĐỀ CHE SUB CŨ
+# ==============================================================================
+
+@app.post("/api/video/upload")
+async def upload_video(file: UploadFile = File(...)):
+    ext = Path(file.filename or "video.mp4").suffix.lower()
+    if ext not in [".mp4", ".mov", ".mkv", ".webm", ".avi", ".m4v"]:
+        ext = ".mp4"
+    
+    video_id = str(uuid.uuid4())[:8]
+    saved_filename = f"{video_id}_{file.filename}"
+    saved_path = UPLOAD_DIR / saved_filename
+    
+    with open(saved_path, "wb") as f:
+        while chunk := await file.read(1024 * 1024):
+            f.write(chunk)
+            
+    return {
+        "video_id": video_id,
+        "filename": file.filename,
+        "saved_filename": saved_filename,
+        "video_url": f"/uploads/{saved_filename}",
+        "size_bytes": saved_path.stat().st_size
+    }
+
+@app.post("/api/video/auto-subtitle")
+async def auto_subtitle_video(req: AutoSubRequest):
+    """
+    Quét video bằng ffmpeg -> Trích audio -> Gửi Gemini Multimodal -> Sinh danh sách phụ đề song ngữ
+    """
+    # Tìm file video theo video_id
+    matches = list(UPLOAD_DIR.glob(f"{req.video_id}_*"))
+    if not matches:
+        raise HTTPException(status_code=404, detail="Không tìm thấy file video đã tải lên.")
+    
+    video_path = matches[0]
+    audio_path = UPLOAD_DIR / f"{req.video_id}_audio.mp3"
+    
+    # 1. Trích xuất audio
+    loop = asyncio.get_event_loop()
+    success = await loop.run_in_executor(None, extract_audio_from_video, video_path, audio_path)
+    if not success or not audio_path.exists():
+        raise HTTPException(status_code=500, detail="Không thể trích xuất âm thanh từ video.")
+
+    with open(audio_path, "rb") as f:
+        audio_bytes = f.read()
+
+    # 2. Gửi audio đến Gemini Multimodal Model thông qua Smart Key Pool
+    lang_map = {
+        "vi": "Tiếng Việt",
+        "en": "Tiếng Anh",
+        "ja": "Tiếng Nhật",
+        "ko": "Tiếng Hàn",
+        "zh": "Tiếng Trung",
+        "fr": "Tiếng Pháp"
+    }
+    target_name = lang_map.get(req.target_lang, "Tiếng Việt")
+
+    prompt = (
+        f"Bạn là chuyên gia nhận diện giọng nói và dịch phụ đề video tự động. "
+        f"Hãy lắng nghe toàn bộ file âm thanh và trích xuất từng câu thoại kèm mốc thời gian, sau đó dịch sang {target_name}. "
+        f"Yêu cầu xuất ra BẮT BUỘC dạng mảng JSON thuần túy (JSON Array), KHÔNG viết giải thích hay bọc thẻ văn bản khác:\n"
+        f"[\n"
+        f'  {{"start": "00:01.000", "end": "00:04.500", "original": "câu thoại gốc", "translated": "bản dịch {target_name}"}},\n'
+        f'  {{"start": "00:05.000", "end": "00:08.200", "original": "câu tiếp theo", "translated": "bản dịch tiếp theo"}}\n'
+        f"]"
+    )
+
+    try:
+        ai_response = await pool.generate_multimodal(
+            audio_bytes=audio_bytes,
+            mime_type="audio/mp3",
+            prompt=prompt
+        )
+        subtitles = parse_subtitles_from_ai(ai_response)
+        
+        # Nếu danh sách rỗng, tạo fallback subtitle tối thiểu
+        if not subtitles:
+            subtitles = [{
+                "id": 1,
+                "start": 1.0,
+                "end": 5.0,
+                "start_str": "00:00:01.000",
+                "end_str": "00:00:05.000",
+                "original": "Audio recognized",
+                "translated": "Đã hoàn thành nhận diện âm thanh"
+            }]
+
+        # Lưu file .srt ban đầu
+        srt_path = OUTPUT_DIR / f"{req.video_id}.srt"
+        export_srt(subtitles, srt_path)
+
+        return {
+            "video_id": req.video_id,
+            "subtitles": subtitles,
+            "srt_url": f"/outputs/{req.video_id}.srt"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi AI Subtitling: {str(e)}")
+
+@app.post("/api/video/burn-subtitles")
+async def burn_subtitles_endpoint(req: BurnSubRequest):
+    """
+    Burn phụ đề vào video bằng ffmpeg với tùy biến màu sắc, cỡ chữ và che mờ/xóa sub cũ
+    """
+    matches = list(UPLOAD_DIR.glob(f"{req.video_id}_*"))
+    if not matches:
+        raise HTTPException(status_code=404, detail="Không tìm thấy file video.")
+    
+    video_path = matches[0]
+    srt_path = OUTPUT_DIR / f"{req.video_id}.srt"
+    output_video_path = OUTPUT_DIR / f"{req.video_id}_subtitled.mp4"
+
+    # Cập nhật lại file srt từ danh sách phụ đề người dùng đã duyệt/sửa
+    export_srt(req.subtitles, srt_path)
+
+    loop = asyncio.get_event_loop()
+    success = await loop.run_in_executor(
+        None,
+        burn_subtitles_to_video,
+        video_path,
+        srt_path,
+        output_video_path,
+        req.font_size,
+        req.text_color,
+        req.bg_color,
+        req.bg_opacity,
+        req.mask_old_sub,
+        req.vertical_margin
+    )
+
+    if not success or not output_video_path.exists():
+        raise HTTPException(status_code=500, detail="Không thể burn phụ đề vào video qua ffmpeg.")
+
+    return {
+        "status": "success",
+        "video_id": req.video_id,
+        "download_url": f"/outputs/{req.video_id}_subtitled.mp4",
+        "srt_url": f"/outputs/{req.video_id}.srt"
     }
 
 @app.get("/", response_class=HTMLResponse)
