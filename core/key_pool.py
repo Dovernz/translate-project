@@ -186,7 +186,14 @@ class KeyPool:
             elif status_code in (500, 503):
                 self.cooldowns[key] = time.time() + 15
 
-    async def generate_content_stream(self, prompt: str, system_instruction: str = "", tier: str = "bulk") -> AsyncGenerator[str, None]:
+    async def generate_content_stream(
+        self,
+        prompt: str,
+        system_instruction: str = "",
+        tier: str = "bulk",
+        response_mime_type: Optional[str] = None,
+        max_output_tokens: int = 4096
+    ) -> AsyncGenerator[str, None]:
         tier_info = MODEL_TIERS.get(tier, MODEL_TIERS["bulk"])
         model_name = tier_info["primary"]
         
@@ -195,12 +202,16 @@ class KeyPool:
             key = self.acquire_key()
             url = f"{self.api_base}/{model_name}:streamGenerateContent?alt=sse&key={key}"
             
+            gen_config: Dict[str, Any] = {
+                "temperature": 0.3,
+                "maxOutputTokens": max_output_tokens
+            }
+            if response_mime_type:
+                gen_config["responseMimeType"] = response_mime_type
+
             payload: Dict[str, Any] = {
                 "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {
-                    "temperature": 0.3,
-                    "maxOutputTokens": 4096
-                }
+                "generationConfig": gen_config
             }
             if system_instruction:
                 payload["systemInstruction"] = {
@@ -308,8 +319,21 @@ class KeyPool:
 
         raise RuntimeError("Không thể xử lý multimodal qua Gemini Pool sau 3 lần thử.")
 
-    async def generate_content(self, prompt: str, system_instruction: str = "", tier: str = "bulk") -> str:
+    async def generate_content(
+        self,
+        prompt: str,
+        system_instruction: str = "",
+        tier: str = "bulk",
+        response_mime_type: Optional[str] = None,
+        max_output_tokens: int = 8192
+    ) -> str:
         res = []
-        async for chunk in self.generate_content_stream(prompt, system_instruction, tier):
+        async for chunk in self.generate_content_stream(
+            prompt,
+            system_instruction=system_instruction,
+            tier=tier,
+            response_mime_type=response_mime_type,
+            max_output_tokens=max_output_tokens
+        ):
             res.append(chunk)
         return "".join(res)

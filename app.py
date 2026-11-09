@@ -16,6 +16,7 @@ from core.manga_helper import (
     detect_and_translate_manga,
     render_translated_page,
     fetch_images_from_url,
+    analyze_manga_site_with_ai,
     extract_chapters_from_url,
     extract_images_from_zip,
     natural_sort_key
@@ -523,7 +524,7 @@ async def get_manga_chapters(req: MangaChaptersRequest):
     if not req.url or not req.url.strip():
         raise HTTPException(status_code=400, detail="URL truyện không được để trống")
     try:
-        data = await extract_chapters_from_url(req.url.strip())
+        data = await analyze_manga_site_with_ai(req.url.strip(), pool)
         return {
             "status": "success",
             **data

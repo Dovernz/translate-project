@@ -433,146 +433,216 @@ async def fetch_images_from_url(url: str, output_dir: Union[str, Path]) -> List[
         downloaded_files.sort(key=lambda x: x[0])
         return [f[1] for f in downloaded_files]
 
-async def extract_chapters_from_url(url: str) -> Dict[str, Any]:
+async def analyze_manga_site_with_ai(url: str, pool: Any = None) -> Dict[str, Any]:
     """
-    Parses comic/manga URL to extract chapter list and detect the current chapter.
-    Supports:
-    - Series index pages with chapter tables/lists.
-    - Direct chapter pages with chapter dropdowns or previous/next chapter links.
-    - URL template pattern detection (e.g. .../chap-1, .../chapter-10).
+    AI Web Chapter Analyzer:
+    Analyzes manga/comic websites dynamically using Gemini API via Key Pool.
+    Adaptable to any manga site (NetTruyen, MangaDex, MangaKakalot, Webtoon, AsuraScans...).
+    Extracts:
+    - Comic title
+    - Chapters list (id, name, url)
+    - URL pattern for consecutive chapters
     """
     clean_url = url.strip()
+    if not clean_url:
+        raise ValueError("URL web truyện không được để trống")
+
+    if pool is None:
+        from core.key_pool import KeyPool
+        pool = KeyPool()
+
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
         "Referer": clean_url
     }
 
-    series_title = "Bộ truyện tranh"
-    chapters: List[Dict[str, Any]] = []
-    current_chapter_url = clean_url
-    current_chapter_index = 0
-
-    # Detect chapter number from URL if present
-    # Matches /chapter-12, /chap-12, /ch-12, /chuong-12, /c12, /tap-12
-    url_chap_match = re.search(r'(?:chap(?:ter)?|ch(?:ương)?|tập|vol|c)[-_/\s]*(\d+(?:\.\d+)?)', clean_url, re.IGNORECASE)
-    detected_curr_num = float(url_chap_match.group(1)) if url_chap_match else None
-
-    # Fetch webpage HTML
     html = ""
+    final_url = clean_url
     try:
-        async with httpx.AsyncClient(headers=headers, follow_redirects=True, timeout=20.0) as client:
+        async with httpx.AsyncClient(headers=headers, follow_redirects=True, timeout=25.0) as client:
             resp = await client.get(clean_url)
             if resp.status_code == 200:
                 html = resp.text
                 final_url = str(resp.url)
-                current_chapter_url = final_url
-    except Exception:
+    except Exception as e:
         pass
 
+    # Extract page metadata & candidate links
+    page_title = ""
+    headings_list = []
+    extracted_links = []
+    seen_urls = set()
+
     if html:
-        # 1. Series / Page Title extraction
+        # Title
         t_match = re.search(r'<title>(.*?)</title>', html, re.IGNORECASE | re.DOTALL)
         if t_match:
-            raw_title = t_match.group(1).strip()
-            # Clean generic site suffixes like "| NetTruyen", "- BlogTruyen", etc.
-            raw_title = re.sub(r'\s*[-|–—]\s*(?:Đọc truyện|NetTruyen|TruyenQQ|MangaDex|BlogTruyen|Tuổi Thơ|Truyện Online).*$', '', raw_title, flags=re.IGNORECASE).strip()
-            if raw_title:
-                series_title = raw_title
+            page_title = re.sub(r'<[^>]+>', '', t_match.group(1)).strip()
 
-        # 2. Extract chapters from HTML <a> and <option> tags
-        seen_urls = set()
-        
-        # Check <option value="...">Chapter ...</option> (standard chapter select dropdowns)
+        # Headings H1, H2
+        for h in re.finditer(r'<h[12][^>]*>(.*?)</h[12]>', html, re.IGNORECASE | re.DOTALL):
+            txt = re.sub(r'<[^>]+>', ' ', h.group(1)).strip()
+            if txt and len(txt) < 120 and txt not in headings_list:
+                headings_list.append(txt)
+
+        # 1. <option value="...">...</option> (Chapter select dropdowns)
         opt_pattern = re.compile(r'<option\s+[^>]*value=["\']([^"\']+)["\'][^>]*>(.*?)</option>', re.IGNORECASE | re.DOTALL)
         for m in opt_pattern.finditer(html):
             val = m.group(1).strip()
-            text = re.sub(r'<[^>]+>', ' ', m.group(2)).strip()
-            combined = f"{text} {val}"
-            cm = re.search(r'(?:chap(?:ter)?|ch(?:ương)?|tập|vol|c)[-_.\s]*(\d+(?:\.\d+)?)', combined, re.IGNORECASE)
-            if cm and (val.startswith("http") or val.startswith("/")):
-                full_u = urljoin(clean_url, val)
-                if full_u not in seen_urls:
-                    seen_urls.add(full_u)
-                    num_val = float(cm.group(1))
-                    name = text if len(text) < 60 and len(text) > 1 else f"Chương {cm.group(1)}"
-                    chapters.append({
-                        "id": f"chap_{cm.group(1)}",
-                        "name": name,
-                        "url": full_u,
-                        "num": num_val
-                    })
+            txt = re.sub(r'<[^>]+>', ' ', m.group(2)).strip()
+            if not val or val.startswith("#") or val.startswith("javascript:"):
+                continue
+            full_u = urljoin(final_url, val)
+            if full_u not in seen_urls:
+                seen_urls.add(full_u)
+                extracted_links.append({"text": txt or val, "url": full_u})
 
-        # Check <a href="...">Chapter ...</a> links
-        if len(chapters) < 2:
-            a_pattern = re.compile(r'<a\s+[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>', re.IGNORECASE | re.DOTALL)
-            for m in a_pattern.finditer(html):
-                href = m.group(1).strip()
-                if not href or href.startswith("#") or href.startswith("javascript:"):
-                    continue
-                text = re.sub(r'<[^>]+>', ' ', m.group(2)).strip()
-                combined = f"{text} {href}"
-                cm = re.search(r'(?:chap(?:ter)?|ch(?:ương)?|tập|vol|c)[-_.\s/](\d+(?:\.\d+)?)', combined, re.IGNORECASE)
-                if cm:
-                    full_u = urljoin(clean_url, href)
-                    if full_u not in seen_urls:
-                        seen_urls.add(full_u)
-                        num_val = float(cm.group(1))
-                        name = text if len(text) < 60 and len(text) > 1 else f"Chương {cm.group(1)}"
-                        chapters.append({
-                            "id": f"chap_{cm.group(1)}",
-                            "name": name,
-                            "url": full_u,
-                            "num": num_val
-                        })
+        # 2. <a href="...">...</a> links
+        a_pattern = re.compile(r'<a\s+[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>', re.IGNORECASE | re.DOTALL)
+        for m in a_pattern.finditer(html):
+            href = m.group(1).strip()
+            if not href or href.startswith("#") or href.startswith("javascript:") or href.startswith("mailto:") or href.startswith("tel:"):
+                continue
+            # Filter obvious non-chapter assets
+            if any(href.lower().endswith(ext) for ext in [".css", ".js", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".woff", ".woff2"]):
+                continue
 
-    # 3. If no chapters were found in HTML, but URL is a template (e.g. .../chap-1 or .../chapter-5)
-    if not chapters and url_chap_match:
-        curr_n = int(detected_curr_num or 1)
-        # Create a template by replacing the chapter number
-        prefix = clean_url[:url_chap_match.start(1)]
-        suffix = clean_url[url_chap_match.end(1):]
-        
-        # Generate chapters from 1 up to curr_n + 10 (or at least 15 chapters)
-        max_gen = max(curr_n + 5, 15)
-        for i in range(1, max_gen + 1):
-            c_url = f"{prefix}{i}{suffix}"
-            chapters.append({
-                "id": f"chap_{i}",
-                "name": f"Chương {i}",
-                "url": c_url,
-                "num": float(i)
-            })
+            txt = re.sub(r'<[^>]+>', ' ', m.group(2)).strip()
+            full_u = urljoin(final_url, href)
+            if full_u not in seen_urls:
+                seen_urls.add(full_u)
+                extracted_links.append({"text": txt or full_u, "url": full_u})
 
-    # Sort chapters by chapter number ascending
-    if chapters:
-        chapters.sort(key=lambda x: x.get("num", 0))
+    # Prioritize manga/chapter links if there are too many links
+    filtered_links = []
+    keywords = ["chap", "chapter", "ch-", "chuong", "chương", "vol", "tap", "tập", "episode", "read", "truyen", "comic"]
+    for link in extracted_links:
+        combined = f"{link['text']} {link['url']}".lower()
+        if any(kw in combined for kw in keywords):
+            filtered_links.append(link)
 
-        # Find current chapter index
-        for idx, c in enumerate(chapters):
-            if c["url"] == current_chapter_url:
-                current_chapter_index = idx
-                break
-            if detected_curr_num is not None and abs(c.get("num", -999) - detected_curr_num) < 0.01:
-                current_chapter_index = idx
-                break
-    else:
-        # Fallback: single chapter entry
-        chapters = [{
-            "id": "chap_1",
-            "name": "Chương hiện tại",
-            "url": clean_url,
-            "num": 1.0
-        }]
-        current_chapter_index = 0
+    # If keyword filtering found good candidate links, use them; otherwise use raw extracted links
+    final_links = filtered_links if len(filtered_links) >= 2 else extracted_links
+    # Cap links to top 250 to ensure compact context
+    sample_links = final_links[:250]
+
+    links_text = "\n".join([f"- {l['text']} -> {l['url']}" for l in sample_links]) if sample_links else f"- {clean_url}"
+    headings_text = ", ".join(headings_list[:5]) if headings_list else "Không có"
+
+    system_instruction = (
+        "Bạn là Chuyên gia AI Web Scraper & Manga Site Architecture Analyzer hàng đầu thế giới. "
+        "Nhiệm vụ của bạn là phân tích cấu trúc trang web truyện tranh bất kỳ (NetTruyen, MangaDex, MangaKakalot, Webtoon, AsuraScans...) "
+        "để nhận diện chính xác tên truyện, toàn bộ danh sách chapter với link URL đầy đủ, và quy luật url_pattern."
+    )
+
+    prompt = f"""Phân tích cấu trúc trang web truyện này. Từ URL nguồn {clean_url} và các liên kết tìm thấy, hãy nhận diện:
+1. Tên truyện tranh.
+2. Danh sách toàn bộ các chapter (id, tên chapter, link URL đầy đủ).
+3. Quy luật/Pattern tạo link của từng chapter trên trang web này để có thể tự sinh link cho các chương tiếp theo.
+Trả về BẮT BUỘC dạng JSON thuần túy:
+{{
+  "comic_title": "...",
+  "chapters": [
+    {{"id": "1", "name": "Chapter 1", "url": "..."}}
+  ],
+  "url_pattern": "..."
+}}
+
+Thông tin bối cảnh trang web:
+- URL nguồn: {clean_url}
+- Tiêu đề trang (Page Title): {page_title or 'Chưa rõ'}
+- Các thẻ tiêu đề (H1/H2): {headings_text}
+- Danh sách các liên kết & dropdown trích xuất từ trang web:
+{links_text}
+"""
+
+    response_text = await pool.generate_content(
+        prompt=prompt,
+        system_instruction=system_instruction,
+        tier="bulk",
+        response_mime_type="application/json",
+        max_output_tokens=8192
+    )
+
+    clean_text = response_text.strip()
+    if clean_text.startswith("```"):
+        clean_text = re.sub(r"^```[a-zA-Z0-9]*\s*", "", clean_text)
+        clean_text = re.sub(r"\s*```$", "", clean_text)
+        clean_text = clean_text.strip()
+
+    # Locate JSON object
+    start_idx = clean_text.find("{")
+    end_idx = clean_text.rfind("}")
+    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+        clean_text = clean_text[start_idx:end_idx + 1]
+
+    parsed_json: Dict[str, Any] = {}
+    try:
+        parsed_json = json.loads(clean_text)
+    except Exception:
+        # Minimal fallback if JSON parsing failed
+        parsed_json = {
+            "comic_title": page_title or "Truyện tranh",
+            "chapters": [{"id": "1", "name": "Chapter hiện tại", "url": clean_url}],
+            "url_pattern": ""
+        }
+
+    comic_title = parsed_json.get("comic_title", "").strip() or page_title or "Bộ truyện tranh"
+    # Clean generic website suffixes if present in title
+    comic_title = re.sub(r'\s*[-|–—]\s*(?:Đọc truyện|NetTruyen|TruyenQQ|MangaDex|BlogTruyen|MangaKakalot|Webtoon).*$', '', comic_title, flags=re.IGNORECASE).strip()
+
+    url_pattern = parsed_json.get("url_pattern", "") or ""
+    raw_chapters = parsed_json.get("chapters", [])
+    valid_chapters = []
+
+    for idx, c in enumerate(raw_chapters):
+        if not isinstance(c, dict):
+            continue
+        c_url = c.get("url", "").strip()
+        if not c_url:
+            continue
+        # Ensure full url
+        full_chap_url = urljoin(final_url, c_url)
+        c_name = c.get("name", "").strip() or f"Chapter {idx + 1}"
+        c_id = str(c.get("id", idx + 1))
+        valid_chapters.append({
+            "id": c_id,
+            "name": c_name,
+            "url": full_chap_url
+        })
+
+    # If no valid chapters found from AI, fallback to current page
+    if not valid_chapters:
+        valid_chapters.append({
+            "id": "1",
+            "name": "Chapter 1",
+            "url": clean_url
+        })
+
+    # Detect current chapter index
+    current_chapter_index = 0
+    current_chapter_url = valid_chapters[0]["url"]
+    for idx, c in enumerate(valid_chapters):
+        if c["url"] == clean_url or c["url"] == final_url:
+            current_chapter_index = idx
+            current_chapter_url = c["url"]
+            break
 
     return {
-        "series_title": series_title,
-        "chapters": chapters,
-        "current_chapter_url": chapters[current_chapter_index]["url"] if chapters else clean_url,
+        "comic_title": comic_title,
+        "series_title": comic_title,
+        "chapters": valid_chapters,
+        "url_pattern": url_pattern,
+        "current_chapter_url": current_chapter_url,
         "current_chapter_index": current_chapter_index,
-        "total_chapters": len(chapters)
+        "total_chapters": len(valid_chapters)
     }
+
+async def extract_chapters_from_url(url: str, pool: Any = None) -> Dict[str, Any]:
+    """Compatibility wrapper that calls analyze_manga_site_with_ai."""
+    return await analyze_manga_site_with_ai(url, pool)
 
 def extract_images_from_zip(zip_source: Union[bytes, Path, str], output_dir: Union[str, Path]) -> List[Path]:
     """

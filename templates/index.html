@@ -3325,7 +3325,8 @@
       if (bottomNextBtn) bottomNextBtn.disabled = !hasNext;
 
       if (chapterInfo && mangaState.currentChapterIndex >= 0 && mangaState.chapters[mangaState.currentChapterIndex]) {
-        chapterInfo.innerText = mangaState.chapters[mangaState.currentChapterIndex].name;
+        const titlePrefix = mangaState.seriesTitle ? `${mangaState.seriesTitle} - ` : '';
+        chapterInfo.innerText = `${titlePrefix}${mangaState.chapters[mangaState.currentChapterIndex].name}`;
       }
     }
 
@@ -3341,7 +3342,7 @@
       }
 
       if (btn) btn.disabled = true;
-      if (statusEl) statusEl.innerText = "Đang quét danh sách chapter...";
+      if (statusEl) statusEl.innerText = "Gemini AI đang phân tích cấu trúc website truyện...";
 
       try {
         const res = await fetch('/api/manga/chapters', {
@@ -3352,14 +3353,19 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || "Không thể quét chapter");
 
-        mangaState.seriesTitle = data.series_title || '';
+        mangaState.seriesTitle = data.comic_title || data.series_title || '';
         mangaState.chapters = data.chapters || [];
         mangaState.currentChapterIndex = data.current_chapter_index >= 0 ? data.current_chapter_index : 0;
         mangaState.currentChapterUrl = data.current_chapter_url || url;
 
         updateChapterNavUI();
 
-        if (statusEl) statusEl.innerText = `Tìm thấy ${mangaState.chapters.length} chapter!`;
+        const titleText = mangaState.seriesTitle ? `[${mangaState.seriesTitle}] ` : '';
+        if (statusEl) statusEl.innerText = `✨ ${titleText}Tìm thấy ${mangaState.chapters.length} chapter!`;
+        const chapterBar = document.getElementById('manga-chapter-bar');
+        if (chapterBar) {
+          chapterBar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
       } catch (err) {
         if (statusEl) statusEl.innerText = "Lỗi: " + err.message;
         alert("Lỗi quét chapter: " + err.message);
@@ -3539,7 +3545,7 @@
           });
           if (chapRes.ok) {
             const chapData = await chapRes.json();
-            mangaState.seriesTitle = chapData.series_title || '';
+            mangaState.seriesTitle = chapData.comic_title || chapData.series_title || '';
             mangaState.chapters = chapData.chapters || [];
             mangaState.currentChapterIndex = chapData.current_chapter_index >= 0 ? chapData.current_chapter_index : 0;
             mangaState.currentChapterUrl = chapData.current_chapter_url || url;
