@@ -72,8 +72,8 @@
   <!-- Header -->
   <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-40 backdrop-blur">
     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+      <a href="/" id="header-logo" data-href="/" class="flex items-center space-x-3 cursor-pointer select-none group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform">
           <i data-lucide="languages" class="w-6 h-6 text-white"></i>
         </div>
         <div>
@@ -82,7 +82,7 @@
           </h1>
           <p class="text-xs text-slate-400" data-i18n="header_tagline">Dịch đa phương tiện & Thêm phụ đề phim tự động (Che sub cũ)</p>
         </div>
-      </div>
+      </a>
 
       <!-- Right Header Actions (i18n Switcher & Key Pool) -->
       <div class="flex items-center space-x-3">
@@ -110,13 +110,13 @@
 
     <!-- Navigation Tabs -->
     <div class="max-w-7xl mx-auto px-4 flex space-x-6 border-t border-slate-800/60 text-sm overflow-x-auto">
-      <button onclick="switchTab('video')" id="tab-btn-video" class="py-2.5 font-medium border-b-2 border-indigo-500 text-indigo-400 flex items-center gap-2 transition whitespace-nowrap">
+      <button onclick="switchTab('video')" id="tab-btn-video" data-tab-link="video" class="py-2.5 font-medium border-b-2 border-indigo-500 text-indigo-400 flex items-center gap-2 transition whitespace-nowrap cursor-pointer">
         <i data-lucide="film" class="w-4 h-4"></i> <span data-i18n="tab_video">Dịch & Thêm Phụ Đề Video (AI Hardsub)</span>
       </button>
-      <button onclick="switchTab('translate')" id="tab-btn-translate" class="py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap">
+      <button onclick="switchTab('translate')" id="tab-btn-translate" data-tab-link="translate" class="py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap cursor-pointer">
         <i data-lucide="file-text" class="w-4 h-4"></i> <span data-i18n="tab_translate">Dịch Văn Bản & Tài Liệu</span>
       </button>
-      <button onclick="switchTab('transcribe')" id="tab-btn-transcribe" class="py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap">
+      <button onclick="switchTab('transcribe')" id="tab-btn-transcribe" data-tab-link="transcribe" class="py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition whitespace-nowrap cursor-pointer">
         <i data-lucide="mic" class="w-4 h-4"></i> <span data-i18n="tab_transcribe">Transcribe & Giọng Nói</span>
       </button>
     </div>
@@ -940,22 +940,116 @@
     const uploadedVideo = document.getElementById('uploaded-video-player');
     const subtitleOverlay = document.getElementById('video-subtitle');
 
-    // Tab Switch
-    function switchTab(tab) {
+    // ==========================================
+    // TAB SWITCH & URL HASH ROUTING
+    // ==========================================
+    function switchTab(tab, updateHash = true) {
+      const validTabs = ['video', 'translate', 'transcribe'];
+      if (!validTabs.includes(tab)) {
+        tab = 'video';
+      }
       currentTab = tab;
-      ['translate', 'video', 'transcribe'].forEach(t => {
-        document.getElementById(`tab-${t}`).classList.add('hidden');
+      validTabs.forEach(t => {
+        const tabEl = document.getElementById(`tab-${t}`);
+        if (tabEl) tabEl.classList.add('hidden');
         const btn = document.getElementById(`tab-btn-${t}`);
-        btn.classList.remove('border-indigo-500', 'text-indigo-400');
-        btn.classList.add('border-transparent', 'text-slate-400');
+        if (btn) {
+          btn.classList.remove('border-indigo-500', 'text-indigo-400');
+          btn.classList.add('border-transparent', 'text-slate-400');
+        }
       });
 
-      document.getElementById(`tab-${tab}`).classList.remove('hidden');
+      const activeTabEl = document.getElementById(`tab-${tab}`);
+      if (activeTabEl) activeTabEl.classList.remove('hidden');
       const activeBtn = document.getElementById(`tab-btn-${tab}`);
-      activeBtn.classList.remove('border-transparent', 'text-slate-400');
-      activeBtn.classList.add('border-indigo-500', 'text-indigo-400');
-      lucide.createIcons();
+      if (activeBtn) {
+        activeBtn.classList.remove('border-transparent', 'text-slate-400');
+        activeBtn.classList.add('border-indigo-500', 'text-indigo-400');
+      }
+
+      if (updateHash) {
+        if (window.location.hash !== `#${tab}`) {
+          history.replaceState(null, '', `#${tab}`);
+        }
+      }
+
+      if (window.lucide && lucide.createIcons) {
+        lucide.createIcons();
+      }
     }
+
+    function initHashRouting() {
+      const hash = window.location.hash.replace('#', '').toLowerCase();
+      if (['video', 'translate', 'transcribe'].includes(hash)) {
+        switchTab(hash, false);
+      }
+    }
+
+    window.addEventListener('hashchange', () => {
+      const hash = window.location.hash.replace('#', '').toLowerCase();
+      if (['video', 'translate', 'transcribe'].includes(hash)) {
+        switchTab(hash, false);
+      }
+    });
+
+    // ==========================================
+    // MIDDLE MOUSE CLICK (AUXCLICK) HANDLER
+    // ==========================================
+    function handleMiddleClick(e) {
+      if (e.button !== 1) return; // Middle mouse click only
+
+      // 1. Navigation Tab buttons
+      const tabBtn = e.target.closest('[data-tab-link]');
+      if (tabBtn) {
+        e.preventDefault();
+        const tabName = tabBtn.getAttribute('data-tab-link');
+        const targetUrl = `${window.location.origin}${window.location.pathname}#${tabName}`;
+        window.open(targetUrl, '_blank');
+        return;
+      }
+
+      // 2. Header Logo
+      const logo = e.target.closest('#header-logo');
+      if (logo) {
+        e.preventDefault();
+        const targetUrl = `${window.location.origin}${window.location.pathname}`;
+        window.open(targetUrl, '_blank');
+        return;
+      }
+
+      // 3. Elements with data-href
+      const dataHrefEl = e.target.closest('[data-href]');
+      if (dataHrefEl) {
+        const href = dataHrefEl.getAttribute('data-href');
+        if (href && href !== '#') {
+          e.preventDefault();
+          const targetUrl = new URL(href, window.location.origin).href;
+          window.open(targetUrl, '_blank');
+          return;
+        }
+      }
+
+      // 4. Any anchor tag <a>
+      const anchor = e.target.closest('a');
+      if (anchor) {
+        const href = anchor.getAttribute('href');
+        if (href && href !== '#' && !href.startsWith('javascript:')) {
+          e.preventDefault();
+          window.open(anchor.href, '_blank');
+          return;
+        }
+      }
+    }
+
+    document.addEventListener('auxclick', handleMiddleClick);
+    document.addEventListener('mousedown', (e) => {
+      if (e.button === 1) {
+        const target = e.target.closest('[data-tab-link], #header-logo, [data-href], a');
+        if (target) {
+          e.preventDefault(); // Suppress browser autoscroll indicator
+        }
+      }
+    });
 
     // ==========================================
     // SUBTITLE CUSTOMIZER & REALTIME PREVIEW
@@ -1851,8 +1945,9 @@
       alert(t('alert_copied'));
     }
 
-    // Initialize Language and Icons on page load
+    // Initialize Language, Hash Routing and Icons on page load
     setLanguage(currentLang);
+    initHashRouting();
   </script>
 </body>
 </html>
