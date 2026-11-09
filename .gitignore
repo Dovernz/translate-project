@@ -1,0 +1,24 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Environment variables & secrets (CRITICAL)
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Logs & temp
+*.log
+scratch/
+tmp/
+.temp/

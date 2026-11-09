@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini Universal Translator & Realtime Subtitler</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .video-sub-overlay {
+      position: absolute;
+      bottom: 12%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.82);
+      color: #fbbf24;
+      padding: 8px 24px;
+      border-radius: 8px;
+      font-size: 1.25rem;
+      font-weight: 600;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      max-width: 85%;
+      text-align: center;
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 30;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 sticky top-0 z-40 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+          <i data-lucide="languages" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight flex items-center gap-2">
+            GeminiTrans <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-normal border border-indigo-500/30">AI Studio Pool</span>
+          </h1>
+          <p class="text-xs text-slate-400">Dịch đa phương tiện siêu tốc & Phụ đề phim Realtime</p>
+        </div>
+      </div>
+
+      <!-- Live Pool Status Indicator -->
+      <div class="flex items-center space-x-3">
+        <div id="pool-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs cursor-pointer hover:border-indigo-500 transition" onclick="togglePoolModal()">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="pool-status-text" class="text-slate-300 font-medium">Pool: Đang tải...</span>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
+        </div>
+        <a href="https://aistudio.google.com" target="_blank" class="text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-md hover:bg-slate-800 transition flex items-center gap-1">
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i> AI Studio
+        </a>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-7xl mx-auto px-4 flex space-x-6 border-t border-slate-800/60 text-sm">
+      <button onclick="switchTab('translate')" id="tab-btn-translate" class="py-2.5 font-medium border-b-2 border-indigo-500 text-indigo-400 flex items-center gap-2 transition">
+        <i data-lucide="file-text" class="w-4 h-4"></i> Dịch Văn Bản & Tài Liệu
+      </button>
+      <button onclick="switchTab('video')" id="tab-btn-video" class="py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition">
+        <i data-lucide="video" class="w-4 h-4"></i> Dịch Phim & Video Realtime
+      </button>
+      <button onclick="switchTab('transcribe')" id="tab-btn-transcribe" class="py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition">
+        <i data-lucide="mic" class="w-4 h-4"></i> Transcribe & Giọng Nói
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: TEXT & DOCUMENT TRANSLATOR -->
+    <!-- ========================================== -->
+    <section id="tab-translate" class="space-y-4">
+      <!-- Controls Bar -->
+      <div class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-slate-900 border border-slate-800">
+        <div class="flex items-center space-x-2">
+          <select id="source-lang" class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+            <option value="auto">Tự phát hiện ngôn ngữ</option>
+            <option value="en">Tiếng Anh (English)</option>
+            <option value="vi">Tiếng Việt</option>
+            <option value="zh">Tiếng Trung</option>
+            <option value="ja">Tiếng Nhật</option>
+            <option value="ko">Tiếng Hàn</option>
+            <option value="fr">Tiếng Pháp</option>
+          </select>
+          <button onclick="swapLanguages()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">
+            <i data-lucide="arrow-right-left" class="w-4 h-4"></i>
+          </button>
+          <select id="target-lang" class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+            <option value="vi" selected>Tiếng Việt</option>
+            <option value="en">Tiếng Anh (English)</option>
+            <option value="zh">Tiếng Trung</option>
+            <option value="ja">Tiếng Nhật</option>
+            <option value="ko">Tiếng Hàn</option>
+            <option value="fr">Tiếng Pháp</option>
+          </select>
+        </div>
+
+        <!-- Tier Selector -->
+        <div class="flex items-center space-x-2">
+          <span class="text-xs text-slate-400">Model Tier:</span>
+          <select id="tier-select" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-3 py-1.5 text-indigo-300 font-medium focus:outline-none focus:border-indigo-500">
+            <option value="bulk" selected>Gemini 3.5 Flash Lite (Bulk - Siêu tốc)</option>
+            <option value="ultra">Gemma 4 26B (Ultra - 100K reqs/ngày)</option>
+            <option value="standard">Gemini 3.6 Flash (Standard - Văn phong sâu)</option>
+            <option value="deep">Gemini 3.8 Flash (Deep - Học thuật/Y khoa)</option>
+          </select>
+          <label class="cursor-pointer px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
+            <i data-lucide="upload" class="w-3.5 h-3.5"></i> Nạp file (.txt, .md, .srt)
+            <input type="file" id="file-upload" class="hidden" accept=".txt,.md,.srt,.vtt,.json,.csv" onchange="handleFileUpload(event)">
+          </label>
+        </div>
+      </div>
+
+      <!-- Translation Workspace Split Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Source Input Card -->
+        <div class="flex flex-col h-[520px] rounded-2xl bg-slate-900 border border-slate-800 p-4 shadow-sm">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <i data-lucide="edit-3" class="w-3.5 h-3.5 text-indigo-400"></i> Văn Bản Gốc
+            </span>
+            <span id="src-char-count" class="text-xs text-slate-500">0 ký tự</span>
+          </div>
+          <textarea id="src-text" class="flex-1 w-full bg-transparent resize-none border-0 text-slate-200 placeholder-slate-600 focus:outline-none text-base leading-relaxed" placeholder="Nhập hoặc dán văn bản cần dịch vào đây (hoặc kéo thả file tài liệu)..." oninput="updateCharCount()"></textarea>
+          <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+            <button onclick="clearSourceText()" class="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Xóa
+            </button>
+            <button onclick="startTranslation()" id="btn-translate" class="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium text-sm flex items-center gap-2 shadow-lg shadow-indigo-500/25 transition">
+              <i data-lucide="sparkles" class="w-4 h-4"></i> Dịch Ngay (Stream)
+            </button>
+          </div>
+        </div>
+
+        <!-- Target Output Card -->
+        <div class="flex flex-col h-[520px] rounded-2xl bg-slate-900 border border-slate-800 p-4 shadow-sm relative">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i> Bản Dịch Kết Quả
+            </span>
+            <div id="translate-status" class="text-xs text-indigo-400 hidden flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span> Đang stream...
+            </div>
+          </div>
+          <div id="target-text" class="flex-1 w-full overflow-y-auto text-slate-200 text-base leading-relaxed whitespace-pre-wrap select-text">
+            <span class="text-slate-600 italic">Bản dịch trực tiếp sẽ hiển thị tại đây...</span>
+          </div>
+          <div class="pt-3 border-t border-slate-800/80 flex items-center justify-end space-x-2">
+            <button onclick="copyTargetText()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i> Sao chép
+            </button>
+            <button onclick="downloadTargetText()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i> Tải về (.txt)
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: REALTIME VIDEO & MOVIE SUBTITLER -->
+    <!-- ========================================== -->
+    <section id="tab-video" class="space-y-4 hidden">
+      <!-- Input Video URL Bar -->
+      <div class="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row gap-3 items-center">
+        <div class="flex-1 relative w-full">
+          <i data-lucide="link" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-500"></i>
+          <input type="text" id="video-url-input" class="w-full bg-slate-800/90 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500" placeholder="Nhập liên kết video YouTube (hoặc MP4 direct link)... Ví dụ: https://www.youtube.com/watch?v=...">
+        </div>
+        <button onclick="loadVideo()" class="w-full md:w-auto px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 transition">
+          <i data-lucide="play" class="w-4 h-4"></i> Nạp Video
+        </button>
+      </div>
+
+      <!-- Video Player & Subtitle Canvas -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Player Area (2 cols) -->
+        <div class="lg:col-span-2 rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden flex flex-col">
+          <div class="relative w-full aspect-video bg-black flex items-center justify-center group" id="player-container">
+            <!-- Default placeholder or iframe -->
+            <div id="player-placeholder" class="text-center p-8 text-slate-600">
+              <i data-lucide="film" class="w-16 h-16 mx-auto mb-3 opacity-40"></i>
+              <p class="text-sm">Dán đường dẫn video phía trên để bắt đầu dịch phụ đề trực tiếp</p>
+            </div>
+            <div id="yt-player-box" class="w-full h-full hidden"></div>
+            <!-- Subtitle Overlay -->
+            <div id="video-subtitle" class="video-sub-overlay hidden">
+              [Phụ đề đang được đồng bộ theo thời gian thực...]
+            </div>
+          </div>
+
+          <!-- Video Controls & Key Rotation HUD -->
+          <div class="p-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-slate-900/90">
+            <div>
+              <h3 id="video-title" class="font-semibold text-sm text-slate-200 line-clamp-1">Chưa có video</h3>
+              <p id="video-uploader" class="text-xs text-slate-500">Sẵn sàng nhận diện luồng âm thanh</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span id="active-key-indicator" class="text-xs px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+                Key Pool: Đang chờ
+              </span>
+              <button onclick="startLiveDemoSubtitles()" id="btn-demo-sub" class="px-3.5 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/40 text-indigo-300 text-xs font-medium flex items-center gap-1.5 transition">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Test Luồng Dịch Siêu Tốc
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Subtitles Stream Feed (1 col) -->
+        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-4 flex flex-col h-[520px]">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <i data-lucide="list-video" class="w-3.5 h-3.5 text-indigo-400"></i> Luồng Phụ Đề Đồng Bộ
+            </span>
+            <span class="text-[11px] text-emerald-400 font-mono">&lt; 300ms</span>
+          </div>
+          <!-- Subtitle line items -->
+          <div id="sub-history-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1">
+            <div class="p-2.5 rounded-lg bg-slate-800/40 border border-slate-800 text-xs text-slate-400 italic">
+              Khi video phát hoặc truyền đoạn âm thanh, các dòng thoại gốc và bản dịch tiếng Việt sẽ tự động xuất hiện tại đây theo mốc thời gian.
+            </div>
+          </div>
+          <!-- Quick Manual Input for Subtitle Testing -->
+          <div class="pt-3 border-t border-slate-800 flex gap-2">
+            <input type="text" id="manual-chunk-input" class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500" placeholder="Thử câu thoại tiếng Anh...">
+            <button onclick="sendManualChunk()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs text-white font-medium transition">
+              Dịch
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: AUDIO TRANSCRIBE & VOICE -->
+    <!-- ========================================== -->
+    <section id="tab-transcribe" class="space-y-4 hidden">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Audio Input & Record Panel -->
+        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-5 flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-base mb-1 flex items-center gap-2">
+              <i data-lucide="mic" class="w-5 h-5 text-indigo-400"></i> Thu Âm Hoặc Tải File
+            </h3>
+            <p class="text-xs text-slate-400 mb-6">Nhận diện giọng nói đa ngôn ngữ & dịch chuẩn xác sang tiếng Việt qua Gemini Multimodal Audio.</p>
+
+            <!-- Recording Button -->
+            <div class="text-center py-6 bg-slate-950/60 rounded-xl border border-slate-800/80 mb-4">
+              <button id="btn-record" onclick="toggleRecord()" class="w-16 h-16 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 hover:scale-105 active:scale-95 flex items-center justify-center mx-auto transition shadow-lg shadow-red-500/10">
+                <i data-lucide="mic" id="record-icon" class="w-7 h-7"></i>
+              </button>
+              <p id="record-status" class="text-xs text-slate-400 mt-3 font-medium">Bấm micro để bắt đầu nói</p>
+              <p id="record-timer" class="text-xs text-slate-500 font-mono mt-0.5">00:00</p>
+            </div>
+
+            <!-- Upload Audio File -->
+            <div class="text-center">
+              <span class="text-xs text-slate-500 block mb-2">- hoặc -</span>
+              <label class="cursor-pointer block w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700/80 border border-slate-700 text-xs text-slate-300 font-medium transition">
+                <i data-lucide="upload-cloud" class="w-4 h-4 inline mr-1.5"></i> Chọn file (.mp3, .wav, .m4a)
+                <input type="file" id="audio-file-input" class="hidden" accept="audio/*" onchange="handleAudioUpload(event)">
+              </label>
+              <p id="audio-file-name" class="text-[11px] text-indigo-400 mt-2 truncate"></p>
+            </div>
+          </div>
+
+          <button onclick="startTranscribe()" id="btn-start-transcribe" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 mt-4 transition">
+            <i data-lucide="sparkles" class="w-4 h-4"></i> Phân Tích & Dịch Âm Thanh
+          </button>
+        </div>
+
+        <!-- Output Result Panel (2 cols) -->
+        <div class="md:col-span-2 rounded-2xl bg-slate-900 border border-slate-800 p-5 flex flex-col h-[520px]">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <i data-lucide="file-audio" class="w-3.5 h-3.5 text-indigo-400"></i> Kết Quả Transcribe & Dịch Thuật
+            </span>
+            <button onclick="copyTranscribeText()" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 flex items-center gap-1 transition">
+              <i data-lucide="copy" class="w-3 h-3"></i> Sao chép
+            </button>
+          </div>
+          <div id="transcribe-output" class="flex-1 overflow-y-auto text-slate-200 text-sm leading-relaxed whitespace-pre-wrap select-text p-2">
+            <span class="text-slate-600 italic">Kết quả nhận diện giọng nói và bản dịch sẽ hiển thị tại đây...</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Key Pool Modal / Drawer -->
+  <div id="pool-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div>
+          <h3 class="font-bold text-lg text-white flex items-center gap-2">
+            <i data-lucide="cpu" class="w-5 h-5 text-indigo-400"></i> Quản Lý Smart Key Pool (7 Cloud Projects)
+          </h3>
+          <p class="text-xs text-slate-400">Tự động xoay vòng Round-Robin & chống chạm hạn ngạch RPM/TPM</p>
+        </div>
+        <button onclick="togglePoolModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Key Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400 uppercase">
+              <th class="py-2 px-3">STT</th>
+              <th class="py-2 px-3">Khóa (Masked)</th>
+              <th class="py-2 px-3">Trạng Thái</th>
+              <th class="py-2 px-3">Cooldown</th>
+              <th class="py-2 px-3 text-right">Lượt Gọi</th>
+            </tr>
+          </thead>
+          <tbody id="pool-table-body" class="divide-y divide-slate-800/60 font-mono">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400">
+        <span>Unlimited RPD cho Live Models | Tự động cách ly key khi gặp 429</span>
+        <button onclick="fetchPoolStatus()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-sans transition">
+          Làm mới
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Global App State
+    let currentTab = 'translate';
+    let poolData = null;
+    let audioBlob = null;
+    let mediaRecorder = null;
+    let recordInterval = null;
+    let recordSeconds = 0;
+
+    // Switch Tab
+    function switchTab(tab) {
+      currentTab = tab;
+      ['translate', 'video', 'transcribe'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        const btn = document.getElementById(`tab-btn-${t}`);
+        btn.classList.remove('border-indigo-500', 'text-indigo-400');
+        btn.classList.add('border-transparent', 'text-slate-400');
+      });
+
+      document.getElementById(`tab-${tab}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-btn-${tab}`);
+      activeBtn.classList.remove('border-transparent', 'text-slate-400');
+      activeBtn.classList.add('border-indigo-500', 'text-indigo-400');
+      lucide.createIcons();
+    }
+
+    // Pool Status Polling
+    async function fetchPoolStatus() {
+      try {
+        const res = await fetch('/api/pool-status');
+        poolData = await res.json();
+        
+        // Update header badge
+        const badge = document.getElementById('pool-status-text');
+        badge.innerText = `7 Keys Pool: Đang dùng Key #${poolData.current_pointer}`;
+
+        // Update modal table
+        const tbody = document.getElementById('pool-table-body');
+        tbody.innerHTML = '';
+        poolData.keys.forEach(k => {
+          const row = document.createElement('tr');
+          row.className = k.is_current ? 'bg-indigo-950/40' : '';
+          const statusBadge = k.status === 'READY' 
+            ? '<span class="text-emerald-400 font-bold">🟢 SẴN SÀNG</span>' 
+            : `<span class="text-amber-400 font-bold">🟡 COOLDOWN (${k.cooldown_remaining}s)</span>`;
+
+          row.innerHTML = `
+            <td class="py-2.5 px-3 font-semibold text-slate-300">#${k.index} ${k.is_current ? '⭐' : ''}</td>
+            <td class="py-2.5 px-3 text-slate-400">${k.masked}</td>
+            <td class="py-2.5 px-3">${statusBadge}</td>
+            <td class="py-2.5 px-3 text-slate-400">${k.cooldown_remaining > 0 ? k.cooldown_remaining + 's' : '0s'}</td>
+            <td class="py-2.5 px-3 text-right font-semibold text-indigo-300">${k.requests}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (e) {
+        console.error("Lỗi lấy pool status:", e);
+      }
+    }
+    fetchPoolStatus();
+    setInterval(fetchPoolStatus, 15000);
+
+    function togglePoolModal() {
+      const modal = document.getElementById('pool-modal');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        fetchPoolStatus();
+      }
+    }
+
+    // TAB 1: TEXT & DOCUMENT TRANSLATION
+    function updateCharCount() {
+      const text = document.getElementById('src-text').value;
+      document.getElementById('src-char-count').innerText = `${text.length} ký tự`;
+    }
+
+    function clearSourceText() {
+      document.getElementById('src-text').value = '';
+      document.getElementById('target-text').innerHTML = '<span class="text-slate-600 italic">Bản dịch trực tiếp sẽ hiển thị tại đây...</span>';
+      updateCharCount();
+    }
+
+    function swapLanguages() {
+      const src = document.getElementById('source-lang');
+      const tgt = document.getElementById('target-lang');
+      if (src.value === 'auto') return;
+      const tmp = src.value;
+      src.value = tgt.value;
+      tgt.value = tmp;
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('src-text').value = e.target.result;
+        updateCharCount();
+      };
+      reader.readAsText(file);
+    }
+
+    async function startTranslation() {
+      const text = document.getElementById('src-text').value.trim();
+      if (!text) {
+        alert("Vui lòng nhập nội dung cần dịch!");
+        return;
+      }
+
+      const srcLang = document.getElementById('source-lang').value;
+      const tgtLang = document.getElementById('target-lang').value;
+      const tier = document.getElementById('tier-select').value;
+      const targetDiv = document.getElementById('target-text');
+      const statusIndicator = document.getElementById('translate-status');
+
+      targetDiv.innerText = '';
+      statusIndicator.classList.remove('hidden');
+
+      try {
+        const response = await fetch('/api/translate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: text,
+            source_lang: srcLang,
+            target_lang: tgtLang,
+            tier: tier,
+            stream: true
+          })
+        });
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let done = false;
+
+        while (!done) {
+          const { value, done: readerDone } = await reader.read();
+          done = readerDone;
+          if (value) {
+            const rawChunk = decoder.decode(value, { stream: true });
+            const lines = rawChunk.split('\n');
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const dataStr = line.slice(6).trim();
+                if (dataStr === '[DONE]') break;
+                try {
+                  const parsed = JSON.parse(dataStr);
+                  if (parsed.chunk) {
+                    targetDiv.innerText += parsed.chunk;
+                    targetDiv.scrollTop = targetDiv.scrollHeight;
+                  }
+                } catch (e) {}
+              }
+            }
+          }
+        }
+      } catch (err) {
+        targetDiv.innerText = `Lỗi: ${err.message}`;
+      } finally {
+        statusIndicator.classList.add('hidden');
+        fetchPoolStatus();
+      }
+    }
+
+    function copyTargetText() {
+      const text = document.getElementById('target-text').innerText;
+      navigator.clipboard.writeText(text);
+      alert("Đã sao chép vào bộ nhớ tạm!");
+    }
+
+    function downloadTargetText() {
+      const text = document.getElementById('target-text').innerText;
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `translated_${new Date().toISOString().slice(0,10)}.txt`;
+      a.click();
+    }
+
+    // ==========================================
+    // TAB 2: VIDEO SUBTITLER
+    // ==========================================
+    let videoStreamSimulation = null;
+
+    async function loadVideo() {
+      const url = document.getElementById('video-url-input').value.trim();
+      if (!url) return;
+
+      const ytMatch = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+      if (ytMatch) {
+        const videoId = ytMatch[1];
+        document.getElementById('player-placeholder').classList.add('hidden');
+        const box = document.getElementById('yt-player-box');
+        box.classList.remove('hidden');
+        box.innerHTML = `<iframe class="w-full h-full rounded-2xl" src="https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+        document.getElementById('video-title').innerText = "YouTube Video Stream";
+        document.getElementById('video-uploader').innerText = `ID: ${videoId}`;
+      } else {
+        alert("Đã nhận link video. Nhấn 'Test Luồng Dịch Siêu Tốc' để quan sát cách Gemini Pool xoay vòng và sinh phụ đề!");
+      }
+    }
+
+    // Demo streaming subtitle chunks using Key Pool rotation
+    async function startLiveDemoSubtitles() {
+      const demoChunks = [
+        "Welcome to this special presentation on artificial intelligence.",
+        "Today, we are exploring how neural models can translate speech in real time.",
+        "With latency under 300 milliseconds, users experience seamless communication.",
+        "By rotating multiple API keys, we effectively bypass standard rate limits.",
+        "This unlocks endless streaming without worrying about per-minute quotas.",
+        "Thank you for watching this demonstration of Gemini Universal Subtitler!"
+      ];
+
+      const overlay = document.getElementById('video-subtitle');
+      overlay.classList.remove('hidden');
+      const list = document.getElementById('sub-history-list');
+      const indicator = document.getElementById('active-key-indicator');
+
+      for (let i = 0; i < demoChunks.length; i++) {
+        const text = demoChunks[i];
+        indicator.innerText = `Xoay vòng Key Pool: Đang dịch câu #${i+1}...`;
+        indicator.className = "text-xs px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono animate-pulse";
+
+        try {
+          const res = await fetch('/api/video/translate-chunk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chunk_text: text, target_lang: 'vi' })
+          });
+          const data = await res.json();
+          
+          // Display on video overlay
+          overlay.innerText = data.translated;
+
+          // Append to side history
+          const item = document.createElement('div');
+          item.className = "p-2.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs space-y-1";
+          item.innerHTML = `
+            <div class="flex justify-between text-slate-400 text-[10px]">
+              <span>Gốc (EN)</span>
+              <span class="text-emerald-400 font-mono">Đã luân chuyển Key #${data.key_index}</span>
+            </div>
+            <div class="text-slate-300">${data.original}</div>
+            <div class="text-amber-300 font-semibold pt-1 border-t border-slate-700/60">${data.translated}</div>
+          `;
+          list.prepend(item);
+          fetchPoolStatus();
+        } catch (e) {
+          console.error(e);
+        }
+
+        await new Promise(r => setTimeout(r, 2800));
+      }
+
+      indicator.innerText = "Key Pool: Hoàn tất đợt dịch";
+      indicator.className = "text-xs px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono";
+    }
+
+    async function sendManualChunk() {
+      const input = document.getElementById('manual-chunk-input');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+
+      const overlay = document.getElementById('video-subtitle');
+      overlay.classList.remove('hidden');
+      const list = document.getElementById('sub-history-list');
+      const indicator = document.getElementById('active-key-indicator');
+
+      indicator.innerText = "Đang xoay vòng Key Pool...";
+      const res = await fetch('/api/video/translate-chunk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chunk_text: text, target_lang: 'vi' })
+      });
+      const data = await res.json();
+
+      overlay.innerText = data.translated;
+      const item = document.createElement('div');
+      item.className = "p-2.5 rounded-lg bg-slate-800/80 border border-slate-700 text-xs space-y-1";
+      item.innerHTML = `
+        <div class="flex justify-between text-slate-400 text-[10px]">
+          <span>Gốc</span>
+          <span class="text-emerald-400 font-mono">Key #${data.key_index}</span>
+        </div>
+        <div class="text-slate-300">${data.original}</div>
+        <div class="text-amber-300 font-semibold pt-1 border-t border-slate-700/60">${data.translated}</div>
+      `;
+      list.prepend(item);
+      indicator.innerText = `Key #${data.key_index} phản hồi trong chớp mắt`;
+      fetchPoolStatus();
+    }
+
+    // ==========================================
+    // TAB 3: TRANSCRIBE & VOICE RECORDING
+    // ==========================================
+    async function toggleRecord() {
+      const btn = document.getElementById('btn-record');
+      const status = document.getElementById('record-status');
+      const timer = document.getElementById('record-timer');
+
+      if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          const chunks = [];
+
+          mediaRecorder.ondataavailable = e => chunks.push(e.data);
+          mediaRecorder.onstop = () => {
+            audioBlob = new Blob(chunks, { type: 'audio/mp3' });
+            document.getElementById('audio-file-name').innerText = `Đã thu âm (${recordSeconds}s)`;
+            status.innerText = "Đã lưu bản ghi âm. Bấm nút bên dưới để Transcribe!";
+          };
+
+          mediaRecorder.start();
+          recordSeconds = 0;
+          recordInterval = setInterval(() => {
+            recordSeconds++;
+            const m = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
+            const s = String(recordSeconds % 60).padStart(2, '0');
+            timer.innerText = `${m}:${s}`;
+          }, 1000);
+
+          btn.className = "w-16 h-16 rounded-full bg-red-600 text-white animate-pulse flex items-center justify-center mx-auto transition";
+          status.innerText = "Đang lắng nghe âm thanh...";
+        } catch (err) {
+          alert("Không thể truy cập Microphone: " + err.message);
+        }
+      } else {
+        mediaRecorder.stop();
+        clearInterval(recordInterval);
+        btn.className = "w-16 h-16 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 flex items-center justify-center mx-auto transition";
+      }
+    }
+
+    function handleAudioUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        audioBlob = file;
+        document.getElementById('audio-file-name').innerText = `File: ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
+        document.getElementById('record-status').innerText = "Đã chọn file thành công";
+      }
+    }
+
+    async function startTranscribe() {
+      if (!audioBlob) {
+        alert("Vui lòng ghi âm hoặc tải lên một file âm thanh!");
+        return;
+      }
+
+      const outputDiv = document.getElementById('transcribe-output');
+      outputDiv.innerHTML = '<div class="text-indigo-400 flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-ping"></span> Đang gửi audio đến Gemini Multimodal Model qua Key Pool...</div>';
+
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'audio.mp3');
+      formData.append('translate_to_vi', true);
+
+      try {
+        const res = await fetch('/api/transcribe', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.result) {
+          outputDiv.innerText = data.result;
+        } else {
+          outputDiv.innerText = "Lỗi: " + JSON.stringify(data);
+        }
+      } catch (err) {
+        outputDiv.innerText = `Lỗi xử lý: ${err.message}`;
+      } finally {
+        fetchPoolStatus();
+      }
+    }
+
+    function copyTranscribeText() {
+      const text = document.getElementById('transcribe-output').innerText;
+      navigator.clipboard.writeText(text);
+      alert("Đã sao chép kết quả transcribe!");
+    }
+  </script>
+</body>
+</html>
