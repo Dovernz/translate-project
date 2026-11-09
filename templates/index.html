@@ -933,11 +933,16 @@
             </div>
           </div>
 
-          <div class="mt-4 flex items-center justify-between">
-            <span id="manga-url-status" class="text-xs text-slate-400 truncate font-mono"></span>
-            <button onclick="loadMangaFromUrl()" id="btn-manga-load-url" class="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium text-xs flex items-center gap-1.5 transition cursor-pointer shadow">
-              <i data-lucide="download" class="w-3.5 h-3.5"></i> <span data-i18n="manga_btn_load_url">Nạp chapter</span>
-            </button>
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
+            <span id="manga-url-status" class="text-xs text-slate-400 truncate font-mono max-w-[200px]"></span>
+            <div class="flex items-center gap-2">
+              <button onclick="scanMangaChapters()" id="btn-manga-scan-series" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium text-xs flex items-center gap-1.5 transition cursor-pointer border border-slate-700/60 shadow">
+                <i data-lucide="list" class="w-3.5 h-3.5 text-cyan-400"></i> <span data-i18n="manga_btn_scan_series">Quét Chapter</span>
+              </button>
+              <button onclick="loadMangaFromUrl(true)" id="btn-manga-load-url" class="px-4 py-1.5 rounded-lg bg-gradient-to-r from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-medium text-xs flex items-center gap-1.5 transition cursor-pointer shadow">
+                <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-300"></i> <span data-i18n="manga_btn_load_and_translate">Đọc & Dịch Ngay</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -986,6 +991,44 @@
             <button onclick="exportMangaZip()" id="btn-manga-export-zip" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 transition cursor-pointer">
               <i data-lucide="file-archive" class="w-3.5 h-3.5"></i> <span data-i18n="manga_btn_export_zip">Tải Tệp ZIP Chapter</span>
             </button>
+          </div>
+        </div>
+
+        <!-- Chapter Navigation Bar (Webtoon / NetTruyen Style) -->
+        <div id="manga-chapter-bar" class="bg-slate-900/95 border-b border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2.5 sticky top-0 z-30 backdrop-blur shadow-md">
+          <!-- Prev / Select / Next controls -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <button id="btn-manga-prev" onclick="changeChapterOffset(-1)" disabled class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold text-slate-200 hover:text-white flex items-center gap-1.5 transition border border-slate-700/60 shadow cursor-pointer">
+              <i data-lucide="chevron-left" class="w-4 h-4 text-indigo-400"></i>
+              <span data-i18n="manga_prev_chapter">◀ Chương Trước</span>
+            </button>
+
+            <div class="relative flex items-center">
+              <select id="manga-chapter-dropdown" onchange="onChapterDropdownChange(this.value)" class="bg-slate-950 border border-indigo-500/50 hover:border-indigo-400 focus:border-indigo-400 text-indigo-300 font-bold rounded-xl px-3 py-1.5 text-xs focus:outline-none transition shadow-inner max-w-[240px] sm:max-w-[340px] truncate cursor-pointer">
+                <option value="" data-i18n="manga_select_chapter">-- Chọn Chương Truyện --</option>
+              </select>
+            </div>
+
+            <button id="btn-manga-next" onclick="changeChapterOffset(1)" disabled class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold text-slate-200 hover:text-white flex items-center gap-1.5 transition border border-slate-700/60 shadow cursor-pointer">
+              <span data-i18n="manga_next_chapter">Chương Tiếp ▶</span>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-indigo-400"></i>
+            </button>
+          </div>
+
+          <!-- Auto translate on switch toggle & reading mode badge -->
+          <div class="flex items-center gap-3">
+            <label class="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-300 hover:text-white bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800/80">
+              <input type="checkbox" id="manga-auto-trans-check" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-0 focus:ring-offset-0 bg-slate-900 border-slate-700 cursor-pointer">
+              <span class="flex items-center gap-1.5 text-[11px] sm:text-xs font-medium">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span data-i18n="manga_auto_translate_switch">Tự động dịch khi đổi chương</span>
+              </span>
+            </label>
+
+            <div class="hidden sm:flex items-center gap-1 text-[11px] text-slate-400 px-2.5 py-1 rounded-lg bg-slate-800/60 border border-slate-700/40">
+              <i data-lucide="arrow-down" class="w-3.5 h-3.5 text-cyan-400 animate-bounce"></i>
+              <span data-i18n="manga_webtoon_scroll">Cuộn dọc Webtoon</span>
+            </div>
           </div>
         </div>
 
@@ -1297,7 +1340,33 @@
         alert_clean_success: "Đã dọn dẹp sạch sẽ server! 0-byte tồn đọng.",
         alert_copied: "Đã sao chép!",
         alert_no_text: "Vui lòng nhập nội dung!",
-        alert_no_audio: "Vui lòng ghi âm hoặc tải file âm thanh!"
+        alert_no_audio: "Vui lòng ghi âm hoặc tải file âm thanh!",
+        tab_manga: "📖 Truyện tranh",
+        drawer_tab_manga: "📖 AI Dịch Truyện Tranh",
+        manga_opt1_title: "Tải lên Ảnh hoặc Tệp ZIP Chapter",
+        manga_drag_prompt: "Kéo thả tệp ZIP hoặc chọn nhiều ảnh trang truyện",
+        manga_drag_hint: "Tự động nhận diện thứ tự trang tự nhiên (page 1, 2, ... 10)",
+        manga_btn_choose: "Chọn tệp",
+        manga_opt2_title: "Nạp từ Link Web hoặc Link Ảnh",
+        manga_opt2_desc: "Hệ thống tự động phân tích trang web đọc truyện để bóc tách toàn bộ trang của chapter, hoặc tải trực tiếp từ link ảnh.",
+        manga_btn_load_url: "Nạp chapter",
+        manga_target_lang_label: "Ngôn ngữ dịch:",
+        manga_view_trans: "Bản Dịch",
+        manga_view_orig: "Bản Gốc",
+        manga_view_bilingual: "Song ngữ",
+        manga_btn_translate_all: "AI Dịch Toàn Bộ Chapter",
+        manga_btn_export_zip: "Tải Tệp ZIP Chapter",
+        manga_empty_title: "Trình Đọc & Dịch Truyện Tranh Thông Minh",
+        manga_empty_desc: "Hỗ trợ Manga (Nhật), Manhwa (Hàn), Manhua (Trung) và Comic (Âu Mỹ). Tải lên tệp ZIP hoặc dán link truyện phía trên để bắt đầu đọc và dịch tự động.",
+        manga_prev_chapter: "◀ Chương Trước",
+        manga_next_chapter: "Chương Tiếp ▶",
+        manga_select_chapter: "-- Chọn Chương Truyện --",
+        manga_btn_load_and_translate: "Đọc & Dịch Ngay",
+        manga_btn_scan_series: "Quét Chapter",
+        manga_auto_translate_switch: "Tự động dịch khi đổi chương",
+        manga_webtoon_scroll: "Cuộn dọc Webtoon",
+        manga_scroll_top: "Lên đầu trang",
+        manga_chapter_badge: "Chương",
       },
       en: {
         header_tagline: "",
@@ -1323,6 +1392,15 @@
         manga_btn_export_zip: "Download Chapter ZIP",
         manga_empty_title: "Smart AI Manga & Comic Reader / Translator",
         manga_empty_desc: "Supports Japanese Manga, Korean Manhwa, Chinese Manhua, and Western Comics. Upload ZIP or paste chapter URL above to begin.",
+        manga_prev_chapter: "◀ Prev Chapter",
+        manga_next_chapter: "Next Chapter ▶",
+        manga_select_chapter: "-- Select Chapter --",
+        manga_btn_load_and_translate: "Read & Translate Now",
+        manga_btn_scan_series: "Scan Chapters",
+        manga_auto_translate_switch: "Auto translate on chapter change",
+        manga_webtoon_scroll: "Webtoon Vertical Scroll",
+        manga_scroll_top: "Back to top",
+        manga_chapter_badge: "Chapter",
         video_opt1_title: "Upload video (.mp4, .mkv, .mov)",
         video_opt1_formats: "MP4, MOV, MKV, WEBM",
         video_opt1_btn: "Choose file",
@@ -1671,6 +1749,9 @@
       if (window.lucide && lucide.createIcons) {
         lucide.createIcons();
       }
+      if (tab === 'manga' && typeof initDefaultMangaView === 'function' && mangaState.pages.length === 0 && !mangaState.sessionId) {
+        initDefaultMangaView();
+      }
     }
 
     // ==========================================
@@ -1738,9 +1819,12 @@
     });
 
     function initHashRouting() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryTab = (urlParams.get('tab') || '').toLowerCase();
       const hash = window.location.hash.replace('#', '').toLowerCase();
-      if (['video', 'translate', 'transcribe', 'manga'].includes(hash)) {
-        switchTab(hash, false);
+      const target = (queryTab && ['video', 'translate', 'transcribe', 'manga'].includes(queryTab)) ? queryTab : hash;
+      if (['video', 'translate', 'transcribe', 'manga'].includes(target)) {
+        switchTab(target, false);
       }
     }
 
@@ -3170,8 +3254,190 @@
       viewMode: 'translated', // 'translated' | 'original'
       bilingualActive: false,
       zoomLevel: 100,
-      isTranslatingAll: false
+      isTranslatingAll: false,
+      seriesTitle: '',
+      chapters: [],
+      currentChapterIndex: -1,
+      currentChapterUrl: '',
+      autoTranslateOnSwitch: true
     };
+
+    async function initDefaultMangaView() {
+      mangaState.seriesTitle = "Lập trình viên và Ý tưởng Python (Webtoon)";
+      mangaState.chapters = [
+        { id: "chap_1", name: "Chương 1: Ý tưởng lúc nửa đêm", url: "demo_webtoon" },
+        { id: "chap_2", name: "Chương 2: Đột phá công nghệ", url: "https://example.com/manga/python-comic/chap-2" },
+        { id: "chap_3", name: "Chương 3: Triển khai sản phẩm", url: "https://example.com/manga/python-comic/chap-3" },
+        { id: "chap_4", name: "Chương 4: Đỉnh cao lập trình", url: "https://example.com/manga/python-comic/chap-4" },
+        { id: "chap_5", name: "Chương 5: Kết thúc mở", url: "https://example.com/manga/python-comic/chap-5" }
+      ];
+      mangaState.currentChapterIndex = 0;
+      updateChapterNavUI();
+
+      try {
+        const res = await fetch('/api/manga/session/demo_webtoon');
+        if (res.ok) {
+          const data = await res.json();
+          mangaState.sessionId = data.session_id;
+          mangaState.pages = data.pages || [];
+          renderMangaWorkspace();
+        }
+      } catch (e) {
+        console.warn('initDefaultMangaView error:', e);
+      }
+    }
+
+    function updateChapterNavUI() {
+      const dropdown = document.getElementById('manga-chapter-dropdown');
+      const bottomDropdown = document.getElementById('manga-bottom-chapter-dropdown');
+      const prevBtn = document.getElementById('btn-manga-prev');
+      const nextBtn = document.getElementById('btn-manga-next');
+      const bottomPrevBtn = document.getElementById('btn-manga-bottom-prev');
+      const bottomNextBtn = document.getElementById('btn-manga-bottom-next');
+      const chapterInfo = document.getElementById('manga-chapter-info');
+
+      if (!dropdown) return;
+
+      if (!mangaState.chapters || mangaState.chapters.length === 0) {
+        const defaultOpt = `<option value="">${t('manga_select_chapter')}</option>`;
+        dropdown.innerHTML = defaultOpt;
+        if (bottomDropdown) bottomDropdown.innerHTML = defaultOpt;
+        if (prevBtn) prevBtn.disabled = true;
+        if (nextBtn) nextBtn.disabled = true;
+        if (bottomPrevBtn) bottomPrevBtn.disabled = true;
+        if (bottomNextBtn) bottomNextBtn.disabled = true;
+        return;
+      }
+
+      let options = '';
+      mangaState.chapters.forEach((c, idx) => {
+        const isSel = idx === mangaState.currentChapterIndex;
+        options += `<option value="${c.url}" ${isSel ? 'selected' : ''}>${c.name}</option>`;
+      });
+      dropdown.innerHTML = options;
+      if (bottomDropdown) bottomDropdown.innerHTML = options;
+
+      const hasPrev = mangaState.currentChapterIndex > 0;
+      const hasNext = mangaState.currentChapterIndex < mangaState.chapters.length - 1;
+      if (prevBtn) prevBtn.disabled = !hasPrev;
+      if (nextBtn) nextBtn.disabled = !hasNext;
+      if (bottomPrevBtn) bottomPrevBtn.disabled = !hasPrev;
+      if (bottomNextBtn) bottomNextBtn.disabled = !hasNext;
+
+      if (chapterInfo && mangaState.currentChapterIndex >= 0 && mangaState.chapters[mangaState.currentChapterIndex]) {
+        chapterInfo.innerText = mangaState.chapters[mangaState.currentChapterIndex].name;
+      }
+    }
+
+    async function scanMangaChapters() {
+      const urlInput = document.getElementById('manga-url-input');
+      const statusEl = document.getElementById('manga-url-status');
+      const btn = document.getElementById('btn-manga-scan-series');
+      const url = urlInput ? urlInput.value.trim() : '';
+
+      if (!url) {
+        alert("Vui lòng dán link truyện tranh để quét!");
+        return;
+      }
+
+      if (btn) btn.disabled = true;
+      if (statusEl) statusEl.innerText = "Đang quét danh sách chapter...";
+
+      try {
+        const res = await fetch('/api/manga/chapters', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Không thể quét chapter");
+
+        mangaState.seriesTitle = data.series_title || '';
+        mangaState.chapters = data.chapters || [];
+        mangaState.currentChapterIndex = data.current_chapter_index >= 0 ? data.current_chapter_index : 0;
+        mangaState.currentChapterUrl = data.current_chapter_url || url;
+
+        updateChapterNavUI();
+
+        if (statusEl) statusEl.innerText = `Tìm thấy ${mangaState.chapters.length} chapter!`;
+      } catch (err) {
+        if (statusEl) statusEl.innerText = "Lỗi: " + err.message;
+        alert("Lỗi quét chapter: " + err.message);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    async function changeChapterOffset(delta) {
+      if (!mangaState.chapters || mangaState.chapters.length === 0) return;
+      const newIdx = mangaState.currentChapterIndex + delta;
+      if (newIdx < 0 || newIdx >= mangaState.chapters.length) return;
+
+      mangaState.currentChapterIndex = newIdx;
+      const targetChap = mangaState.chapters[newIdx];
+      updateChapterNavUI();
+      await loadChapterByUrl(targetChap.url, targetChap.name);
+    }
+
+    async function onChapterDropdownChange(chapterUrl) {
+      if (!chapterUrl) return;
+      const idx = mangaState.chapters.findIndex(c => c.url === chapterUrl);
+      if (idx !== -1) {
+        mangaState.currentChapterIndex = idx;
+      }
+      updateChapterNavUI();
+      const chapName = (idx !== -1) ? mangaState.chapters[idx].name : '';
+      await loadChapterByUrl(chapterUrl, chapName);
+    }
+
+    async function loadChapterByUrl(chapterUrl, chapterName = '') {
+      const statusEl = document.getElementById('manga-url-status');
+      const progressContainer = document.getElementById('manga-progress-container');
+      const progressText = document.getElementById('manga-progress-text');
+      const progressPercent = document.getElementById('manga-progress-percent');
+      const progressBar = document.getElementById('manga-progress-bar');
+      const chapterInfo = document.getElementById('manga-chapter-info');
+
+      if (chapterInfo && chapterName) chapterInfo.innerText = chapterName;
+      if (progressContainer) {
+        progressContainer.classList.remove('hidden');
+        if (progressText) progressText.innerText = `Đang tải hình ảnh ${chapterName}...`;
+        if (progressPercent) progressPercent.innerText = "15%";
+        if (progressBar) progressBar.style.width = "15%";
+      }
+
+      try {
+        const res = await fetch('/api/manga/process-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: chapterUrl })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Không thể tải chapter");
+
+        mangaState.sessionId = data.session_id;
+        mangaState.pages = data.pages || [];
+        mangaState.currentChapterUrl = chapterUrl;
+
+        // Render Webtoon continuous vertical scroll
+        renderMangaWorkspace();
+
+        // Smooth scroll to top of reader viewport
+        const viewport = document.getElementById('manga-reader-viewport');
+        if (viewport) viewport.scrollTop = 0;
+
+        // Auto translate if checked
+        const autoCheck = document.getElementById('manga-auto-trans-check');
+        if (!autoCheck || autoCheck.checked) {
+          await translateAllManga();
+        } else {
+          if (progressContainer) progressContainer.classList.add('hidden');
+        }
+      } catch (err) {
+        alert("Lỗi tải chapter: " + err.message);
+        if (progressContainer) progressContainer.classList.add('hidden');
+      }
+    }
 
     function pasteMangaUrl() {
       navigator.clipboard.readText().then(text => {
@@ -3249,7 +3515,7 @@
       }
     }
 
-    async function loadMangaFromUrl() {
+    async function loadMangaFromUrl(autoTranslate = true) {
       const urlInput = document.getElementById('manga-url-input');
       const statusEl = document.getElementById('manga-url-status');
       const btn = document.getElementById('btn-manga-load-url');
@@ -3261,24 +3527,49 @@
       }
 
       if (btn) btn.disabled = true;
-      if (statusEl) statusEl.innerText = "Đang cào & phân tích dữ liệu...";
+      if (statusEl) statusEl.innerText = "Đang kết nối & quét chapter...";
 
       try {
+        // Try to scan chapters in background to enrich navigation
+        try {
+          const chapRes = await fetch('/api/manga/chapters', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: url })
+          });
+          if (chapRes.ok) {
+            const chapData = await chapRes.json();
+            mangaState.seriesTitle = chapData.series_title || '';
+            mangaState.chapters = chapData.chapters || [];
+            mangaState.currentChapterIndex = chapData.current_chapter_index >= 0 ? chapData.current_chapter_index : 0;
+            mangaState.currentChapterUrl = chapData.current_chapter_url || url;
+            updateChapterNavUI();
+          }
+        } catch (e) {
+          console.warn("Could not fetch chapters list:", e);
+        }
+
+        if (statusEl) statusEl.innerText = "Đang tải trang truyện...";
+        const targetUrl = mangaState.currentChapterUrl || url;
         const res = await fetch('/api/manga/process-url', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: url })
+          body: JSON.stringify({ url: targetUrl })
         });
         const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.detail || "Không thể nạp truyện từ liên kết");
-        }
+        if (!res.ok) throw new Error(data.detail || "Không thể nạp truyện từ liên kết");
 
         mangaState.sessionId = data.session_id;
         mangaState.pages = data.pages || [];
-        if (statusEl) statusEl.innerText = "Nạp thành công " + data.total_pages + " trang!";
+        if (statusEl) statusEl.innerText = `Đã nạp ${data.total_pages} trang!`;
 
         renderMangaWorkspace();
+
+        const autoCheck = document.getElementById('manga-auto-trans-check');
+        const shouldTrans = autoTranslate && (!autoCheck || autoCheck.checked);
+        if (shouldTrans && mangaState.pages.length > 0) {
+          await translateAllManga();
+        }
       } catch (err) {
         if (statusEl) statusEl.innerText = "Lỗi: " + err.message;
         alert("Lỗi nạp từ URL: " + err.message);
@@ -3347,6 +3638,34 @@
           </div>
         `;
       });
+
+      // Bottom Webtoon Chapter Navigation Bar
+      if (mangaState.chapters && mangaState.chapters.length > 0) {
+        html += `
+          <div class="w-full py-6 mt-6 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 p-4 rounded-2xl">
+            <div class="flex items-center gap-2">
+              <button id="btn-manga-bottom-prev" onclick="changeChapterOffset(-1)" ${mangaState.currentChapterIndex <= 0 ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold text-slate-200 hover:text-white flex items-center gap-1.5 transition border border-slate-700/60 shadow cursor-pointer">
+                <i data-lucide="chevron-left" class="w-4 h-4 text-indigo-400"></i>
+                <span>◀ Chương Trước</span>
+              </button>
+
+              <select id="manga-bottom-chapter-dropdown" onchange="onChapterDropdownChange(this.value)" class="bg-slate-950 border border-indigo-500/50 hover:border-indigo-400 focus:border-indigo-400 text-indigo-300 font-bold rounded-xl px-3 py-1.5 text-xs focus:outline-none transition shadow-inner max-w-[200px] sm:max-w-[280px] truncate cursor-pointer">
+                ${mangaState.chapters.map((c, idx) => `<option value="${c.url}" ${idx === mangaState.currentChapterIndex ? 'selected' : ''}>${c.name}</option>`).join('')}
+              </select>
+
+              <button id="btn-manga-bottom-next" onclick="changeChapterOffset(1)" ${mangaState.currentChapterIndex >= mangaState.chapters.length - 1 ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold text-slate-200 hover:text-white flex items-center gap-1.5 transition border border-slate-700/60 shadow cursor-pointer">
+                <span>Chương Tiếp ▶</span>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-indigo-400"></i>
+              </button>
+            </div>
+
+            <button onclick="document.getElementById('manga-reader-viewport').scrollTop = 0" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition border border-slate-700/60 shadow cursor-pointer">
+              <i data-lucide="arrow-up" class="w-3.5 h-3.5 text-cyan-400"></i>
+              <span>Lên đầu trang</span>
+            </button>
+          </div>
+        `;
+      }
 
       if (pagesList) pagesList.innerHTML = html;
       if (window.lucide && lucide.createIcons) lucide.createIcons();

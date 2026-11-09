@@ -16,6 +16,7 @@ from core.manga_helper import (
     detect_and_translate_manga,
     render_translated_page,
     fetch_images_from_url,
+    extract_chapters_from_url,
     extract_images_from_zip,
     natural_sort_key
 )
@@ -76,6 +77,9 @@ class AutoSubRequest(BaseModel):
     video_id: str
     target_lang: str = "vi"
     url: Optional[str] = ""
+
+class MangaChaptersRequest(BaseModel):
+    url: str
 
 class MangaProcessUrlRequest(BaseModel):
     url: str
@@ -513,6 +517,19 @@ async def upload_manga(
         "total_pages": len(pages),
         "pages": pages
     }
+
+@app.post("/api/manga/chapters")
+async def get_manga_chapters(req: MangaChaptersRequest):
+    if not req.url or not req.url.strip():
+        raise HTTPException(status_code=400, detail="URL truyện không được để trống")
+    try:
+        data = await extract_chapters_from_url(req.url.strip())
+        return {
+            "status": "success",
+            **data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi phân tích danh sách chapter: {str(e)}")
 
 @app.post("/api/manga/process-url")
 async def process_manga_url(req: MangaProcessUrlRequest):
