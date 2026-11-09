@@ -167,9 +167,7 @@
               <div id="yt-player-box" class="w-full h-full hidden"></div>
 
               <!-- Interactive Floating Subtitle Overlay (Live Preview matching exact custom style) -->
-              <div id="video-subtitle" class="video-sub-overlay hidden">
-                Và anh cũng biết đau khi em nhạt phai
-              </div>
+              <div id="video-subtitle" class="video-sub-overlay hidden"></div>
             </div>
 
             <!-- Video Actions Bar -->
@@ -521,7 +519,7 @@
       return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
-    function updateSubtitleStyle() {
+    function updateSubtitleStyle(triggerPreview = false) {
       const textColor = document.getElementById('sub-color').value;
       const bgColor = document.getElementById('sub-bg-color').value;
       const opacity = parseInt(document.getElementById('sub-opacity').value) / 100.0;
@@ -551,6 +549,19 @@
         subtitleOverlay.style.boxShadow = 'none';
         subtitleOverlay.style.textShadow = '0 2px 4px #000, 0 0 2px #000, 0 0 4px #000';
       }
+
+      // Nếu người dùng đang chỉnh slider xem trước mà chưa quét phụ đề
+      if (triggerPreview && !currentVideoSubtitles.length) {
+        subtitleOverlay.innerText = "Phụ đề mẫu (Preview Style)";
+        subtitleOverlay.classList.remove('hidden');
+        clearTimeout(window._previewTimer);
+        window._previewTimer = setTimeout(() => {
+          if (!currentVideoSubtitles.length) {
+            subtitleOverlay.classList.add('hidden');
+            subtitleOverlay.innerText = "";
+          }
+        }, 2500);
+      }
     }
 
     // Synchronize subtitle overlay with video playback time
@@ -565,12 +576,16 @@
       const durS = String(Math.floor(duration % 60)).padStart(2, '0');
       document.getElementById('video-time-display').innerText = `${curM}:${curS} / ${durM}:${durS}`;
 
-      if (!currentVideoSubtitles.length) return;
+      if (!currentVideoSubtitles.length) {
+        subtitleOverlay.classList.add('hidden');
+        subtitleOverlay.innerText = '';
+        return;
+      }
 
       // Find active subtitle
       const active = currentVideoSubtitles.find(s => current >= s.start && current <= s.end);
-      if (active) {
-        subtitleOverlay.innerText = active.translated || active.text || '';
+      if (active && (active.translated || active.original)) {
+        subtitleOverlay.innerText = active.translated || active.original;
         subtitleOverlay.classList.remove('hidden');
 
         // Highlight active item in list
@@ -620,8 +635,9 @@
         // Enable Action Buttons
         document.getElementById('btn-auto-sub').disabled = false;
         
-        // Show demo subtitle overlay for styling
-        subtitleOverlay.classList.remove('hidden');
+        // Đặt subtitle overlay về trạng thái sạch sẽ
+        subtitleOverlay.innerText = '';
+        subtitleOverlay.classList.add('hidden');
         updateSubtitleStyle();
       } catch (err) {
         alert("Lỗi tải video: " + err.message);
@@ -663,8 +679,16 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ video_id: currentVideoId, target_lang: 'vi', url: document.getElementById('video-url-input').value.trim() })
         });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || `Máy chủ phản hồi mã lỗi HTTP ${res.status}`);
+        }
         const data = await res.json();
         currentVideoSubtitles = data.subtitles || [];
+
+        // Clear any old overlay text
+        subtitleOverlay.innerText = '';
+        subtitleOverlay.classList.add('hidden');
 
         renderSubtitleTimeline(currentVideoSubtitles);
 
@@ -673,9 +697,9 @@
         document.getElementById('export-download-box').classList.remove('hidden');
         document.getElementById('btn-download-srt').href = data.srt_url;
 
-        // Auto play preview
+        // Auto play preview from beginning
         uploadedVideo.currentTime = 0;
-        uploadedVideo.play();
+        uploadedVideo.play().catch(() => {});
         fetchPoolStatus();
       } catch (err) {
         listContainer.innerHTML = `<div class="p-4 text-xs text-red-400">Lỗi tạo phụ đề: ${err.message}</div>`;
@@ -846,7 +870,8 @@
             uploadedVideo.play().catch(() => {});
           }
 
-          subtitleOverlay.classList.remove('hidden');
+          subtitleOverlay.innerText = '';
+          subtitleOverlay.classList.add('hidden');
           updateSubtitleStyle();
           alert("Nạp video thành công! Bạn có thể bấm 'AI Quét & Dịch Toàn Bộ Video' để bắt đầu tạo phụ đề.");
         } else {

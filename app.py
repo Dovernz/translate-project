@@ -1,3 +1,4 @@
+import re
 import os
 import uuid
 import json
@@ -226,39 +227,46 @@ async def auto_subtitle_video(req: AutoSubRequest):
         loop = asyncio.get_event_loop()
         extracted_subs = await loop.run_in_executor(None, extract_subtitles_from_url, req.url, UPLOAD_DIR)
         if extracted_subs and len(extracted_subs) > 0:
-            # Batch dịch toàn bộ câu bằng Gemini Key Pool qua prompt nhanh
-            batch_lines = [f"{s['id']}. {s['original']}" for s in extracted_subs]
-            prompt = (
-                f"Hãy dịch danh sách các câu phụ đề sau sang {target_name}. Giữ nguyên số thứ tự và định dạng:\n"
-                + "\n".join(batch_lines)
-            )
-            try:
-                translated_res = await pool.generate_content(prompt, tier="bulk")
-                trans_map = {}
-                for line in translated_res.split("\n"):
-                    line = line.strip()
-                    if "." in line:
-                        p = line.split(".", 1)
-                        try:
-                            idx = int(p[0].strip())
-                            trans_map[idx] = p[1].strip()
-                        except Exception:
-                            pass
+            chunk_size = 25
+            chunks = [extracted_subs[i:i + chunk_size] for i in range(0, len(extracted_subs), chunk_size)]
 
-                for s in extracted_subs:
-                    s["translated"] = trans_map.get(s["id"], s["original"])
+            async def translate_chunk(chunk):
+                batch_lines = [f"{s['id']}. {s['original']}" for s in chunk]
+                prompt = (
+                    f"Bạn là chuyên gia dịch phụ đề phim. Hãy dịch từng câu sau sang {target_name}.\n"
+                    f"Yêu cầu: Giữ nguyên số thứ tự và định dạng '[Số]. [Bản dịch]'. Ngắn gọn, súc tích, chuẩn ngữ cảnh.\n"
+                    f"Chỉ trả về danh sách dịch, không giải thích:\n"
+                    + "\n".join(batch_lines)
+                )
+                try:
+                    res_text = await pool.generate_content(prompt, tier="bulk")
+                    sub_map = {}
+                    for line in res_text.split("\n"):
+                        line = line.strip()
+                        m = re.match(r"^(\d+)[\.\:\-\s]+(.+)$", line)
+                        if m:
+                            try:
+                                sub_map[int(m.group(1))] = m.group(2).strip()
+                            except Exception:
+                                pass
+                    for s in chunk:
+                        s["translated"] = sub_map.get(s["id"], s["original"])
+                except Exception as ex:
+                    print(f"[DEBUG] Lỗi dịch chunk: {ex}")
+                    for s in chunk:
+                        s["translated"] = s["original"]
 
-                srt_path = OUTPUT_DIR / f"{req.video_id}.srt"
-                export_srt(extracted_subs, srt_path)
+            await asyncio.gather(*(translate_chunk(c) for c in chunks))
 
-                return {
-                    "video_id": req.video_id,
-                    "subtitles": extracted_subs,
-                    "srt_url": f"/outputs/{req.video_id}.srt",
-                    "mode": "zero_download_caption"
-                }
-            except Exception as e:
-                print(f"[DEBUG] Batch translate error: {e}")
+            srt_path = OUTPUT_DIR / f"{req.video_id}.srt"
+            export_srt(extracted_subs, srt_path)
+
+            return {
+                "video_id": req.video_id,
+                "subtitles": extracted_subs,
+                "srt_url": f"/outputs/{req.video_id}.srt",
+                "mode": "zero_download_caption"
+            }
 
     # ƯU TIÊN 2: Quét bằng Gemini Multimodal Audio Model
     audio_path = UPLOAD_DIR / f"{req.video_id}_audio.mp3"

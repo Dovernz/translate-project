@@ -21,10 +21,6 @@ def extract_youtube_id(url: str) -> Optional[str]:
     return None
 
 def cleanup_storage(upload_dir: Path, output_dir: Path, max_age_minutes: int = 30):
-    """
-    Tự động dọn dẹp các file video và audio tạm cũ hơn max_age_minutes
-    Bảo đảm ổ đĩa không bao giờ bị phình to khi tải nhiều video liên tục.
-    """
     now = time.time()
     for d in [upload_dir, output_dir]:
         if not d.exists():
@@ -71,8 +67,7 @@ def get_video_info(url: str) -> Dict[str, Any]:
 
 def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict[str, Any]]]:
     """
-    Trích xuất phụ đề gốc trực tiếp từ link mà KHÔNG CẦN TẢI VIDEO (Zero-Video Download).
-    Chỉ tốn vài KB băng thông và hoàn thành trong 0.5s.
+    Trích xuất phụ đề gốc trực tiếp từ link và ghép câu hoàn chỉnh (Zero-Video Download).
     """
     output_dir.mkdir(parents=True, exist_ok=True)
     tmp_id = str(uuid.uuid4())[:8]
@@ -89,8 +84,7 @@ def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict
         url
     ]
     try:
-        subprocess.run(cmd, capture_output=True, text=True, timeout=15)
-        # Tìm file .vtt vừa tải
+        subprocess.run(cmd, capture_output=True, text=True, timeout=20)
         vtt_files = list(output_dir.glob(f"{tmp_id}_sub.*.vtt"))
         if not vtt_files:
             return None
@@ -99,12 +93,8 @@ def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict
         with open(vtt_file, "r", encoding="utf-8") as f:
             vtt_content = f.read()
             
-        # Parse VTT thành danh sách câu sạch sẽ
         blocks = vtt_content.split('\n\n')
-        subs = []
-        last_text = ""
-        item_id = 1
-        
+        raw_cues = []
         for b in blocks:
             lines = [l.strip() for l in b.strip().split('\n') if l.strip()]
             if not lines:
@@ -121,25 +111,37 @@ def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict
             if time_line and text_lines:
                 t_match = re.search(r'(\d{2}:\d{2}:\d{2}\.\d{3}|\d{2}:\d{2}\.\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}\.\d{3}|\d{2}:\d{2}\.\d{3})', time_line)
                 if t_match:
-                    s_str, e_str = t_match.group(1), t_match.group(2)
-                    full_text = ' '.join(text_lines)
-                    # Deduplicate rolling captions
-                    if full_text != last_text and len(full_text) > 1:
-                        last_text = full_text
-                        s_sec = parse_time_to_seconds(s_str)
-                        e_sec = parse_time_to_seconds(e_str)
-                        subs.append({
-                            "id": item_id,
-                            "start": s_sec,
-                            "end": max(e_sec, s_sec + 1.5),
-                            "start_str": seconds_to_vtt_time(s_sec),
-                            "end_str": seconds_to_vtt_time(max(e_sec, s_sec + 1.5)),
-                            "original": full_text,
-                            "translated": ""
-                        })
-                        item_id += 1
-                        
-        # Dọn dẹp file vtt tạm
+                    raw_cues.append((t_match.group(1), t_match.group(2), text_lines[-1]))
+
+        # Hợp nhất các câu rolling captions thành câu hoàn chỉnh
+        merged = []
+        for s, e, t in raw_cues:
+            if not merged:
+                merged.append([s, e, t])
+            else:
+                last = merged[-1]
+                if t.startswith(last[2]) and len(t) > len(last[2]):
+                    last[1] = e
+                    last[2] = t
+                elif last[2].startswith(t):
+                    last[1] = e
+                else:
+                    merged.append([s, e, t])
+
+        subs = []
+        for idx, (s_str, e_str, txt) in enumerate(merged, 1):
+            s_sec = parse_time_to_seconds(s_str)
+            e_sec = parse_time_to_seconds(e_str)
+            subs.append({
+                "id": idx,
+                "start": s_sec,
+                "end": max(e_sec, s_sec + 1.2),
+                "start_str": seconds_to_vtt_time(s_sec),
+                "end_str": seconds_to_vtt_time(max(e_sec, s_sec + 1.2)),
+                "original": txt,
+                "translated": ""
+            })
+
         try:
             vtt_file.unlink()
         except Exception:
@@ -147,13 +149,10 @@ def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict
             
         return subs if len(subs) > 0 else None
     except Exception as e:
-        print(f"[DEBUG] Không lấy được auto-subs: {e}")
+        print(f"[DEBUG] Lỗi trích xuất auto-subs: {e}")
         return None
 
 def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
-    """
-    Tải video trực tuyến (YouTube, Vimeo, MP4 direct) bằng yt-dlp vào thư mục uploads
-    """
     output_dir.mkdir(parents=True, exist_ok=True)
     video_id = str(uuid.uuid4())[:8]
     output_template = str(output_dir / f"{video_id}_%(title).50s.%(ext)s")
