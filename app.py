@@ -10,6 +10,15 @@ from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException, Bod
 from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+import aiofiles
+import zipfile
+from core.manga_helper import (
+    detect_and_translate_manga,
+    render_translated_page,
+    fetch_images_from_url,
+    extract_images_from_zip,
+    natural_sort_key
+)
 
 from core.key_pool import KeyPool, MODEL_TIERS
 from core.video_helper import (
@@ -32,6 +41,10 @@ UPLOAD_DIR = BASE_DIR / "uploads"
 OUTPUT_DIR = BASE_DIR / "outputs"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+MANGA_UPLOAD_DIR = UPLOAD_DIR / "manga"
+MANGA_OUTPUT_DIR = OUTPUT_DIR / "manga"
+MANGA_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+MANGA_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # Mount thư mục tĩnh để stream và download video
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
@@ -63,6 +76,23 @@ class AutoSubRequest(BaseModel):
     video_id: str
     target_lang: str = "vi"
     url: Optional[str] = ""
+
+class MangaProcessUrlRequest(BaseModel):
+    url: str
+    session_id: Optional[str] = None
+
+class MangaTranslatePageRequest(BaseModel):
+    session_id: str
+    page_index: int
+    target_lang: str = "vi"
+
+class MangaTranslateAllRequest(BaseModel):
+    session_id: str
+    target_lang: str = "vi"
+    concurrency: int = 7
+
+class MangaExportZipRequest(BaseModel):
+    session_id: str
 
 class BurnSubRequest(BaseModel):
     video_id: str
@@ -431,6 +461,267 @@ async def cleanup_video_endpoint(req: Dict[str, Any] = Body(...)):
         "video_id": video_id,
         "deleted_count": len(cleaned_files),
         "deleted_files": cleaned_files
+    }
+
+# ==========================================
+# MANGA & COMIC TRANSLATION ENDPOINTS
+# ==========================================
+
+@app.post("/api/manga/upload")
+async def upload_manga(
+    files: List[UploadFile] = File(...),
+    session_id: Optional[str] = Form(None)
+):
+    if not files:
+        raise HTTPException(status_code=400, detail="Không có tệp nào được tải lên")
+
+    sid = session_id or uuid.uuid4().hex[:12]
+    orig_dir = MANGA_UPLOAD_DIR / sid / "original"
+    orig_dir.mkdir(parents=True, exist_ok=True)
+
+    for upload_file in files:
+        filename = upload_file.filename or "page.jpg"
+        ext = Path(filename).suffix.lower()
+        if ext in [".zip", ".cbz"]:
+            content = await upload_file.read()
+            extract_images_from_zip(content, orig_dir)
+        elif ext in [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".avif"]:
+            dest = orig_dir / filename
+            async with aiofiles.open(dest, "wb") as f:
+                content = await upload_file.read()
+                await f.write(content)
+
+    img_files = [p for p in orig_dir.iterdir() if p.is_file() and p.suffix.lower() in [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".avif"]]
+    img_files.sort(key=natural_sort_key)
+
+    if not img_files:
+        raise HTTPException(status_code=400, detail="Không tìm thấy tệp ảnh truyện hợp lệ trong dữ liệu tải lên")
+
+    pages = []
+    for idx, p in enumerate(img_files):
+        pages.append({
+            "page_index": idx + 1,
+            "filename": p.name,
+            "original_url": f"/uploads/manga/{sid}/original/{p.name}",
+            "translated_url": None,
+            "status": "pending"
+        })
+
+    return {
+        "status": "success",
+        "session_id": sid,
+        "total_pages": len(pages),
+        "pages": pages
+    }
+
+@app.post("/api/manga/process-url")
+async def process_manga_url(req: MangaProcessUrlRequest):
+    if not req.url or not req.url.strip():
+        raise HTTPException(status_code=400, detail="URL truyện không được để trống")
+
+    sid = req.session_id or uuid.uuid4().hex[:12]
+    orig_dir = MANGA_UPLOAD_DIR / sid / "original"
+    orig_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        downloaded = await fetch_images_from_url(req.url, orig_dir)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi khi tải ảnh từ liên kết: {str(e)}")
+
+    if not downloaded:
+        raise HTTPException(status_code=400, detail="Không tìm thấy ảnh truyện từ liên kết đã cung cấp")
+
+    pages = []
+    for idx, p in enumerate(downloaded):
+        pages.append({
+            "page_index": idx + 1,
+            "filename": p.name,
+            "original_url": f"/uploads/manga/{sid}/original/{p.name}",
+            "translated_url": None,
+            "status": "pending"
+        })
+
+    return {
+        "status": "success",
+        "session_id": sid,
+        "total_pages": len(pages),
+        "pages": pages
+    }
+
+@app.post("/api/manga/translate-page")
+async def translate_manga_page(req: MangaTranslatePageRequest):
+    orig_dir = MANGA_UPLOAD_DIR / req.session_id / "original"
+    if not orig_dir.exists():
+        raise HTTPException(status_code=404, detail="Phiên dịch truyện không tồn tại")
+
+    img_files = [p for p in orig_dir.iterdir() if p.is_file() and p.suffix.lower() in [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".avif"]]
+    img_files.sort(key=natural_sort_key)
+
+    if req.page_index < 1 or req.page_index > len(img_files):
+        raise HTTPException(status_code=404, detail=f"Không tìm thấy trang #{req.page_index}")
+
+    target_file = img_files[req.page_index - 1]
+    async with aiofiles.open(target_file, "rb") as f:
+        img_bytes = await f.read()
+
+    bubbles = await detect_and_translate_manga(img_bytes, target_lang=req.target_lang, pool=pool)
+    loop = asyncio.get_event_loop()
+    translated_bytes = await loop.run_in_executor(None, render_translated_page, img_bytes, bubbles)
+
+    trans_dir = MANGA_OUTPUT_DIR / req.session_id / "translated"
+    bubble_dir = MANGA_OUTPUT_DIR / req.session_id / "bubbles"
+    trans_dir.mkdir(parents=True, exist_ok=True)
+    bubble_dir.mkdir(parents=True, exist_ok=True)
+
+    out_file = trans_dir / target_file.name
+    async with aiofiles.open(out_file, "wb") as f:
+        await f.write(translated_bytes)
+
+    bubble_file = bubble_dir / f"{target_file.stem}.json"
+    async with aiofiles.open(bubble_file, "w", encoding="utf-8") as f:
+        await f.write(json.dumps(bubbles, ensure_ascii=False, indent=2))
+
+    return {
+        "status": "success",
+        "session_id": req.session_id,
+        "page_index": req.page_index,
+        "filename": target_file.name,
+        "original_url": f"/uploads/manga/{req.session_id}/original/{target_file.name}",
+        "translated_url": f"/outputs/manga/{req.session_id}/translated/{target_file.name}?t={int(time.time())}",
+        "bubbles": bubbles
+    }
+
+@app.post("/api/manga/translate-all")
+async def translate_all_manga(req: MangaTranslateAllRequest):
+    orig_dir = MANGA_UPLOAD_DIR / req.session_id / "original"
+    if not orig_dir.exists():
+        raise HTTPException(status_code=404, detail="Phiên dịch truyện không tồn tại")
+
+    img_files = [p for p in orig_dir.iterdir() if p.is_file() and p.suffix.lower() in [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".avif"]]
+    img_files.sort(key=natural_sort_key)
+
+    if not img_files:
+        raise HTTPException(status_code=400, detail="Không có trang truyện nào trong phiên này")
+
+    trans_dir = MANGA_OUTPUT_DIR / req.session_id / "translated"
+    bubble_dir = MANGA_OUTPUT_DIR / req.session_id / "bubbles"
+    trans_dir.mkdir(parents=True, exist_ok=True)
+    bubble_dir.mkdir(parents=True, exist_ok=True)
+
+    concurrency = min(req.concurrency or 7, len(pool.keys) if pool.keys else 5)
+    sem = asyncio.Semaphore(max(1, concurrency))
+    loop = asyncio.get_event_loop()
+
+    async def process_single(idx: int, file_path: Path):
+        async with sem:
+            async with aiofiles.open(file_path, "rb") as f:
+                img_bytes = await f.read()
+
+            try:
+                bubbles = await detect_and_translate_manga(img_bytes, target_lang=req.target_lang, pool=pool)
+                translated_bytes = await loop.run_in_executor(None, render_translated_page, img_bytes, bubbles)
+            except Exception as e:
+                bubbles = []
+                translated_bytes = img_bytes
+
+            out_file = trans_dir / file_path.name
+            async with aiofiles.open(out_file, "wb") as f:
+                await f.write(translated_bytes)
+
+            bubble_file = bubble_dir / f"{file_path.stem}.json"
+            async with aiofiles.open(bubble_file, "w", encoding="utf-8") as f:
+                await f.write(json.dumps(bubbles, ensure_ascii=False))
+
+            return {
+                "page_index": idx + 1,
+                "filename": file_path.name,
+                "original_url": f"/uploads/manga/{req.session_id}/original/{file_path.name}",
+                "translated_url": f"/outputs/manga/{req.session_id}/translated/{file_path.name}?t={int(time.time())}",
+                "bubbles": bubbles,
+                "status": "translated"
+            }
+
+    tasks = [process_single(i, f) for i, f in enumerate(img_files)]
+    results = await asyncio.gather(*tasks)
+    results.sort(key=lambda x: x["page_index"])
+
+    return {
+        "status": "success",
+        "session_id": req.session_id,
+        "total_pages": len(results),
+        "pages": results
+    }
+
+@app.post("/api/manga/export-zip")
+async def export_manga_zip(req: MangaExportZipRequest):
+    trans_dir = MANGA_OUTPUT_DIR / req.session_id / "translated"
+    orig_dir = MANGA_UPLOAD_DIR / req.session_id / "original"
+
+    source_dir = trans_dir if (trans_dir.exists() and any(trans_dir.iterdir())) else orig_dir
+    if not source_dir.exists():
+        raise HTTPException(status_code=404, detail="Không tìm thấy chapter đã dịch")
+
+    img_files = [p for p in source_dir.iterdir() if p.is_file() and p.suffix.lower() in [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".avif"]]
+    img_files.sort(key=natural_sort_key)
+
+    if not img_files:
+        raise HTTPException(status_code=404, detail="Không có trang truyện nào để xuất ZIP")
+
+    zip_filename = f"manga_translated_{req.session_id}.zip"
+    zip_path = MANGA_OUTPUT_DIR / req.session_id / zip_filename
+    zip_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for idx, img_path in enumerate(img_files):
+            arcname = f"page_{idx + 1:03d}{img_path.suffix.lower()}"
+            zf.write(img_path, arcname=arcname)
+
+    return {
+        "status": "success",
+        "session_id": req.session_id,
+        "download_url": f"/outputs/manga/{req.session_id}/{zip_filename}",
+        "total_pages": len(img_files)
+    }
+
+@app.get("/api/manga/session/{session_id}")
+async def get_manga_session(session_id: str):
+    orig_dir = MANGA_UPLOAD_DIR / session_id / "original"
+    trans_dir = MANGA_OUTPUT_DIR / session_id / "translated"
+    bubble_dir = MANGA_OUTPUT_DIR / session_id / "bubbles"
+
+    if not orig_dir.exists():
+        raise HTTPException(status_code=404, detail="Phiên không tồn tại")
+
+    img_files = [p for p in orig_dir.iterdir() if p.is_file() and p.suffix.lower() in [".jpg", ".jpeg", ".png", ".webp", ".bmp", ".avif"]]
+    img_files.sort(key=natural_sort_key)
+
+    pages = []
+    for idx, p in enumerate(img_files):
+        trans_file = trans_dir / p.name
+        is_trans = trans_file.exists()
+        bubbles = []
+        bubble_file = bubble_dir / f"{p.stem}.json"
+        if bubble_file.exists():
+            try:
+                with open(bubble_file, "r", encoding="utf-8") as bf:
+                    bubbles = json.load(bf)
+            except Exception:
+                pass
+
+        pages.append({
+            "page_index": idx + 1,
+            "filename": p.name,
+            "original_url": f"/uploads/manga/{session_id}/original/{p.name}",
+            "translated_url": f"/outputs/manga/{session_id}/translated/{p.name}?t={int(time.time())}" if is_trans else None,
+            "status": "translated" if is_trans else "pending",
+            "bubbles": bubbles
+        })
+
+    return {
+        "status": "success",
+        "session_id": session_id,
+        "total_pages": len(pages),
+        "pages": pages
     }
 
 @app.get("/", response_class=HTMLResponse)

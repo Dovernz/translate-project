@@ -56,17 +56,19 @@ def load_gemini_keys() -> List[str]:
 
     return keys
 
-# Model Tier mapping
+# Model Tier mapping (Tích hợp Live API & Quota Pool 7 Projects)
 MODEL_TIERS = {
     "ultra": {
-        "primary": "gemma-4-26b-a4b-it",
-        "name": "Gemma 4 26B (Ultra High-Speed)",
+        "primary": "gemma-4-31b-it",
+        "fallbacks": ["gemma-4-26b-a4b-it", "gemini-3.5-flash-lite"],
+        "name": "Gemma 4 31B/26B (Ultra High-Speed)",
         "desc": "100.800 req/ngày | 210 RPM - Siêu tốc độ, dịch câu ngắn, phân loại, từ vựng",
         "rpm": 210,
         "rpd": 100800
     },
     "bulk": {
         "primary": "gemini-3.5-flash-lite",
+        "fallbacks": ["gemini-3.1-flash-lite", "gemini-2.5-flash-lite"],
         "name": "Gemini 3.5 Flash Lite (Bulk)",
         "desc": "7.000 req/ngày | 210 RPM - Dịch nhanh tài liệu lớn, độ trễ cực thấp",
         "rpm": 210,
@@ -74,6 +76,7 @@ MODEL_TIERS = {
     },
     "standard": {
         "primary": "gemini-3.6-flash",
+        "fallbacks": ["gemini-2.5-flash", "gemini-3.5-flash"],
         "name": "Gemini 3.6 Flash (Standard)",
         "desc": "420 req/ngày | 105 RPM - Dịch ngữ cảnh sâu, giữ trọn văn phong & markdown",
         "rpm": 105,
@@ -81,15 +84,41 @@ MODEL_TIERS = {
     },
     "deep": {
         "primary": "gemini-3.8-flash",
+        "fallbacks": ["gemini-3.6-flash"],
         "name": "Gemini 3.8 Flash (Deep Reasoning)",
         "desc": "140 req/ngày | 35 RPM - Dịch tài liệu học thuật, chuyên ngành, y khoa, pháp lý",
         "rpm": 35,
         "rpd": 140
     },
     "live": {
-        "primary": "gemini-2.5-flash",
-        "name": "Gemini Multimodal Live / Transcribe",
-        "desc": "Unlimited RPD | 1M TPM - Xử lý Audio/Video, phụ đề song ngữ theo mốc thời gian",
+        "primary": "gemini-3.5-live-translate",
+        "fallbacks": ["gemini-3-flash-live", "gemini-3.8-live", "gemini-3.5-flash"],
+        "name": "Gemini 3.5 Live Translate (Unlimited RPD)",
+        "desc": "Live API Không giới hạn RPD/RPM - Dịch trực tiếp video, manga, audio realtime",
+        "rpm": 9999,
+        "rpd": 999999
+    },
+    "transcribe": {
+        "primary": "gemini-3.5-transcribe-live",
+        "fallbacks": ["gemini-3.5-transcribe", "gemini-3.5-flash-lite"],
+        "name": "Gemini 3.5 Transcribe Live (Speech-to-Text)",
+        "desc": "Live API Không giới hạn RPD - Bóc băng âm thanh, tạo subtitle tự động",
+        "rpm": 9999,
+        "rpd": 999999
+    },
+    "live_dialog": {
+        "primary": "gemini-2.5-flash-native-audio-dialog",
+        "fallbacks": ["gemini-3-flash-live"],
+        "name": "Gemini 2.5 Flash Native Audio Dialog",
+        "desc": "Live API Unlimited RPD | 1M TPM - Đối thoại âm thanh tự nhiên tương tác hai chiều",
+        "rpm": 9999,
+        "rpd": 999999
+    },
+    "live_thinking": {
+        "primary": "gemini-3.8-live-extended-thinking",
+        "fallbacks": ["gemini-3.8-live", "gemini-3.8-flash"],
+        "name": "Gemini 3.8 Live Extended Thinking",
+        "desc": "Live API Unlimited RPD | 65K TPM - Suy luận mở rộng thời gian thực",
         "rpm": 9999,
         "rpd": 999999
     }
@@ -213,9 +242,16 @@ class KeyPool:
 
         yield "\n[Lỗi kết nối hoặc toàn bộ API Keys trong pool đang bận/hết hạn ngạch. Vui lòng thử lại sau vài giây.]"
 
-    async def generate_multimodal(self, audio_bytes: bytes, mime_type: str, prompt: str, system_instruction: str = "") -> str:
-        encoded_audio = base64.b64encode(audio_bytes).decode("utf-8")
-        model_name = "gemini-2.5-flash"
+    async def generate_multimodal(
+        self,
+        audio_bytes: bytes,
+        mime_type: str,
+        prompt: str,
+        system_instruction: str = "",
+        model_name: str = "gemini-3.5-flash",
+        response_mime_type: Optional[str] = None
+    ) -> str:
+        encoded_data = base64.b64encode(audio_bytes).decode("utf-8")
         
         retries = 3
         while retries > 0:
@@ -227,16 +263,20 @@ class KeyPool:
                 {
                     "inlineData": {
                         "mimeType": mime_type,
-                        "data": encoded_audio
+                        "data": encoded_data
                     }
                 }
             ]
+            gen_config: Dict[str, Any] = {
+                "temperature": 0.2,
+                "maxOutputTokens": 8192
+            }
+            if response_mime_type:
+                gen_config["responseMimeType"] = response_mime_type
+
             payload: Dict[str, Any] = {
                 "contents": [{"parts": parts}],
-                "generationConfig": {
-                    "temperature": 0.2,
-                    "maxOutputTokens": 4096
-                }
+                "generationConfig": gen_config
             }
             if system_instruction:
                 payload["systemInstruction"] = {
@@ -244,7 +284,7 @@ class KeyPool:
                 }
 
             try:
-                async with httpx.AsyncClient(timeout=self.request_timeout * 1.5) as client:
+                async with httpx.AsyncClient(timeout=self.request_timeout * 2.0) as client:
                     resp = await client.post(url, json=payload)
                     if resp.status_code != 200:
                         self.record_usage(key, success=False, status_code=resp.status_code)
@@ -266,7 +306,7 @@ class KeyPool:
                 retries -= 1
                 await asyncio.sleep(0.5)
 
-        raise RuntimeError("Không thể xử lý audio qua Gemini Pool sau 3 lần thử.")
+        raise RuntimeError("Không thể xử lý multimodal qua Gemini Pool sau 3 lần thử.")
 
     async def generate_content(self, prompt: str, system_instruction: str = "", tier: str = "bulk") -> str:
         res = []

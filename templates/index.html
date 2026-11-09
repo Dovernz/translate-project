@@ -290,6 +290,9 @@
         <button onclick="switchTab('transcribe')" id="tab-btn-transcribe" data-tab-link="transcribe" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white hover:bg-slate-700/50">
           <i data-lucide="mic" class="w-3.5 h-3.5"></i> <span data-i18n="tab_transcribe">🎙️ Giọng nói</span>
         </button>
+        <button onclick="switchTab('manga')" id="tab-btn-manga" data-tab-link="manga" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white hover:bg-slate-700/50">
+          <i data-lucide="book-open" class="w-3.5 h-3.5"></i> <span data-i18n="tab_manga">📖 Truyện tranh</span>
+        </button>
       </nav>
 
       <!-- Right: Status Indicator -->
@@ -354,6 +357,13 @@
               <span class="flex items-center gap-2.5">
                 <i data-lucide="mic" class="w-4 h-4"></i>
                 <span data-i18n="drawer_tab_transcribe">🎙️ Transcribe giọng nói</span>
+              </span>
+              <i data-lucide="chevron-right" class="w-4 h-4 opacity-70"></i>
+            </button>
+            <button id="mobile-tab-btn-manga" data-tab-link="manga" onclick="switchDrawerTab('manga')" class="w-full py-2.5 px-3.5 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-between transition cursor-pointer bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white">
+              <span class="flex items-center gap-2.5">
+                <i data-lucide="book-open" class="w-4 h-4"></i>
+                <span data-i18n="drawer_tab_manga">📖 AI Dịch Truyện Tranh</span>
               </span>
               <i data-lucide="chevron-right" class="w-4 h-4 opacity-70"></i>
             </button>
@@ -840,6 +850,182 @@
       </div>
     </section>
 
+    <!-- ========================================== -->
+    <!-- TAB 4: AI MANGA & COMIC TRANSLATOR        -->
+    <!-- ========================================== -->
+    <section id="tab-manga" class="space-y-4 hidden">
+      <!-- 1. MANGA SOURCE & INPUT CONTROLS -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Nạp cách 1: Tải ảnh hoặc tệp ZIP -->
+        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-lg flex flex-col justify-between hover:border-slate-700 transition">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-sm sm:text-base flex items-center gap-2 text-white">
+                <i data-lucide="folder-archive" class="w-5 h-5 text-indigo-400"></i>
+                <span data-i18n="manga_opt1_title">Tải lên Ảnh hoặc Tệp ZIP Chapter</span>
+              </h3>
+              <span class="text-[11px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-mono border border-indigo-500/20">ZIP, CBZ, JPG, PNG, WEBP</span>
+            </div>
+            
+            <!-- Drag & Drop Zone -->
+            <div id="manga-dropzone" 
+                 ondragover="handleMangaDragOver(event)" 
+                 ondragleave="handleMangaDragLeave(event)" 
+                 ondrop="handleMangaDrop(event)"
+                 class="relative border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-6 text-center transition bg-slate-950/40 cursor-pointer group">
+              <input type="file" id="manga-file-input" multiple accept="image/*,.zip,.cbz" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleMangaFileInput(event)">
+              <div class="flex flex-col items-center justify-center space-y-2 pointer-events-none">
+                <div class="w-12 h-12 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center group-hover:scale-110 transition">
+                  <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-200 group-hover:text-white" data-i18n="manga_drag_prompt">Kéo thả tệp ZIP hoặc chọn nhiều ảnh trang truyện</p>
+                  <p class="text-xs text-slate-400 mt-1" data-i18n="manga_drag_hint">Tự động nhận diện thứ tự trang tự nhiên (page 1, 2, ... 10)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-4 flex items-center justify-between text-xs text-slate-400">
+            <span id="manga-upload-status" class="truncate font-mono">Chưa nạp truyện</span>
+            <label for="manga-file-input" class="cursor-pointer px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-1.5 transition">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i> <span data-i18n="manga_btn_choose">Chọn tệp</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Nạp cách 2: Link web truyện hoặc link ảnh trực tiếp -->
+        <div class="rounded-2xl bg-slate-900 border border-slate-800 p-5 shadow-lg flex flex-col justify-between hover:border-slate-700 transition">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-sm sm:text-base flex items-center gap-2 text-white">
+                <i data-lucide="globe" class="w-5 h-5 text-cyan-400"></i>
+                <span data-i18n="manga_opt2_title">Nạp từ Link Web hoặc Link Ảnh</span>
+              </h3>
+              <span class="text-[11px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 font-mono border border-cyan-500/20">Auto Scrape</span>
+            </div>
+
+            <p class="text-xs text-slate-400 mb-3" data-i18n="manga_opt2_desc">
+              Hệ thống tự động phân tích trang web đọc truyện để bóc tách toàn bộ trang của chapter, hoặc tải trực tiếp từ link ảnh.
+            </p>
+
+            <div class="space-y-3">
+              <div class="relative">
+                <input type="text" id="manga-url-input" 
+                       placeholder="https://truyentranh.org/chapter-1 hoặc link ảnh .jpg/.png..."
+                       class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500 font-mono pr-10">
+                <button onclick="pasteMangaUrl()" class="absolute right-2 top-2 p-1 text-slate-400 hover:text-white rounded" title="Dán từ Clipboard">
+                  <i data-lucide="clipboard" class="w-4 h-4"></i>
+                </button>
+              </div>
+
+              <!-- Quick target lang selection for manga -->
+              <div class="flex items-center justify-between pt-1">
+                <span class="text-xs text-slate-400" data-i18n="manga_target_lang_label">Ngôn ngữ dịch:</span>
+                <select id="manga-target-lang" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-medium">
+                  <option value="vi" selected>🇻🇳 Tiếng Việt (Chuẩn văn phong Comic)</option>
+                  <option value="en">🇬🇧 Tiếng Anh (English)</option>
+                  <option value="ja">🇯🇵 Tiếng Nhật (Japanese)</option>
+                  <option value="ko">🇰🇷 Tiếng Hàn (Korean)</option>
+                  <option value="zh">🇨🇳 Tiếng Trung (Chinese)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between">
+            <span id="manga-url-status" class="text-xs text-slate-400 truncate font-mono"></span>
+            <button onclick="loadMangaFromUrl()" id="btn-manga-load-url" class="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium text-xs flex items-center gap-1.5 transition cursor-pointer shadow">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i> <span data-i18n="manga_btn_load_url">Nạp chapter</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. TRÌNH ĐỌC TRUYỆN & THANH ĐIỀU KHIỂN (MANGA READER WORKSPACE) -->
+      <div id="manga-workspace" class="rounded-2xl bg-slate-900 border border-slate-800 shadow-xl overflow-hidden flex flex-col">
+        <!-- Top Toolbar -->
+        <div class="bg-slate-950/80 border-b border-slate-800 px-4 py-3 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20 backdrop-blur">
+          <!-- Left: Session Info & View Mode Toggle -->
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5">
+              <i data-lucide="book" class="w-4 h-4 text-indigo-400"></i>
+              <span id="manga-chapter-info" class="text-xs font-bold text-slate-200">Chapter: Chưa có dữ liệu</span>
+              <span id="manga-page-count-badge" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">0 trang</span>
+            </div>
+
+            <!-- Toggle View Mode: Bản Dịch <-> Bản Gốc -->
+            <div class="inline-flex p-0.5 rounded-lg bg-slate-800/90 border border-slate-700/60 shadow-inner">
+              <button onclick="setMangaViewMode('translated')" id="manga-view-btn-trans" class="px-2.5 py-1 rounded-md text-xs font-semibold transition bg-indigo-600 text-white shadow">
+                🇻🇳 <span data-i18n="manga_view_trans">Bản Dịch</span>
+              </button>
+              <button onclick="setMangaViewMode('original')" id="manga-view-btn-orig" class="px-2.5 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white">
+                🌐 <span data-i18n="manga_view_orig">Bản Gốc</span>
+              </button>
+              <button onclick="toggleMangaBilingualTooltip()" id="manga-view-btn-bilingual" class="px-2.5 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white" title="Rê chuột vào bóng thoại để xem chữ gốc">
+                💡 <span data-i18n="manga_view_bilingual">Song ngữ</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Action Buttons (Translate All, Export ZIP, Zoom) -->
+          <div class="flex items-center gap-2">
+            <!-- Zoom Controls -->
+            <div class="hidden sm:flex items-center bg-slate-800 rounded-lg p-0.5 border border-slate-700/60 text-slate-300">
+              <button onclick="zoomManga(-10)" class="p-1 hover:text-white rounded" title="Thu nhỏ"><i data-lucide="zoom-out" class="w-3.5 h-3.5"></i></button>
+              <span id="manga-zoom-text" class="text-[11px] px-1.5 font-mono">100%</span>
+              <button onclick="zoomManga(10)" class="p-1 hover:text-white rounded" title="Phóng to"><i data-lucide="zoom-in" class="w-3.5 h-3.5"></i></button>
+            </div>
+
+            <!-- Translate All Button -->
+            <button onclick="translateAllManga()" id="btn-manga-translate-all" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium text-xs flex items-center gap-1.5 shadow-lg shadow-indigo-600/20 transition cursor-pointer">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> <span id="btn-manga-translate-all-text" data-i18n="manga_btn_translate_all">AI Dịch Toàn Bộ Chapter</span>
+            </button>
+
+            <!-- Export ZIP Button -->
+            <button onclick="exportMangaZip()" id="btn-manga-export-zip" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 transition cursor-pointer">
+              <i data-lucide="file-archive" class="w-3.5 h-3.5"></i> <span data-i18n="manga_btn_export_zip">Tải Tệp ZIP Chapter</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Translation Progress Bar (Hidden by default, shown during translate all) -->
+        <div id="manga-progress-container" class="bg-indigo-950/60 border-b border-indigo-800/40 px-4 py-2 hidden">
+          <div class="flex items-center justify-between text-xs text-indigo-200 mb-1">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="loader" class="w-3.5 h-3.5 animate-spin text-indigo-400"></i>
+              <span id="manga-progress-text">Đang dịch qua Smart Key Pool...</span>
+            </span>
+            <span id="manga-progress-percent" class="font-mono font-bold text-indigo-300">0%</span>
+          </div>
+          <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+            <div id="manga-progress-bar" class="bg-gradient-to-r from-indigo-500 to-cyan-400 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Webtoon Continuous Vertical Scroll Viewer -->
+        <div id="manga-reader-viewport" class="p-4 sm:p-6 bg-slate-950 min-h-[600px] max-h-[85vh] overflow-y-auto flex flex-col items-center">
+          
+          <!-- Empty State -->
+          <div id="manga-empty-state" class="py-24 flex flex-col items-center justify-center text-center space-y-3">
+            <div class="w-20 h-20 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 shadow-inner">
+              <i data-lucide="book-open" class="w-10 h-10"></i>
+            </div>
+            <h4 class="text-base font-bold text-slate-300" data-i18n="manga_empty_title">Trình Đọc & Dịch Truyện Tranh Thông Minh</h4>
+            <p class="text-xs text-slate-500 max-w-md" data-i18n="manga_empty_desc">
+              Hỗ trợ Manga (Nhật), Manhwa (Hàn), Manhua (Trung) và Comic (Âu Mỹ). Tải lên tệp ZIP hoặc dán link truyện phía trên để bắt đầu đọc và dịch tự động.
+            </p>
+          </div>
+
+          <!-- Pages Container (Cuộn dọc liên tục) -->
+          <div id="manga-pages-list" class="w-full max-w-2xl space-y-4 flex flex-col items-center transition-all duration-200">
+            <!-- Dynamic Page Items will be injected here -->
+          </div>
+
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!-- ========================================== -->
@@ -1120,6 +1306,23 @@
         tab_video: "🎬 Video",
         tab_translate: "📝 Text",
         tab_transcribe: "🎙️ Voice",
+        tab_manga: "📖 Manga / Comic",
+        drawer_tab_manga: "📖 AI Manga Translator",
+        manga_opt1_title: "Upload Images or Chapter ZIP",
+        manga_drag_prompt: "Drag & drop ZIP or multiple page images",
+        manga_drag_hint: "Auto natural sorting for page orders (page 1, 2, ... 10)",
+        manga_btn_choose: "Choose files",
+        manga_opt2_title: "Load from Web Link or Image URL",
+        manga_opt2_desc: "Automatically extracts all chapter images from comic websites, or direct image links.",
+        manga_btn_load_url: "Load chapter",
+        manga_target_lang_label: "Target Language:",
+        manga_view_trans: "Translated",
+        manga_view_orig: "Original",
+        manga_view_bilingual: "Bilingual",
+        manga_btn_translate_all: "AI Translate Entire Chapter",
+        manga_btn_export_zip: "Download Chapter ZIP",
+        manga_empty_title: "Smart AI Manga & Comic Reader / Translator",
+        manga_empty_desc: "Supports Japanese Manga, Korean Manhwa, Chinese Manhua, and Western Comics. Upload ZIP or paste chapter URL above to begin.",
         video_opt1_title: "Upload video (.mp4, .mkv, .mov)",
         video_opt1_formats: "MP4, MOV, MKV, WEBM",
         video_opt1_btn: "Choose file",
@@ -1415,7 +1618,7 @@
     // TAB SWITCH & URL HASH ROUTING
     // ==========================================
     function switchTab(tab, updateHash = true) {
-      const validTabs = ['video', 'translate', 'transcribe'];
+      const validTabs = ['video', 'translate', 'transcribe', 'manga'];
       if (!validTabs.includes(tab)) {
         tab = 'video';
       }
@@ -1536,14 +1739,14 @@
 
     function initHashRouting() {
       const hash = window.location.hash.replace('#', '').toLowerCase();
-      if (['video', 'translate', 'transcribe'].includes(hash)) {
+      if (['video', 'translate', 'transcribe', 'manga'].includes(hash)) {
         switchTab(hash, false);
       }
     }
 
     window.addEventListener('hashchange', () => {
       const hash = window.location.hash.replace('#', '').toLowerCase();
-      if (['video', 'translate', 'transcribe'].includes(hash)) {
+      if (['video', 'translate', 'transcribe', 'manga'].includes(hash)) {
         switchTab(hash, false);
       }
     });
@@ -2956,6 +3159,469 @@
         dualToggle.checked = (savedDual === '1');
       }
     } catch (e) {}
+
+
+    // ==========================================
+    // TAB 4: MANGA & COMIC TRANSLATOR CONTROLLER
+    // ==========================================
+    const mangaState = {
+      sessionId: null,
+      pages: [],
+      viewMode: 'translated', // 'translated' | 'original'
+      bilingualActive: false,
+      zoomLevel: 100,
+      isTranslatingAll: false
+    };
+
+    function pasteMangaUrl() {
+      navigator.clipboard.readText().then(text => {
+        if (text) {
+          document.getElementById('manga-url-input').value = text.trim();
+        }
+      }).catch(err => {
+        console.warn('Could not read clipboard:', err);
+      });
+    }
+
+    function handleMangaDragOver(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const dropzone = document.getElementById('manga-dropzone');
+      if (dropzone) {
+        dropzone.classList.add('border-indigo-500', 'bg-indigo-950/20');
+      }
+    }
+
+    function handleMangaDragLeave(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const dropzone = document.getElementById('manga-dropzone');
+      if (dropzone) {
+        dropzone.classList.remove('border-indigo-500', 'bg-indigo-950/20');
+      }
+    }
+
+    function handleMangaDrop(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const dropzone = document.getElementById('manga-dropzone');
+      if (dropzone) {
+        dropzone.classList.remove('border-indigo-500', 'bg-indigo-950/20');
+      }
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        uploadMangaFiles(e.dataTransfer.files);
+      }
+    }
+
+    function handleMangaFileInput(e) {
+      if (e.target.files && e.target.files.length > 0) {
+        uploadMangaFiles(e.target.files);
+      }
+    }
+
+    async function uploadMangaFiles(files) {
+      const statusEl = document.getElementById('manga-upload-status');
+      if (statusEl) statusEl.innerText = "Đang tải lên " + files.length + " tệp...";
+
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+      }
+
+      try {
+        const res = await fetch('/api/manga/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Lỗi tải ảnh truyện");
+        }
+
+        mangaState.sessionId = data.session_id;
+        mangaState.pages = data.pages || [];
+        if (statusEl) statusEl.innerText = "Đã nạp: " + data.total_pages + " trang";
+
+        renderMangaWorkspace();
+      } catch (err) {
+        if (statusEl) statusEl.innerText = "Lỗi: " + err.message;
+        alert("Lỗi khi tải truyện: " + err.message);
+      }
+    }
+
+    async function loadMangaFromUrl() {
+      const urlInput = document.getElementById('manga-url-input');
+      const statusEl = document.getElementById('manga-url-status');
+      const btn = document.getElementById('btn-manga-load-url');
+      const url = urlInput ? urlInput.value.trim() : '';
+
+      if (!url) {
+        alert("Vui lòng dán link web truyện hoặc link ảnh!");
+        return;
+      }
+
+      if (btn) btn.disabled = true;
+      if (statusEl) statusEl.innerText = "Đang cào & phân tích dữ liệu...";
+
+      try {
+        const res = await fetch('/api/manga/process-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Không thể nạp truyện từ liên kết");
+        }
+
+        mangaState.sessionId = data.session_id;
+        mangaState.pages = data.pages || [];
+        if (statusEl) statusEl.innerText = "Nạp thành công " + data.total_pages + " trang!";
+
+        renderMangaWorkspace();
+      } catch (err) {
+        if (statusEl) statusEl.innerText = "Lỗi: " + err.message;
+        alert("Lỗi nạp từ URL: " + err.message);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    function renderMangaWorkspace() {
+      const emptyState = document.getElementById('manga-empty-state');
+      const pagesList = document.getElementById('manga-pages-list');
+      const chapterInfo = document.getElementById('manga-chapter-info');
+      const pageBadge = document.getElementById('manga-page-count-badge');
+
+      if (!mangaState.pages || mangaState.pages.length === 0) {
+        if (emptyState) emptyState.classList.remove('hidden');
+        if (pagesList) pagesList.innerHTML = '';
+        if (chapterInfo) chapterInfo.innerText = "Chapter: Chưa có dữ liệu";
+        if (pageBadge) pageBadge.innerText = "0 trang";
+        return;
+      }
+
+      if (emptyState) emptyState.classList.add('hidden');
+      if (chapterInfo) chapterInfo.innerText = "Session #" + mangaState.sessionId.substring(0, 8);
+      if (pageBadge) pageBadge.innerText = mangaState.pages.length + " trang";
+
+      let html = '';
+      mangaState.pages.forEach((p, idx) => {
+        const isTrans = p.status === 'translated' && p.translated_url;
+        const currentSrc = (mangaState.viewMode === 'translated' && isTrans) ? p.translated_url : p.original_url;
+
+        html += `
+          <div class="w-full bg-slate-900 rounded-2xl border border-slate-800/90 shadow-xl overflow-hidden transition-all duration-200" id="manga-page-card-${p.page_index}">
+            <!-- Header bar of page -->
+            <div class="px-4 py-2 bg-slate-900/95 border-b border-slate-800 flex items-center justify-between text-xs">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-200">Trang ${p.page_index}</span>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full ${isTrans ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'}">
+                  ${isTrans ? 'Đã dịch AI' : 'Bản gốc'}
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="translateSingleMangaPage(${p.page_index})" id="btn-trans-page-${p.page_index}" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition flex items-center gap-1.5 cursor-pointer">
+                  <i data-lucide="sparkles" class="w-3 h-3 text-indigo-400"></i>
+                  <span>${isTrans ? 'Dịch lại' : 'Dịch trang này'}</span>
+                </button>
+                <a href="${currentSrc}" target="_blank" class="p-1 rounded text-slate-400 hover:text-white" title="Mở ảnh gốc trong tab mới">
+                  <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+                </a>
+              </div>
+            </div>
+
+            <!-- Image Container -->
+            <div class="relative w-full flex justify-center bg-black/50 select-none overflow-hidden" id="manga-img-container-${p.page_index}">
+              <img src="${currentSrc}" 
+                   alt="Page ${p.page_index}" 
+                   id="manga-img-${p.page_index}"
+                   class="w-full h-auto object-contain block transition-opacity duration-300"
+                   loading="lazy">
+
+              <!-- Interactive Bilingual Tooltip Overlay -->
+              <div id="manga-overlay-${p.page_index}" class="absolute inset-0 pointer-events-none ${mangaState.bilingualActive ? '' : 'hidden'}">
+                ${renderBubbleOverlays(p)}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      if (pagesList) pagesList.innerHTML = html;
+      if (window.lucide && lucide.createIcons) lucide.createIcons();
+    }
+
+    function renderBubbleOverlays(page) {
+      if (!page.bubbles || page.bubbles.length === 0) return '';
+      return page.bubbles.map(b => {
+        const box = b.box_2d || [];
+        if (box.length !== 4) return '';
+        const ymin = (box[0] / 10).toFixed(1);
+        const xmin = (box[1] / 10).toFixed(1);
+        const ymax = (box[2] / 10).toFixed(1);
+        const xmax = (box[3] / 10).toFixed(1);
+        const top = ymin + '%';
+        const left = xmin + '%';
+        const width = (xmax - xmin) + '%';
+        const height = (ymax - ymin) + '%';
+        const orig = (b.original || '').replace(/"/g, '&quot;');
+        const trans = (b.translated || '').replace(/"/g, '&quot;');
+
+        return `
+          <div class="absolute border border-indigo-400/40 bg-indigo-500/10 hover:bg-indigo-500/30 pointer-events-auto rounded transition cursor-help group"
+               style="top: ${top}; left: ${left}; width: ${width}; height: ${height};"
+               title="Nguyên tác: ${orig}">
+            <div class="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-30 w-max max-w-xs p-2 rounded-lg bg-slate-900 border border-slate-700 shadow-2xl text-[11px] text-white">
+              <p class="text-indigo-300 font-semibold mb-0.5">💬 Gốc:</p>
+              <p class="italic text-slate-300">${orig || '(Không có chữ)'}</p>
+              <p class="text-emerald-400 font-semibold mt-1 mb-0.5">🇻🇳 Dịch:</p>
+              <p class="text-slate-200">${trans}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function setMangaViewMode(mode) {
+      mangaState.viewMode = mode;
+      const btnTrans = document.getElementById('manga-view-btn-trans');
+      const btnOrig = document.getElementById('manga-view-btn-orig');
+
+      if (mode === 'translated') {
+        if (btnTrans) {
+          btnTrans.className = "px-2.5 py-1 rounded-md text-xs font-semibold transition bg-indigo-600 text-white shadow";
+        }
+        if (btnOrig) {
+          btnOrig.className = "px-2.5 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white";
+        }
+      } else {
+        if (btnOrig) {
+          btnOrig.className = "px-2.5 py-1 rounded-md text-xs font-semibold transition bg-indigo-600 text-white shadow";
+        }
+        if (btnTrans) {
+          btnTrans.className = "px-2.5 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white";
+        }
+      }
+
+      // Update image sources instantly
+      mangaState.pages.forEach(p => {
+        const img = document.getElementById('manga-img-' + p.page_index);
+        if (img) {
+          const isTrans = p.status === 'translated' && p.translated_url;
+          img.src = (mode === 'translated' && isTrans) ? p.translated_url : p.original_url;
+        }
+      });
+    }
+
+    function toggleMangaBilingualTooltip() {
+      mangaState.bilingualActive = !mangaState.bilingualActive;
+      const btn = document.getElementById('manga-view-btn-bilingual');
+      if (btn) {
+        if (mangaState.bilingualActive) {
+          btn.className = "px-2.5 py-1 rounded-md text-xs font-semibold transition bg-cyan-600 text-white shadow";
+        } else {
+          btn.className = "px-2.5 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white";
+        }
+      }
+
+      mangaState.pages.forEach(p => {
+        const overlay = document.getElementById('manga-overlay-' + p.page_index);
+        if (overlay) {
+          if (mangaState.bilingualActive) {
+            overlay.classList.remove('hidden');
+          } else {
+            overlay.classList.add('hidden');
+          }
+        }
+      });
+    }
+
+    function zoomManga(delta) {
+      mangaState.zoomLevel = Math.max(50, Math.min(160, mangaState.zoomLevel + delta));
+      const zoomText = document.getElementById('manga-zoom-text');
+      if (zoomText) zoomText.innerText = mangaState.zoomLevel + "%";
+
+      const list = document.getElementById('manga-pages-list');
+      if (list) {
+        // Base width 672px (max-w-2xl)
+        const targetWidth = Math.round(672 * (mangaState.zoomLevel / 100));
+        list.style.maxWidth = targetWidth + 'px';
+      }
+    }
+
+    async function translateSingleMangaPage(pageIndex) {
+      if (!mangaState.sessionId) return;
+      const btn = document.getElementById('btn-trans-page-' + pageIndex);
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader" class="w-3 h-3 animate-spin"></i><span>Đang dịch...</span>';
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+      }
+
+      const targetLang = document.getElementById('manga-target-lang') ? document.getElementById('manga-target-lang').value : 'vi';
+
+      try {
+        const res = await fetch('/api/manga/translate-page', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: mangaState.sessionId,
+            page_index: pageIndex,
+            target_lang: targetLang
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Không thể dịch trang");
+        }
+
+        // Update state
+        const idx = mangaState.pages.findIndex(p => p.page_index === pageIndex);
+        if (idx !== -1) {
+          mangaState.pages[idx].status = 'translated';
+          mangaState.pages[idx].translated_url = data.translated_url;
+          mangaState.pages[idx].bubbles = data.bubbles || [];
+        }
+
+        // Update image
+        const img = document.getElementById('manga-img-' + pageIndex);
+        if (img && mangaState.viewMode === 'translated') {
+          img.src = data.translated_url;
+        }
+
+        // Update overlay
+        const overlay = document.getElementById('manga-overlay-' + pageIndex);
+        if (overlay) {
+          overlay.innerHTML = renderBubbleOverlays(mangaState.pages[idx]);
+        }
+
+        // Refresh card header
+        renderMangaWorkspace();
+      } catch (err) {
+        alert("Lỗi khi dịch trang #" + pageIndex + ": " + err.message);
+      } finally {
+        if (btn) btn.disabled = false;
+        fetchPoolStatus();
+      }
+    }
+
+    async function translateAllManga() {
+      if (!mangaState.sessionId || !mangaState.pages || mangaState.pages.length === 0) {
+        alert("Vui lòng tải lên hoặc nạp chapter truyện trước!");
+        return;
+      }
+
+      if (mangaState.isTranslatingAll) return;
+      mangaState.isTranslatingAll = true;
+
+      const btn = document.getElementById('btn-manga-translate-all');
+      const progressContainer = document.getElementById('manga-progress-container');
+      const progressBar = document.getElementById('manga-progress-bar');
+      const progressText = document.getElementById('manga-progress-text');
+      const progressPercent = document.getElementById('manga-progress-percent');
+      const targetLang = document.getElementById('manga-target-lang') ? document.getElementById('manga-target-lang').value : 'vi';
+
+      if (btn) btn.disabled = true;
+      if (progressContainer) progressContainer.classList.remove('hidden');
+      if (progressBar) progressBar.style.width = '10%';
+      if (progressPercent) progressPercent.innerText = '10%';
+      if (progressText) progressText.innerText = "Đang gửi yêu cầu dịch song song qua 7 Keys Smart Pool...";
+
+      // Fake progress interval for smooth UX while waiting
+      let fakeProgress = 10;
+      const progressTimer = setInterval(() => {
+        if (fakeProgress < 90) {
+          fakeProgress += 5;
+          if (progressBar) progressBar.style.width = fakeProgress + '%';
+          if (progressPercent) progressPercent.innerText = fakeProgress + '%';
+          if (progressText) {
+            progressText.innerText = "Đang dịch AI song song qua Smart Key Pool (" + fakeProgress + "%)...";
+          }
+        }
+      }, 1000);
+
+      try {
+        const res = await fetch('/api/manga/translate-all', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: mangaState.sessionId,
+            target_lang: targetLang,
+            concurrency: 7
+          })
+        });
+        const data = await res.json();
+        clearInterval(progressTimer);
+
+        if (!res.ok) {
+          throw new Error(data.detail || "Không thể dịch toàn bộ chapter");
+        }
+
+        if (progressBar) progressBar.style.width = '100%';
+        if (progressPercent) progressPercent.innerText = '100%';
+        if (progressText) progressText.innerText = "Hoàn tất dịch toàn bộ " + data.total_pages + " trang!";
+
+        mangaState.pages = data.pages || [];
+        setMangaViewMode('translated');
+        renderMangaWorkspace();
+
+        setTimeout(() => {
+          if (progressContainer) progressContainer.classList.add('hidden');
+        }, 3000);
+
+      } catch (err) {
+        clearInterval(progressTimer);
+        alert("Lỗi khi dịch toàn bộ chapter: " + err.message);
+        if (progressContainer) progressContainer.classList.add('hidden');
+      } finally {
+        mangaState.isTranslatingAll = false;
+        if (btn) btn.disabled = false;
+        fetchPoolStatus();
+      }
+    }
+
+    async function exportMangaZip() {
+      if (!mangaState.sessionId) {
+        alert("Chưa có chapter nào được nạp!");
+        return;
+      }
+
+      const btn = document.getElementById('btn-manga-export-zip');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i><span>Đang nén ZIP...</span>';
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+      }
+
+      try {
+        const res = await fetch('/api/manga/export-zip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: mangaState.sessionId })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Không thể tạo tệp ZIP");
+        }
+
+        // Trigger download
+        const a = document.createElement('a');
+        a.href = data.download_url;
+        a.download = "manga_chapter_" + mangaState.sessionId + ".zip";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } catch (err) {
+        alert("Lỗi xuất ZIP: " + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="file-archive" class="w-3.5 h-3.5"></i><span data-i18n="manga_btn_export_zip">Tải Tệp ZIP Chapter</span>';
+          if (window.lucide && lucide.createIcons) lucide.createIcons();
+        }
+      }
+    }
 
     // Initialize Language, Hash Routing and Icons on page load
     setLanguage(currentLang);
