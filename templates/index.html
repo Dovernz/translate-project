@@ -940,6 +940,40 @@
     const uploadedVideo = document.getElementById('uploaded-video-player');
     const subtitleOverlay = document.getElementById('video-subtitle');
 
+    // Dừng và dọn dẹp sạch sẽ toàn bộ player (YouTube iframe, HTML5 video, overlays)
+    function stopAndCleanAllPlayers() {
+      // Dừng và xóa triệt để nội dung của yt-player-box
+      const box = document.getElementById('yt-player-box');
+      if (box) {
+        box.innerHTML = '';
+        box.classList.add('hidden');
+      }
+      // Dừng video player HTML5
+      if (uploadedVideo) {
+        uploadedVideo.pause();
+        uploadedVideo.removeAttribute('src');
+        uploadedVideo.load();
+        uploadedVideo.classList.add('hidden');
+      }
+      // Đưa placeholder hiển thị trở lại
+      const placeholder = document.getElementById('player-placeholder');
+      if (placeholder) {
+        placeholder.classList.remove('hidden');
+        placeholder.innerHTML = `
+          <i data-lucide="film" class="w-16 h-16 mx-auto mb-3 opacity-30"></i>
+          <p class="text-sm" data-i18n="player_placeholder">${t('player_placeholder')}</p>
+        `;
+        if (window.lucide && lucide.createIcons) {
+          lucide.createIcons();
+        }
+      }
+      // Ẩn subtitle overlay
+      if (subtitleOverlay) {
+        subtitleOverlay.innerText = '';
+        subtitleOverlay.classList.add('hidden');
+      }
+    }
+
     // ==========================================
     // TAB SWITCH & URL HASH ROUTING
     // ==========================================
@@ -948,6 +982,12 @@
       if (!validTabs.includes(tab)) {
         tab = 'video';
       }
+
+      // Tạm dừng video nếu chuyển khỏi tab Video để không phát âm thanh ngầm
+      if (tab !== 'video' && uploadedVideo) {
+        uploadedVideo.pause();
+      }
+
       currentTab = tab;
       validTabs.forEach(t => {
         const tabEl = document.getElementById(`tab-${t}`);
@@ -1149,6 +1189,9 @@
       const file = event.target.files[0];
       if (!file) return;
 
+      // Dọn dẹp và dừng sạch sẽ toàn bộ player trước khi nạp video mới
+      stopAndCleanAllPlayers();
+
       document.getElementById('upload-btn-label').innerText = t('video_opt1_uploading');
       const statusText = document.getElementById('upload-status-text');
       statusText.classList.remove('hidden');
@@ -1170,8 +1213,13 @@
         statusText.innerText = t('video_opt1_success');
 
         // Load into HTML5 Video Player
-        document.getElementById('player-placeholder').classList.add('hidden');
-        document.getElementById('yt-player-box').classList.add('hidden');
+        const placeholder = document.getElementById('player-placeholder');
+        if (placeholder) placeholder.classList.add('hidden');
+        const box = document.getElementById('yt-player-box');
+        if (box) {
+          box.innerHTML = '';
+          box.classList.add('hidden');
+        }
         uploadedVideo.classList.remove('hidden');
         uploadedVideo.src = data.video_url;
         uploadedVideo.load();
@@ -1702,18 +1750,23 @@
         return;
       }
 
-      const match = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+      // Dừng và dọn dẹp sạch sẽ toàn bộ player trước đó
+      stopAndCleanAllPlayers();
+
+      // Hiển thị loading spinner trên player-placeholder (TUYỆT ĐỐI KHÔNG TẠO IFRAME YOUTUBE AUTOPLAY)
+      const placeholder = document.getElementById('player-placeholder');
+      if (placeholder) {
+        placeholder.classList.remove('hidden');
+        placeholder.innerHTML = `
+          <div class="flex flex-col items-center justify-center p-6 space-y-3">
+            <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-xs text-indigo-300 font-medium">${t('badge_url_loading')}</p>
+          </div>
+        `;
+      }
+
       const videoBadge = document.getElementById('current-video-badge');
       const btnAuto = document.getElementById('btn-auto-sub');
-
-      if (match) {
-        const id = match[1];
-        document.getElementById('player-placeholder').classList.add('hidden');
-        uploadedVideo.classList.add('hidden');
-        const box = document.getElementById('yt-player-box');
-        box.classList.remove('hidden');
-        box.innerHTML = `<iframe class="w-full h-full rounded-2xl" src="https://www.youtube.com/embed/${id}?autoplay=1" frameborder="0" allowfullscreen></iframe>`;
-      }
 
       videoBadge.innerText = t('badge_url_loading');
       videoBadge.className = "text-xs px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 font-medium animate-pulse";
@@ -1732,12 +1785,24 @@
           videoBadge.className = "text-xs px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 font-medium";
 
           if (data.video_url) {
-            document.getElementById('yt-player-box').classList.add('hidden');
+            // Đảm bảo box yt-player-box hoàn toàn rỗng và ẩn
+            const box = document.getElementById('yt-player-box');
+            if (box) {
+              box.innerHTML = '';
+              box.classList.add('hidden');
+            }
+            if (placeholder) {
+              placeholder.classList.add('hidden');
+            }
             uploadedVideo.classList.remove('hidden');
             uploadedVideo.src = data.video_url;
             uploadedVideo.load();
             uploadedVideo.play().catch(() => {});
           }
+
+          // Enable Action Buttons
+          const btnAutoSub = document.getElementById('btn-auto-sub');
+          if (btnAutoSub) btnAutoSub.disabled = false;
 
           subtitleOverlay.innerText = '';
           subtitleOverlay.classList.add('hidden');
@@ -1746,6 +1811,7 @@
           throw new Error(data.detail || "Cannot load video");
         }
       } catch (err) {
+        stopAndCleanAllPlayers();
         videoBadge.innerText = "Error: " + err.message;
         videoBadge.className = "text-xs px-2.5 py-1 rounded-md bg-red-500/20 text-red-400 font-medium";
         alert("Error loading video: " + err.message);
