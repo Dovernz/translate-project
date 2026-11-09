@@ -101,7 +101,9 @@ class KeyPool:
         self.current_index = 0
         self.cooldowns: Dict[str, float] = {}
         self.usage_stats: Dict[str, Dict[str, int]] = {}
-        self.api_base = "https://generativelanguage.googleapis.com/v1beta/models"
+        self.api_base = os.getenv("GEMINI_API_BASE", "https://generativelanguage.googleapis.com/v1beta/models")
+        self.cooldown_seconds = int(os.getenv("COOLDOWN_SECONDS", "60"))
+        self.request_timeout = float(os.getenv("REQUEST_TIMEOUT", "60.0"))
 
     def get_status(self) -> Dict[str, Any]:
         now = time.time()
@@ -151,7 +153,7 @@ class KeyPool:
         if not success:
             self.usage_stats[key]["errors"] += 1
             if status_code == 429:
-                self.cooldowns[key] = time.time() + 60
+                self.cooldowns[key] = time.time() + self.cooldown_seconds
             elif status_code in (500, 503):
                 self.cooldowns[key] = time.time() + 15
 
@@ -177,7 +179,7 @@ class KeyPool:
                 }
 
             try:
-                async with httpx.AsyncClient(timeout=60.0) as client:
+                async with httpx.AsyncClient(timeout=self.request_timeout) as client:
                     async with client.stream("POST", url, json=payload) as response:
                         if response.status_code != 200:
                             self.record_usage(key, success=False, status_code=response.status_code)
@@ -242,7 +244,7 @@ class KeyPool:
                 }
 
             try:
-                async with httpx.AsyncClient(timeout=90.0) as client:
+                async with httpx.AsyncClient(timeout=self.request_timeout * 1.5) as client:
                     resp = await client.post(url, json=payload)
                     if resp.status_code != 200:
                         self.record_usage(key, success=False, status_code=resp.status_code)
