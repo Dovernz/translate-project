@@ -295,7 +295,7 @@
           <i data-lucide="mic" class="w-3.5 h-3.5"></i> <span data-i18n="tab_transcribe">Giọng nói</span>
         </button>
         <button onclick="switchTab('manga')" id="tab-btn-manga" data-tab-link="manga" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white hover:bg-slate-700/50">
-          <i data-lucide="book-open" class="w-3.5 h-3.5"></i> <span data-i18n="tab_manga">Truyện tranh</span>
+          <i data-lucide="book-open" class="w-3.5 h-3.5"></i> <span data-i18n="tab_manga">Dịch Truyện</span>
         </button>
       </nav>
 
@@ -367,7 +367,7 @@
             <button id="mobile-tab-btn-manga" data-tab-link="manga" onclick="switchDrawerTab('manga')" class="w-full py-2.5 px-3.5 rounded-xl font-medium text-xs sm:text-sm flex items-center justify-between transition cursor-pointer bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white">
               <span class="flex items-center gap-2.5">
                 <i data-lucide="book-open" class="w-4 h-4"></i>
-                <span data-i18n="drawer_tab_manga">Truyện tranh</span>
+                <span data-i18n="drawer_tab_manga">Dịch Truyện</span>
               </span>
               <i data-lucide="chevron-right" class="w-4 h-4 opacity-70"></i>
             </button>
@@ -527,7 +527,7 @@
               <!-- Default placeholder -->
               <div id="player-placeholder" class="text-center p-8 text-slate-600">
                 <i data-lucide="film" class="w-16 h-16 mx-auto mb-3 opacity-30"></i>
-                <p class="text-sm" data-i18n="player_placeholder">Hãy chọn file video từ máy hoặc dán link video để bắt đầu</p>
+                <p class="text-sm" data-i18n="player_placeholder">Hãy chọn file từ máy hoặc dán link</p>
               </div>
 
               <!-- HTML5 Uploaded Video Player with WebVTT text track -->
@@ -570,11 +570,11 @@
               <!-- Action Buttons -->
               <div class="flex items-center gap-2 flex-wrap">
                 <button onclick="startAutoSubtitling()" id="btn-auto-sub" class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-indigo-500/25 transition cursor-pointer touch-manipulation">
-                  <i data-lucide="sparkles" class="w-4 h-4"></i> <span data-i18n="btn_auto_sub">AI Quét Sub</span>
+                  <i data-lucide="sparkles" class="w-4 h-4"></i> <span data-i18n="btn_auto_sub">AI tạo Sub</span>
                 </button>
                 <!-- Export Hardsub Button (Opens Export Choice Modal) -->
                 <button onclick="openExportModal()" id="btn-burn-video" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-emerald-600/25 transition cursor-pointer touch-manipulation">
-                  <i data-lucide="download" class="w-4 h-4"></i> <span data-i18n="btn_export_video">Xuất Hardsub</span>
+                  <i data-lucide="download" class="w-4 h-4"></i> <span data-i18n="btn_export_video">Xuất Video kèm Sub</span>
                 </button>
               </div>
             </div>
@@ -666,7 +666,7 @@
           <div id="sub-timeline-list" class="flex-1 overflow-y-auto space-y-2 pr-1">
             <div id="timeline-empty-msg" class="p-6 text-center text-xs text-slate-500 italic">
               <i data-lucide="captions" class="w-10 h-10 mx-auto mb-2 opacity-30"></i>
-              <span data-i18n="timeline_empty">Tải video lên và bấm "AI Quét & Dịch Toàn Bộ Video" để tự động tạo danh sách phụ đề song ngữ.</span>
+              <span data-i18n="timeline_empty">Tải video lên và bấm "AI tạo Sub"</span>
             </div>
           </div>
 
@@ -1366,7 +1366,7 @@
         <i data-lucide="zap" class="w-8 h-8 text-white"></i>
       </div>
       <div>
-        <h3 class="font-bold text-base text-white" data-i18n="burn_modal_title">Đang xuất Hardsub trên trình duyệt</h3>
+        <h3 class="font-bold text-base text-white" data-i18n="burn_modal_title">Đang Xuất Video kèm Sub trên trình duyệt</h3>
         <p class="text-xs text-slate-400 mt-1" data-i18n="burn_modal_desc">Đang đọc video và in phụ đề trực tiếp qua Canvas & MediaRecorder API...</p>
       </div>
 
@@ -1448,7 +1448,7 @@
         tab_video: "Video",
         tab_translate: "Văn bản",
         tab_transcribe: "Giọng nói",
-        tab_manga: "Truyện tranh",
+        tab_manga: "Dịch Truyện",
         video_opt1_title: "Tải tệp video",
         video_opt1_formats: "MP4, MOV, MKV, WEBM",
         video_opt1_btn: "Chọn file",
@@ -1459,14 +1459,14 @@
         video_opt2_formats: "YouTube, Direct MP4",
         video_opt2_placeholder: "https://www.youtube.com/watch?v=...",
         video_opt2_btn: "Nạp",
-        player_placeholder: "Chọn file video hoặc dán link để bắt đầu",
+        player_placeholder: "Chọn file video hoặc dán link",
         badge_no_video: "Chưa tải video",
         badge_video_prefix: "Video: ",
         badge_url_loading: "Đang tải video...",
         badge_url_loaded: "Đã nạp: ",
-        btn_auto_sub: "AI Quét Sub",
+        btn_auto_sub: "AI tạo Sub",
         btn_auto_sub_scanning: "Đang quét sub...",
-        btn_export_video: "Xuất Hardsub",
+        btn_export_video: "Xuất Video kèm Sub",
         dual_sub_title: "Song ngữ",
         cache_loaded_badge: "Đã nạp từ bộ nhớ đệm",
         btn_rescan_cache: "Quét lại",
@@ -1481,7 +1481,7 @@
         font_size_label: "Cỡ chữ",
         margin_label: "Vị trí đáy",
         timeline_title: "Phụ đề",
-        timeline_empty: "Chưa có phụ đề. Tải video và bấm \"AI Quét Sub\".",
+        timeline_empty: "Chưa có phụ đề. Tải video và bấm \"AI tạo Sub\".",
         timeline_count_cues: "{count} câu",
         timeline_scanning_msg: "Gemini đang nhận diện thoại & mốc thời gian...",
         timeline_scanning_sub: "Smart Key Pool tự động luân chuyển hạn ngạch",
@@ -1529,7 +1529,7 @@
         opt_server_desc: "Mã hóa H.264 qua FFmpeg trên máy chủ. Tự động xóa tệp tạm sau khi hoàn tất.",
         opt_subs_title: "Tải tệp phụ đề (.SRT / .VTT)",
         opt_subs_desc: "Tải tệp phụ đề chuẩn để sử dụng với các trình phát ngoại tuyến mà không cần mã hóa lại video.",
-        burn_modal_title: "Đang xuất Hardsub trên trình duyệt",
+        burn_modal_title: "Đang Xuất Video kèm Sub trên trình duyệt",
         burn_modal_desc: "Đang đọc video và in phụ đề trực tiếp qua Canvas & MediaRecorder API...",
         burn_init: "Đang khởi tạo burner...",
         burn_encoding: "Đang render & encode...",
@@ -1556,7 +1556,7 @@
         drawer_tab_video: "Video Subtitles",
         drawer_tab_translate: "Dịch văn bản",
         drawer_tab_transcribe: "Giọng nói",
-        drawer_tab_manga: "Truyện tranh",
+        drawer_tab_manga: "Dịch Truyện",
         drawer_section_pref: "Cài đặt giao diện",
         drawer_lang_title: "Ngôn ngữ giao diện",
         drawer_theme_title: "Chế độ hiển thị (Theme)",
@@ -1564,11 +1564,11 @@
         theme_light: "Sáng",
         drawer_section_pool: "Trạng thái AI Studio Pool",
         pool_ready_summary: "{ready} Cloud Keys Sẵn Sàng",
-        pool_drawer_desc: "Tự động cân bằng tải Round-Robin qua các dự án API.",
+        pool_drawer_desc: "Tự động cân bằng tải API keys.",
         drawer_section_links: "Liên kết",
         alert_no_video: "Vui lòng chọn video trước!",
         alert_no_subs: "Vui lòng quét phụ đề trước khi xuất video!",
-        alert_clean_success: "Đã dọn dẹp sạch sẽ server! 0-byte tồn đọng.",
+        alert_clean_success: "Đã dọn dẹp sạch server! 0-byte tồn đọng.",
         alert_copied: "Đã sao chép!",
         alert_no_text: "Vui lòng nhập nội dung!",
         alert_no_audio: "Vui lòng ghi âm hoặc tải file âm thanh!",
@@ -1591,7 +1591,7 @@
         manga_btn_translate_all: "Dịch toàn bộ Chapter",
         manga_btn_export_zip: "Tải tệp ZIP",
         manga_empty_title: "Chưa có trang nào",
-        manga_empty_desc: "Nhấn Ctrl+V để dán ảnh, tải ảnh/ZIP hoặc nhập URL truyện để bắt đầu",
+        manga_empty_desc: "Nhấn Ctrl+V để dán ảnh, tải ảnh/ZIP hoặc nhập URL truyện để dịch",
         manga_prev_chapter: "Chương trước",
         manga_next_chapter: "Chương tiếp",
         manga_select_chapter: "-- Chọn Chương Truyện --",
@@ -1604,15 +1604,15 @@
         submode_text: "Văn bản",
         submode_web: "Trang web (URL)",
         web_input_title: "Dịch trang web",
-        web_input_desc: "Dịch toàn bộ trang web sang ngôn ngữ đích và giữ nguyên cấu trúc bố cục, bảng biểu và giao diện gốc.",
+        web_input_desc: "Dịch toàn bộ trang web sang ngôn ngữ đã chọn và giữ nguyên cấu trúc bố cục, bảng biểu và giao diện gốc.",
         btn_web_translate: "Dịch Trang Web",
         web_view_trans: "Bản dịch",
         web_view_orig: "Bản gốc",
         web_view_split: "Song song",
         web_btn_quick_switch: "Đổi chế độ xem",
         web_sync_scroll: "Đồng bộ cuộn",
-        web_empty_title: "Chưa có trang web nào được nạp",
-        web_empty_desc: "Nhập URL bài viết, tin tức công nghệ hoặc tài liệu bất kỳ ở trên để AI dịch toàn bộ trang web sang tiếng Việt giữ nguyên giao diện gốc.",
+        web_empty_title: "Chưa có trang web nào được thêm",
+        web_empty_desc: "Nhập URL tài liệu để dịch.",
       },
       en: {
         header_tagline: "",
@@ -4175,7 +4175,7 @@
       const url = urlInput ? urlInput.value.trim() : '';
 
       if (!url) {
-        alert("Vui lòng dán link truyện tranh để quét!");
+        alert("Vui lòng dán link Dịch Truyện để quét!");
         return;
       }
 
