@@ -32,3 +32,4 @@ tmp/
 .gemini/
 !*.enc
 !.env.enc
+.install_path
