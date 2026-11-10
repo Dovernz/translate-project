@@ -5166,5 +5166,108 @@
     </div>
   </div>
 
+
+  <!-- UPDATE NOTIFICATION TOAST / BANNER -->
+  <div id="system-update-banner" class="fixed bottom-5 right-5 z-50 hidden max-w-md w-full bg-slate-900 border border-indigo-500/40 shadow-2xl rounded-2xl p-4 transition-all duration-300 transform translate-y-4 opacity-0">
+    <div class="flex items-start gap-3.5">
+      <div class="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 flex-shrink-0 mt-0.5">
+        <i data-lucide="sparkles" class="w-5 h-5"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between">
+          <h4 class="text-sm font-bold text-white">Bản cập nhật mới!</h4>
+          <button onclick="dismissUpdateBanner()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <p class="text-xs text-slate-300 mt-1 leading-relaxed" id="update-banner-msg">
+          Có bản cập nhật mới từ hệ thống. Bạn có muốn cập nhật ngay không?
+        </p>
+        <div class="mt-3 flex items-center gap-2">
+          <button id="btn-perform-update" onclick="triggerSystemUpdate()" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-1.5 shadow-md shadow-indigo-600/30 transition cursor-pointer">
+            <i data-lucide="download-cloud" class="w-3.5 h-3.5"></i> Cập nhật ngay
+          </button>
+          <button onclick="dismissUpdateBanner()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs transition cursor-pointer">
+            Để sau
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function checkSystemUpdate() {
+      try {
+        const res = await fetch('/api/system/check-update');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.status === 'success' && data.has_update) {
+          const banner = document.getElementById('system-update-banner');
+          const msg = document.getElementById('update-banner-msg');
+          if (banner && msg) {
+            msg.innerHTML = 'Có <b>' + data.behind_count + '</b> bản cập nhật mới trên nhánh <code>' + data.branch + '</code>:<br><span class="text-indigo-300 font-mono text-[11px]">' + (data.remote_commit || 'Phiên bản mới nhất') + '</span>';
+            banner.classList.remove('hidden');
+            setTimeout(function() {
+              banner.classList.remove('translate-y-4', 'opacity-0');
+            }, 100);
+            if (window.lucide) lucide.createIcons();
+          }
+        }
+      } catch (err) {
+        console.debug('Check update error:', err);
+      }
+    }
+
+    function dismissUpdateBanner() {
+      const banner = document.getElementById('system-update-banner');
+      if (banner) {
+        banner.classList.add('translate-y-4', 'opacity-0');
+        setTimeout(function() { banner.classList.add('hidden'); }, 300);
+      }
+    }
+
+    async function triggerSystemUpdate() {
+      const btn = document.getElementById('btn-perform-update');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Đang cập nhật...';
+        if (window.lucide) lucide.createIcons();
+      }
+
+      try {
+        const res = await fetch('/api/system/perform-update', { method: 'POST' });
+        const data = await res.json();
+        if (data.status === 'success') {
+          if (btn) {
+            btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i> Hoàn tất! Đang tải lại...';
+            btn.className = 'px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white font-medium text-xs flex items-center gap-1.5';
+            if (window.lucide) lucide.createIcons();
+          }
+          setTimeout(function() {
+            window.location.reload();
+          }, 1500);
+        } else {
+          alert('Cập nhật thất bại: ' + (data.message || 'Lỗi không xác định'));
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Thử lại';
+            if (window.lucide) lucide.createIcons();
+          }
+        }
+      } catch (err) {
+        alert('Lỗi kết nối khi cập nhật: ' + err.message);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Thử lại';
+          if (window.lucide) lucide.createIcons();
+        }
+      }
+    }
+
+    window.addEventListener('load', function() {
+      setTimeout(checkSystemUpdate, 2000);
+    });
+  </script>
+
 </body>
 </html>

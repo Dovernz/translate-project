@@ -942,6 +942,155 @@ async def get_manga_session(session_id: str):
         "pages": pages
     }
 
+@app.get("/api/system/check-update")
+async def check_system_update():
+    """
+    Kiểm tra commit local so với remote (GitHub).
+    """
+    try:
+        if not (BASE_DIR / ".git").exists():
+            return {
+                "status": "error",
+                "message": "Không tìm thấy thư mục .git trong dự án.",
+                "has_update": False
+            }
+
+        branch_proc = await asyncio.create_subprocess_shell(
+            "git branch --show-current",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=str(BASE_DIR)
+        )
+        branch_out, _ = await branch_proc.communicate()
+        branch = branch_out.decode("utf-8", errors="ignore").strip() or "main"
+
+        commit_proc = await asyncio.create_subprocess_shell(
+            'git log -1 --format="%h - %s (%cd)" --date=relative',
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=str(BASE_DIR)
+        )
+        commit_out, _ = await commit_proc.communicate()
+        current_commit = commit_out.decode("utf-8", errors="ignore").strip()
+
+        fetch_proc = await asyncio.create_subprocess_shell(
+            f"git fetch origin {branch}",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=str(BASE_DIR)
+        )
+        try:
+            await asyncio.wait_for(fetch_proc.communicate(), timeout=8.0)
+        except asyncio.TimeoutError:
+            return {
+                "status": "warning",
+                "message": "Kiểm tra remote quá thời gian (hãy kiểm tra kết nối mạng).",
+                "has_update": False,
+                "current_commit": current_commit,
+                "branch": branch
+            }
+
+        count_proc = await asyncio.create_subprocess_shell(
+            f"git rev-list --count HEAD..origin/{branch}",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=str(BASE_DIR)
+        )
+        count_out, _ = await count_proc.communicate()
+        count_str = count_out.decode("utf-8", errors="ignore").strip()
+        behind_count = int(count_str) if count_str.isdigit() else 0
+
+        remote_commit = ""
+        if behind_count > 0:
+            rem_proc = await asyncio.create_subprocess_shell(
+                f'git log -1 --format="%h - %s (%cd)" --date=relative origin/{branch}',
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=str(BASE_DIR)
+            )
+            rem_out, _ = await rem_proc.communicate()
+            remote_commit = rem_out.decode("utf-8", errors="ignore").strip()
+
+        return {
+            "status": "success",
+            "has_update": behind_count > 0,
+            "behind_count": behind_count,
+            "current_commit": current_commit,
+            "remote_commit": remote_commit,
+            "branch": branch
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e),
+            "has_update": False
+        }
+
+
+@app.post("/api/system/perform-update")
+async def perform_system_update():
+    """
+    Tự động chạy git pull và đồng bộ thư viện nếu cần.
+    """
+    try:
+        if not (BASE_DIR / ".git").exists():
+            return {
+                "status": "error",
+                "message": "Không tìm thấy thư mục .git trong dự án."
+            }
+
+        branch_proc = await asyncio.create_subprocess_shell(
+            "git branch --show-current",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=str(BASE_DIR)
+        )
+        branch_out, _ = await branch_proc.communicate()
+        branch = branch_out.decode("utf-8", errors="ignore").strip() or "main"
+
+        pull_proc = await asyncio.create_subprocess_shell(
+            f"git pull origin {branch}",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=str(BASE_DIR)
+        )
+        pull_out, _ = await pull_proc.communicate()
+        pull_msg = pull_out.decode("utf-8", errors="ignore").strip()
+
+        venv_py = BASE_DIR / ".venv" / "Scripts" / "python.exe"
+        if not venv_py.exists():
+            venv_py = BASE_DIR / "venv" / "Scripts" / "python.exe"
+
+        pip_msg = ""
+        if venv_py.exists():
+            req_file = BASE_DIR / "requirements.txt"
+            if req_file.exists():
+                pip_proc = await asyncio.create_subprocess_shell(
+                    f'"{venv_py}" -m pip install -r requirements.txt --quiet',
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=str(BASE_DIR)
+                )
+                try:
+                    await asyncio.wait_for(pip_proc.communicate(), timeout=30.0)
+                    pip_msg = "Đã đồng bộ requirements.txt."
+                except asyncio.TimeoutError:
+                    pip_msg = "Đồng bộ thư viện đang chạy ngầm."
+
+        return {
+            "status": "success",
+            "message": "Cập nhật hệ thống thành công!",
+            "details": pull_msg,
+            "pip_status": pip_msg,
+            "branch": branch
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Lỗi trong quá trình cập nhật: {str(e)}"
+        }
+
+
 @app.get("/", response_class=HTMLResponse)
 def get_home():
     html_file = Path(__file__).parent / "templates" / "index.html"
