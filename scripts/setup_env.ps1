@@ -49,7 +49,7 @@ $attempt = 0
 while ($attempt -lt $maxAttempts) {
     $attempt++
     Write-Host ""
-    $passInput = Read-Host "[$attempt/$maxAttempts] Nhap mat khau giai ma (hoac go 'skip' de tu cau hinh thu cong)"
+    $passInput = Read-Host "Nhập mật khẩu"
     if ([string]::IsNullOrWhiteSpace($passInput)) {
         Write-Host "[!] Mat khau khong duoc de trong." -ForegroundColor Red
         continue
