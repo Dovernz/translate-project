@@ -1,3 +1,5 @@
+from fastapi import Response
+from core.document_helper import export_edited_document
 import sys
 if hasattr(sys.stdout, 'reconfigure'):
     try:
@@ -35,6 +37,7 @@ from core.manga_helper import (
 )
 
 from core.key_pool import KeyPool, MODEL_TIERS
+from core.document_helper import translate_document, get_document_preview
 from core.webpage_helper import process_and_translate_webpage
 from core.video_sub import (
     SUPPORTED_VIDEO_LANGUAGES,
@@ -62,6 +65,8 @@ app = FastAPI(title="Gemini Universal Translator & Realtime Subtitler")
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = BASE_DIR / "uploads"
 OUTPUT_DIR = BASE_DIR / "outputs"
+DOCS_OUTPUT_DIR = OUTPUT_DIR / "documents"
+DOCS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 MANGA_UPLOAD_DIR = UPLOAD_DIR / "manga"
@@ -193,37 +198,9 @@ async def translate_text(req: TranslateRequest):
 
 
 @app.post("/api/document/extract")
-async def extract_document_text(file: UploadFile = File(...)):
-    filename = file.filename or "document.txt"
-    ext = Path(filename).suffix.lower()
-    content = await file.read()
-    
-    if ext == ".docx":
-        import zipfile
-        import io
-        import xml.etree.ElementTree as ET
-        try:
-            with zipfile.ZipFile(io.BytesIO(content)) as docx_zip:
-                xml_content = docx_zip.read('word/document.xml')
-                tree = ET.fromstring(xml_content)
-                ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
-                paragraphs = []
-                for p in tree.iter(f"{{{ns['w']}}}p"):
-                    texts = [node.text for node in p.iter(f"{{{ns['w']}}}t") if node.text]
-                    if texts:
-                        paragraphs.append("".join(texts))
-                extracted_text = "\n\n".join(paragraphs)
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Lỗi đọc file docx: {str(e)}")
-    else:
-        try:
-            extracted_text = content.decode("utf-8")
-        except UnicodeDecodeError:
-            extracted_text = content.decode("latin-1", errors="ignore")
-            
-    return {"text": extracted_text, "filename": filename, "format": ext, "length": len(extracted_text)}
-
-
+async def extract_document(file: UploadFile = File(...)):
+    file_bytes = await file.read()
+    return get_document_preview(file.filename or "document.txt", file_bytes)
 @app.post("/api/webpage/translate")
 async def translate_webpage(req: WebpageTranslateRequest):
     if not req.url or not req.url.strip():
@@ -1085,13 +1062,105 @@ def get_network_info():
 
 
 @app.get("/", response_class=HTMLResponse)
-def get_home():
+def get_home(tab: Optional[str] = None):
     html_file = Path(__file__).parent / "templates" / "index.html"
     if html_file.exists():
         with open(html_file, "r", encoding="utf-8") as f:
             return f.read()
     return "<h1>Translator App Ready</h1>"
 
+
+
+@app.post("/api/document/translate-stream")
+async def translate_document_stream(
+    file: UploadFile = File(...),
+    source_lang: str = Form("auto"),
+    target_lang: str = Form("vi"),
+    tier: str = Form("bulk")
+):
+    import asyncio, json, uuid
+    from fastapi.responses import StreamingResponse
+
+    file_bytes = await file.read()
+    filename = file.filename or "document.txt"
+    doc_id = str(uuid.uuid4())[:8]
+
+    async def event_generator():
+        queue = asyncio.Queue()
+
+        async def progress_callback(pct, msg, preview=""):
+            await queue.put({"type": "progress", "percent": pct, "message": msg, "preview": preview})
+
+        async def run_translation():
+            try:
+                # Giả định pool đã được định nghĩa trong app.py
+                res = await translate_document(
+                    filename=filename,
+                    file_bytes=file_bytes,
+                    source_lang=source_lang,
+                    target_lang=target_lang,
+                    pool=pool,
+                    tier=tier,
+                    progress_callback=progress_callback
+                )
+                save_dir = DOCS_OUTPUT_DIR / doc_id
+                save_dir.mkdir(parents=True, exist_ok=True)
+                out_path = save_dir / res["out_filename"]
+                with open(out_path, "wb") as f:
+                    f.write(res["translated_bytes"])
+
+                await queue.put({
+                    "type": "done",
+                    "percent": 100,
+                    "message": "Hoàn tất dịch tài liệu!",
+                    "download_url": f"/api/document/download/{doc_id}/{res['out_filename']}",
+                    "filename": res["out_filename"],
+                    "format": res["format"],
+                    "preview_text": res.get("preview_text", ""),
+                    "char_count": res.get("char_count", 0),
+                    "paragraph_count": res.get("paragraph_count", 0)
+                })
+            except Exception as e:
+                await queue.put({"type": "error", "message": str(e)})
+            finally:
+                await queue.put("[DONE]")
+
+        asyncio.create_task(run_translation())
+
+        while True:
+            data = await queue.get()
+            if data == "[DONE]":
+                yield "data: [DONE]\n\n"
+                break
+            yield f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+@app.get("/api/document/download/{doc_id}/{filename}")
+async def download_document(doc_id: str, filename: str):
+    from fastapi.responses import FileResponse
+    file_path = DOCS_OUTPUT_DIR / Path(doc_id).name / Path(filename).name
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File không tồn tại")
+    return FileResponse(path=str(file_path), filename=filename, media_type="application/octet-stream")
+
+
+@app.post("/api/document/export-edited")
+async def api_export_edited(req: Dict[str, Any] = Body(...)):
+    import urllib.parse
+    content = req.get("content", "")
+    fmt = req.get("format", "docx")
+    filename = req.get("filename", "document")
+    out_bytes, out_filename, mime_type = export_edited_document(content, fmt, filename)
+    encoded_filename = urllib.parse.quote(out_filename)
+    return Response(
+        content=out_bytes,
+        media_type=mime_type,
+        headers={
+            "Content-Disposition": f'attachment; filename="{out_filename}"; filename*=UTF-8\'\'{encoded_filename}',
+            "Access-Control-Expose-Headers": "Content-Disposition"
+        }
+    )
 
 if __name__ == "__main__":
     import uvicorn

@@ -479,3 +479,93 @@ async def translate_document(
         "char_count": char_count,
         "paragraph_count": paragraph_count
     }
+def get_document_preview(filename: str, file_bytes: bytes) -> dict:
+    import io
+    ext = filename.split('.')[-1].lower()
+    text = ""
+    try:
+        if ext == 'docx':
+            from docx import Document
+            doc = Document(io.BytesIO(file_bytes))
+            paras = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
+            for table in doc.tables:
+                for row in table.rows:
+                    for cell in row.cells:
+                        for p in cell.paragraphs:
+                            if p.text.strip():
+                                paras.append(p.text.strip())
+            text = "\n".join(paras[:50])
+        elif ext == 'pdf':
+            from pypdf import PdfReader
+            reader = PdfReader(io.BytesIO(file_bytes))
+            pages = []
+            for i in range(min(5, len(reader.pages))):
+                pages.append(reader.pages[i].extract_text())
+            text = "\n".join(pages)
+        elif ext == 'srt':
+            content_str = file_bytes.decode('utf-8', errors='ignore')
+            lines = content_str.splitlines()
+            dialogs = [l for l in lines if not l.isdigit() and '-->' not in l and l.strip()][:30]
+            text = "\n".join(dialogs)
+        else:
+            text = file_bytes.decode('utf-8', errors='ignore')[:2000]
+    except Exception as e:
+        text = f"Không thể trích xuất xem trước: {str(e)}"
+    
+    return {"text": text, "format": ext}
+
+def export_edited_document(content: str, format: str, original_filename: str = "") -> tuple[bytes, str, str]:
+    import io, os
+    from docx import Document
+    out_io = io.BytesIO()
+    ext = format.lower().strip('.')
+    base = os.path.splitext(original_filename)[0] if original_filename else "document_translated"
+    out_filename = f"{base}.{ext}"
+
+    if ext == "docx":
+        doc = Document()
+        for p in content.split("\n"):
+            p_str = p.strip()
+            if not p_str:
+                continue
+            if p_str.startswith("### "):
+                doc.add_heading(p_str[4:], level=3)
+            elif p_str.startswith("## "):
+                doc.add_heading(p_str[3:], level=2)
+            elif p_str.startswith("# "):
+                doc.add_heading(p_str[2:], level=1)
+            else:
+                doc.add_paragraph(p_str)
+        doc.save(out_io)
+        mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    elif ext == "pdf":
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+        import html
+        font_name = "Helvetica"
+        if os.path.exists("C:/Windows/Fonts/arial.ttf"):
+            try:
+                pdfmetrics.registerFont(TTFont("Arial", "C:/Windows/Fonts/arial.ttf"))
+                font_name = "Arial"
+            except Exception:
+                pass
+        doc = SimpleDocTemplate(out_io, pagesize=A4, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
+        styles = getSampleStyleSheet()
+        style = ParagraphStyle("VNPdf", parent=styles["Normal"], fontName=font_name, fontSize=11, leading=15)
+        story = []
+        for p in content.split("\n"):
+            if p.strip():
+                story.append(Paragraph(html.escape(p.strip()).replace("\n", "<br/>"), style))
+                story.append(Spacer(1, 8))
+        doc.build(story)
+        mime = "application/pdf"
+    elif ext in ["srt", "md", "txt"]:
+        out_io.write(content.encode("utf-8"))
+        mime = "text/plain" if ext != "md" else "text/markdown"
+    else:
+        out_io.write(content.encode("utf-8"))
+        mime = "application/octet-stream"
+    return out_io.getvalue(), out_filename, mime
