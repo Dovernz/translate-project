@@ -160,6 +160,39 @@ async def translate_text(req: TranslateRequest):
         result = await pool.generate_content(req.text, system_instruction, req.tier)
         return {"translated_text": result}
 
+
+@app.post("/api/document/extract")
+async def extract_document_text(file: UploadFile = File(...)):
+    filename = file.filename or "document.txt"
+    ext = Path(filename).suffix.lower()
+    content = await file.read()
+    
+    if ext == ".docx":
+        import zipfile
+        import io
+        import xml.etree.ElementTree as ET
+        try:
+            with zipfile.ZipFile(io.BytesIO(content)) as docx_zip:
+                xml_content = docx_zip.read('word/document.xml')
+                tree = ET.fromstring(xml_content)
+                ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
+                paragraphs = []
+                for p in tree.iter(f"{{{ns['w']}}}p"):
+                    texts = [node.text for node in p.iter(f"{{{ns['w']}}}t") if node.text]
+                    if texts:
+                        paragraphs.append("".join(texts))
+                extracted_text = "\n\n".join(paragraphs)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Lỗi đọc file docx: {str(e)}")
+    else:
+        try:
+            extracted_text = content.decode("utf-8")
+        except UnicodeDecodeError:
+            extracted_text = content.decode("latin-1", errors="ignore")
+            
+    return {"text": extracted_text, "filename": filename, "format": ext, "length": len(extracted_text)}
+
+
 @app.post("/api/webpage/translate")
 async def translate_webpage(req: WebpageTranslateRequest):
     if not req.url or not req.url.strip():

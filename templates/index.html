@@ -2,7 +2,7 @@
 <html lang="vi" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>GeminiTrans - AI Studio Video Subtitler & Universal Translator</title>
   <script>
     // Immediate Dual-Color Theme Initialization (Orthogonal Mode & Accent, prevents FOUC)
@@ -394,7 +394,7 @@
     }
 
     /* ========================================================================== */
-    /* UNIFIED ACCENT CONTROLS & SOLID BUTTONS: BẢO VỆ CHỮ TRẮNG 100%             */
+    /* UNIFIED ACCENT CONTROLS & SOLID BUTTONS: DYNAMIC CONTRAST DUAL MODE        */
     /* ========================================================================== */
     .bg-indigo-600,
     .bg-indigo-500,
@@ -413,11 +413,11 @@
     html.light a.bg-indigo-600,
     html.light label.bg-indigo-600 {
       background-color: var(--accent-primary) !important;
-      color: #ffffff !important;
+      color: var(--accent-contrast) !important;
       border-color: var(--accent-border) !important;
     }
 
-    /* Bắt buộc toàn bộ phần tử con bên trong nút Accent (spans, icons, badges) giữ nguyên chữ TRẮNG tinh khôi */
+    /* Đảm bảo toàn bộ phần tử con bên trong nút Accent (spans, icons, badges) giữ màu tương phản chuẩn */
     .bg-indigo-600 *,
     .bg-indigo-500 *,
     .btn-solid-primary *,
@@ -435,23 +435,104 @@
     html.light button.bg-indigo-600 *,
     html.light a.bg-indigo-600 *,
     html.light label.bg-indigo-600 * {
-      color: #ffffff !important;
-      fill: #ffffff !important;
+      color: var(--accent-contrast) !important;
+      stroke: currentColor !important;
     }
 
     .hover\:bg-indigo-700:hover,
     .hover\:bg-indigo-600:hover,
     .btn-solid-primary:hover,
+    button.bg-indigo-600:hover,
+    label.bg-indigo-600:hover,
     html[data-mode="light"] .bg-indigo-600:hover,
     html[data-mode="light"] .btn-solid-primary:hover,
     html[data-mode="light"] button.bg-indigo-600:hover {
       background-color: var(--accent-hover) !important;
-      color: #ffffff !important;
+      color: var(--accent-contrast) !important;
     }
 
     .border-indigo-500,
     .border-indigo-600 {
       border-color: var(--accent-primary) !important;
+    }
+
+    
+    /* BULLETPROOF MONOCHROME DARK CONTRAST GUARANTEE */
+    html[data-mode="dark"][data-accent="monochrome"] .bg-indigo-600,
+    html[data-mode="dark"][data-accent="monochrome"] .text-white.bg-indigo-600,
+    html[data-mode="dark"][data-accent="monochrome"] .bg-indigo-600.text-white,
+    html[data-mode="dark"][data-accent="monochrome"] button.bg-indigo-600,
+    html[data-mode="dark"][data-accent="monochrome"] label.bg-indigo-600,
+    html[data-mode="dark"][data-accent="monochrome"] [data-tab-link].bg-indigo-600,
+    html[data-mode="dark"][data-accent="monochrome"] #upload-btn-label,
+    html[data-mode="dark"][data-accent="monochrome"] #btn-translate,
+    html.dark[data-accent="monochrome"] .bg-indigo-600,
+    html.dark[data-accent="monochrome"] .text-white.bg-indigo-600,
+    html.dark[data-accent="monochrome"] .bg-indigo-600.text-white,
+    html.dark[data-accent="monochrome"] button.bg-indigo-600,
+    html.dark[data-accent="monochrome"] label.bg-indigo-600,
+    html.dark[data-accent="monochrome"] [data-tab-link].bg-indigo-600,
+    html.dark[data-accent="monochrome"] #upload-btn-label,
+    html.dark[data-accent="monochrome"] #btn-translate {
+      background-color: #f4f4f5 !important;
+      color: #09090b !important;
+    }
+
+    html[data-mode="dark"][data-accent="monochrome"] .bg-indigo-600 *,
+    html[data-mode="dark"][data-accent="monochrome"] button.bg-indigo-600 *,
+    html[data-mode="dark"][data-accent="monochrome"] label.bg-indigo-600 *,
+    html[data-mode="dark"][data-accent="monochrome"] [data-tab-link].bg-indigo-600 *,
+    html[data-mode="dark"][data-accent="monochrome"] #upload-btn-label *,
+    html[data-mode="dark"][data-accent="monochrome"] #btn-translate *,
+    html.dark[data-accent="monochrome"] .bg-indigo-600 *,
+    html.dark[data-accent="monochrome"] button.bg-indigo-600 *,
+    html.dark[data-accent="monochrome"] label.bg-indigo-600 *,
+    html.dark[data-accent="monochrome"] [data-tab-link].bg-indigo-600 *,
+    html.dark[data-accent="monochrome"] #upload-btn-label *,
+    html.dark[data-accent="monochrome"] #btn-translate * {
+      color: #09090b !important;
+      stroke: #09090b !important;
+    }
+
+    /* MONOCHROME DARK MODE EXPLICIT CONTRAST OVERRIDE: Khắc phục triệt để lỗi chữ trắng trên nền trắng */
+    html[data-mode="dark"][data-accent="monochrome"] .bg-indigo-600,
+    html[data-mode="dark"][data-accent="monochrome"] button.bg-indigo-600,
+    html[data-mode="dark"][data-accent="monochrome"] label.bg-indigo-600,
+    html[data-mode="dark"][data-accent="monochrome"] [data-tab-link].bg-indigo-600,
+    html[data-mode="dark"][data-accent="monochrome"] #upload-btn-label,
+    html[data-mode="dark"][data-accent="monochrome"] #btn-translate,
+    html[data-mode="dark"][data-accent="monochrome"] #popover-mode-dark.bg-indigo-600,
+    html[data-mode="dark"][data-accent="monochrome"] #drawer-mode-dark.bg-indigo-600,
+    html.dark[data-accent="monochrome"] .bg-indigo-600,
+    html.dark[data-accent="monochrome"] button.bg-indigo-600,
+    html.dark[data-accent="monochrome"] label.bg-indigo-600,
+    html.dark[data-accent="monochrome"] [data-tab-link].bg-indigo-600,
+    html.dark[data-accent="monochrome"] #upload-btn-label,
+    html.dark[data-accent="monochrome"] #btn-translate,
+    html.dark[data-accent="monochrome"] #popover-mode-dark.bg-indigo-600,
+    html.dark[data-accent="monochrome"] #drawer-mode-dark.bg-indigo-600 {
+      background-color: #f4f4f5 !important;
+      color: #09090b !important;
+    }
+
+    html[data-mode="dark"][data-accent="monochrome"] .bg-indigo-600 *,
+    html[data-mode="dark"][data-accent="monochrome"] button.bg-indigo-600 *,
+    html[data-mode="dark"][data-accent="monochrome"] label.bg-indigo-600 *,
+    html[data-mode="dark"][data-accent="monochrome"] [data-tab-link].bg-indigo-600 *,
+    html[data-mode="dark"][data-accent="monochrome"] #upload-btn-label *,
+    html[data-mode="dark"][data-accent="monochrome"] #btn-translate *,
+    html[data-mode="dark"][data-accent="monochrome"] #popover-mode-dark.bg-indigo-600 *,
+    html[data-mode="dark"][data-accent="monochrome"] #drawer-mode-dark.bg-indigo-600 *,
+    html.dark[data-accent="monochrome"] .bg-indigo-600 *,
+    html.dark[data-accent="monochrome"] button.bg-indigo-600 *,
+    html.dark[data-accent="monochrome"] label.bg-indigo-600 *,
+    html.dark[data-accent="monochrome"] [data-tab-link].bg-indigo-600 *,
+    html.dark[data-accent="monochrome"] #upload-btn-label *,
+    html.dark[data-accent="monochrome"] #btn-translate *,
+    html.dark[data-accent="monochrome"] #popover-mode-dark.bg-indigo-600 *,
+    html.dark[data-accent="monochrome"] #drawer-mode-dark.bg-indigo-600 * {
+      color: #09090b !important;
+      stroke: #09090b !important;
     }
     .focus\:border-indigo-500:focus,
     .focus\:ring-indigo-500:focus {
@@ -629,6 +710,17 @@
       color: #0f172a !important;
       background-color: rgba(255, 255, 255, 0.8) !important;
     }
+      /* Responsive Layout & Touch Targets Enhancement */
+    html, body {
+      overflow-x: hidden !important;
+      max-width: 100vw;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (max-width: 1023px) {
+      button, [role="button"], select, input[type="button"], input[type="submit"] {
+        min-height: 40px;
+      }
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col overflow-x-hidden">
@@ -639,7 +731,7 @@
       <!-- Left: Hamburger Menu Button (ON LEFT) + Logo GeminiTrans -->
       <div class="flex items-center gap-3">
         <!-- Hamburger Menu Button on LEFT -->
-        <button id="btn-mobile-menu" onclick="toggleDrawer()" class="p-2 sm:px-3 sm:py-2 rounded-[8px] bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition cursor-pointer active:scale-95 flex items-center gap-2 shadow-sm" aria-label="Open menu" title="Menu & Cài đặt">
+        <button id="btn-mobile-menu" onclick="toggleDrawer()" class="flex lg:hidden p-2 sm:px-3 sm:py-2 rounded-[8px] bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition cursor-pointer active:scale-95 items-center justify-center gap-2 shadow-sm min-h-[40px] min-w-[40px]" aria-label="Open menu" title="Menu & Cài đặt">
           <i data-lucide="menu" class="w-5 h-5"></i>
           <span class="hidden sm:inline-block text-xs font-medium text-slate-300" data-i18n="btn_menu_text">Menu</span>
         </button>
@@ -656,18 +748,21 @@
         </a>
       </div>
 
-      <!-- Center (PC/Laptop): 4 Minimalist Navigation Pill Tabs -->
-      <nav class="hidden md:flex items-center bg-slate-800/80 p-1 rounded-[8px] border border-slate-700/70 shadow-inner gap-1">
-        <button onclick="switchTab('video')" id="tab-btn-video" data-tab-link="video" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow">
+      <!-- Center (PC/Laptop): 5 Minimalist Navigation Pill Tabs -->
+      <nav class="hidden lg:flex items-center bg-slate-800/80 p-1 rounded-[8px] border border-slate-700/70 shadow-inner gap-1">
+        <button onclick="switchTab('video')" id="tab-btn-video" data-tab-link="video" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 shadow cursor-pointer">
           <i data-lucide="film" class="w-3.5 h-3.5"></i> <span data-i18n="tab_video">Video</span>
         </button>
-        <button onclick="switchTab('translate')" id="tab-btn-translate" data-tab-link="translate" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white hover:bg-slate-700/50">
-          <i data-lucide="file-text" class="w-3.5 h-3.5"></i> <span data-i18n="tab_translate">Văn bản</span>
+        <button onclick="switchTab('document')" id="tab-btn-document" data-tab-link="document" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white hover:bg-slate-700/50 cursor-pointer">
+          <i data-lucide="file-text" class="w-3.5 h-3.5"></i> <span data-i18n="tab_document">Tài liệu</span>
         </button>
-        <button onclick="switchTab('transcribe')" id="tab-btn-transcribe" data-tab-link="transcribe" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white hover:bg-slate-700/50">
+        <button onclick="switchTab('web')" id="tab-btn-web" data-tab-link="web" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white hover:bg-slate-700/50 cursor-pointer">
+          <i data-lucide="globe" class="w-3.5 h-3.5 text-cyan-400"></i> <span data-i18n="tab_web">Dịch Web</span>
+        </button>
+        <button onclick="switchTab('transcribe')" id="tab-btn-transcribe" data-tab-link="transcribe" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white hover:bg-slate-700/50 cursor-pointer">
           <i data-lucide="mic" class="w-3.5 h-3.5"></i> <span data-i18n="tab_transcribe">Giọng nói</span>
         </button>
-        <button onclick="switchTab('manga')" id="tab-btn-manga" data-tab-link="manga" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white hover:bg-slate-700/50">
+        <button onclick="switchTab('manga')" id="tab-btn-manga" data-tab-link="manga" class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white hover:bg-slate-700/50 cursor-pointer">
           <i data-lucide="book-open" class="w-3.5 h-3.5"></i> <span data-i18n="tab_manga">Dịch Truyện</span>
         </button>
       </nav>
@@ -716,9 +811,9 @@
           </div>
         </div>
 
-        <span class="text-xs px-2.5 py-1 rounded-[6px] bg-slate-800/80 text-slate-300 font-mono text-[11px] hidden sm:inline-flex items-center gap-1.5 border border-slate-700/80">
+        <button onclick="togglePoolModal()" class="text-xs px-2.5 py-1.5 rounded-[6px] bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-mono text-[11px] hidden sm:inline-flex items-center gap-1.5 border border-slate-700/80 cursor-pointer transition shadow-sm" title="Xem trạng thái AI Studio Pool">
           <span class="w-1.5 h-1.5 status-dot bg-emerald-400"></span> 7 Keys Ready
-        </span>
+        </button>
       </div>
     </div>
   </header>
@@ -758,17 +853,24 @@
             <span data-i18n="drawer_section_nav">Điều hướng chức năng</span>
           </div>
           <div class="space-y-1.5">
-            <button id="mobile-tab-btn-video" data-tab-link="video" onclick="switchDrawerTab('video')" class="w-full py-2.5 px-3.5 rounded-[8px] font-medium text-xs sm:text-sm flex items-center justify-between transition cursor-pointer bg-indigo-600 text-white shadow">
+            <button id="mobile-tab-btn-video" data-tab-link="video" onclick="switchDrawerTab('video')" class="w-full py-2.5 px-3.5 rounded-[8px] font-medium text-xs sm:text-sm flex items-center justify-between transition cursor-pointer bg-indigo-600 shadow">
               <span class="flex items-center gap-2.5">
                 <i data-lucide="film" class="w-4 h-4"></i>
                 <span data-i18n="drawer_tab_video">Video Subtitles</span>
               </span>
               <i data-lucide="chevron-right" class="w-4 h-4 opacity-70"></i>
             </button>
-            <button id="mobile-tab-btn-translate" data-tab-link="translate" onclick="switchDrawerTab('translate')" class="w-full py-2.5 px-3.5 rounded-[8px] font-medium text-xs sm:text-sm flex items-center justify-between transition cursor-pointer bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white">
+            <button id="mobile-tab-btn-document" data-tab-link="document" onclick="switchDrawerTab('document')" class="w-full py-2.5 px-3.5 rounded-[8px] font-medium text-xs sm:text-sm flex items-center justify-between transition cursor-pointer bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white">
               <span class="flex items-center gap-2.5">
                 <i data-lucide="file-text" class="w-4 h-4"></i>
-                <span data-i18n="drawer_tab_translate">Dịch văn bản</span>
+                <span data-i18n="drawer_tab_document">Dịch tài liệu & văn bản</span>
+              </span>
+              <i data-lucide="chevron-right" class="w-4 h-4 opacity-70"></i>
+            </button>
+            <button id="mobile-tab-btn-web" data-tab-link="web" onclick="switchDrawerTab('web')" class="w-full py-2.5 px-3.5 rounded-[8px] font-medium text-xs sm:text-sm flex items-center justify-between transition cursor-pointer bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white">
+              <span class="flex items-center gap-2.5">
+                <i data-lucide="globe" class="w-4 h-4 text-cyan-400"></i>
+                <span data-i18n="drawer_tab_web">Dịch trang web chuyên dụng</span>
               </span>
               <i data-lucide="chevron-right" class="w-4 h-4 opacity-70"></i>
             </button>
@@ -1026,7 +1128,7 @@
               </label>
             </div>
 
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 text-xs">
               
               <!-- 1. Che sub cũ & Độ mờ đục -->
               <div class="space-y-1.5 p-2.5 sm:p-3 rounded-[8px] bg-slate-800/40 border border-slate-800/80">
@@ -1147,112 +1249,122 @@
     </section>
 
     <!-- ========================================== -->
-    <!-- TAB 2: TEXT & DOCUMENT TRANSLATOR -->
+    <!-- TAB 2: DOCUMENT & TEXT TRANSLATOR (FORMAT-PRESERVED) -->
     <!-- ========================================== -->
-    <section id="tab-translate" class="space-y-4 hidden">
-      <!-- SUB-MODE SEGMENTED CONTROL: [ Văn bản ] | [ Trang web (URL) ] -->
-      <div class="flex items-center justify-between flex-wrap gap-3 pb-1">
-        <div class="inline-flex p-1 rounded-[8px] bg-slate-900 border border-slate-800 shadow-inner">
-          <button type="button" id="submode-btn-text" onclick="switchTextSubMode('text')" class="px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition bg-indigo-600 text-white shadow cursor-pointer">
-            <i data-lucide="file-text" class="w-3.5 h-3.5"></i> <span data-i18n="submode_text">Văn bản</span>
+    <section id="tab-document" class="space-y-4 hidden">
+      <!-- Toolbar: Languages, Model Tier, File Upload & Document Info -->
+      <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-[10px] bg-slate-900 border border-slate-800 shadow-sm">
+        <div class="flex items-center flex-wrap gap-2">
+          <select id="source-lang" class="bg-slate-800 border border-slate-700 text-xs sm:text-sm rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+            <option value="auto" data-i18n="lang_auto">Tự nhận diện ngôn ngữ</option>
+            <option value="en">Tiếng Anh (English)</option>
+            <option value="vi">Tiếng Việt</option>
+            <option value="zh">Tiếng Trung</option>
+            <option value="ja">Tiếng Nhật</option>
+            <option value="ko">Tiếng Hàn</option>
+            <option value="fr">Tiếng Pháp</option>
+            <option value="de">Tiếng Đức</option>
+          </select>
+          <button onclick="swapLanguages()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer" title="Đổi chiều dịch">
+            <i data-lucide="arrow-right-left" class="w-4 h-4"></i>
           </button>
-          <button type="button" id="submode-btn-web" onclick="switchTextSubMode('web')" class="px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-slate-400 hover:text-white cursor-pointer">
-            <i data-lucide="globe" class="w-3.5 h-3.5 text-cyan-400"></i> <span data-i18n="submode_web">Trang web (URL)</span>
-          </button>
+          <select id="target-lang" class="bg-slate-800 border border-slate-700 text-xs sm:text-sm rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+            <option value="vi" selected>Tiếng Việt</option>
+            <option value="en">Tiếng Anh (English)</option>
+            <option value="zh">Tiếng Trung</option>
+            <option value="ja">Tiếng Nhật</option>
+            <option value="ko">Tiếng Hàn</option>
+            <option value="fr">Tiếng Pháp</option>
+            <option value="de">Tiếng Đức</option>
+          </select>
         </div>
-        <div class="text-xs text-slate-400 flex items-center gap-2">
-          <span id="submode-tagline" class="font-medium text-slate-400">Dịch văn bản thuần, tài liệu hoặc phụ đề</span>
+
+        <div class="flex items-center flex-wrap gap-2">
+          <span class="text-xs text-slate-400" data-i18n="tier_label">Model:</span>
+          <select id="tier-select" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2.5 py-1.5 text-indigo-300 font-medium focus:outline-none focus:border-indigo-500">
+            <option value="bulk" selected data-i18n="tier_bulk">Gemini 3.5 Flash Lite (Bulk)</option>
+            <option value="ultra" data-i18n="tier_ultra">Gemma 4 26B (Ultra)</option>
+            <option value="standard" data-i18n="tier_standard">Gemini 3.6 Flash (Standard)</option>
+            <option value="deep" data-i18n="tier_deep">Gemini 3.8 Flash (Deep)</option>
+          </select>
+          <!-- Upload Button for Documents: txt, docx, srt, vtt, md, json, csv -->
+          <label class="cursor-pointer px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+            <i data-lucide="upload-cloud" class="w-4 h-4"></i> <span id="doc-upload-btn-text">Nạp tài liệu (.docx, .txt, .srt, .md)</span>
+            <input type="file" id="file-upload" class="hidden" accept=".txt,.md,.srt,.vtt,.docx,.json,.csv" onchange="handleDocumentUpload(event)">
+          </label>
         </div>
       </div>
 
-      <!-- SUB-MODE 1: PLAIN TEXT & DOCUMENT -->
-      <div id="text-mode-container" class="space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-[8px] bg-slate-900 border border-slate-800">
-          <div class="flex items-center space-x-2">
-            <select id="source-lang" class="bg-slate-800 border border-slate-700 text-xs sm:text-sm rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500">
-              <option value="auto" data-i18n="lang_auto">Tự nhận diện ngôn ngữ</option>
-              <option value="en">Tiếng Anh (English)</option>
-              <option value="vi">Tiếng Việt</option>
-              <option value="zh">Tiếng Trung</option>
-              <option value="ja">Tiếng Nhật</option>
-              <option value="ko">Tiếng Hàn</option>
-              <option value="fr">Tiếng Pháp</option>
-              <option value="de">Tiếng Đức</option>
-            </select>
-            <button onclick="swapLanguages()" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Đổi chiều dịch">
-              <i data-lucide="arrow-right-left" class="w-4 h-4"></i>
-            </button>
-            <select id="target-lang" class="bg-slate-800 border border-slate-700 text-xs sm:text-sm rounded-lg px-2.5 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500">
-              <option value="vi" selected>Tiếng Việt</option>
-              <option value="en">Tiếng Anh (English)</option>
-              <option value="zh">Tiếng Trung</option>
-              <option value="ja">Tiếng Nhật</option>
-              <option value="ko">Tiếng Hàn</option>
-              <option value="fr">Tiếng Pháp</option>
-              <option value="de">Tiếng Đức</option>
-            </select>
-          </div>
-
-          <div class="flex items-center space-x-2">
-            <span class="text-xs text-slate-400" data-i18n="tier_label">Model:</span>
-            <select id="tier-select" class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-2.5 py-1.5 text-indigo-300 font-medium focus:outline-none focus:border-indigo-500">
-              <option value="bulk" selected data-i18n="tier_bulk">Gemini 3.5 Flash Lite (Bulk)</option>
-              <option value="ultra" data-i18n="tier_ultra">Gemma 4 26B (Ultra)</option>
-              <option value="standard" data-i18n="tier_standard">Gemini 3.6 Flash (Standard)</option>
-              <option value="deep" data-i18n="tier_deep">Gemini 3.8 Flash (Deep)</option>
-            </select>
-            <label class="cursor-pointer px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
-              <i data-lucide="upload" class="w-3.5 h-3.5"></i> <span data-i18n="file_upload_btn">Nạp file</span>
-              <input type="file" id="file-upload" class="hidden" accept=".txt,.md,.srt,.vtt,.json,.csv" onchange="handleFileUpload(event)">
-            </label>
-          </div>
+      <!-- File Status Badge Banner if document loaded -->
+      <div id="doc-file-banner" class="hidden flex items-center justify-between p-2.5 px-3.5 rounded-[8px] bg-slate-900/90 border border-slate-800 text-xs">
+        <div class="flex items-center gap-2">
+          <i data-lucide="file-check" class="w-4 h-4 text-emerald-400"></i>
+          <span class="text-slate-400">Tài liệu đã nạp:</span>
+          <span id="doc-file-name" class="font-mono font-semibold text-slate-200"></span>
+          <span id="doc-file-size" class="text-slate-500 font-mono text-[11px]"></span>
+          <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30 font-medium">Bảo toàn Format</span>
         </div>
+        <button onclick="clearSourceDocument()" class="text-slate-500 hover:text-rose-400 flex items-center gap-1 transition text-xs cursor-pointer">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i> <span>Gỡ file</span>
+        </button>
+      </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="flex flex-col h-[520px] sm:h-[580px] lg:h-[620px] rounded-[10px] bg-slate-900 border border-slate-800 p-4 shadow-sm">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2">
-              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <i data-lucide="edit-3" class="w-3.5 h-3.5 text-indigo-400"></i> <span data-i18n="src_box_title">Văn bản gốc</span>
-              </span>
+      <!-- Editor & Dual View -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Source Box -->
+        <div class="flex flex-col h-[520px] sm:h-[580px] lg:h-[620px] rounded-[10px] bg-slate-900 border border-slate-800 p-4 shadow-sm">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <i data-lucide="edit-3" class="w-3.5 h-3.5 text-indigo-400"></i> <span data-i18n="src_box_title">Văn bản / Cấu trúc tài liệu gốc</span>
+            </span>
+            <div class="flex items-center gap-2">
+              <span id="src-line-count" class="text-xs text-slate-500 font-mono">0 dòng</span>
+              <span class="text-slate-600">|</span>
               <span id="src-char-count" class="text-xs text-slate-500 font-mono">0 ký tự</span>
             </div>
-            <textarea id="src-text" class="flex-1 w-full bg-transparent resize-none border-0 text-slate-200 placeholder-slate-600 focus:outline-none text-base leading-relaxed" placeholder="Nhập văn bản cần dịch..." data-i18n-placeholder="src_placeholder" oninput="updateCharCount()"></textarea>
-            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
-              <button onclick="clearSourceText()" class="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1 transition">
-                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> <span data-i18n="btn_clear">Xóa</span>
-              </button>
-              <button onclick="startTranslation()" id="btn-translate" class="px-5 py-2 rounded-[8px] bg-indigo-600 hover:bg-indigo-500 border border-indigo-400/20 text-white font-medium text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-sm transition cursor-pointer">
-                <i data-lucide="languages" class="w-4 h-4"></i> <span data-i18n="btn_translate">Dịch</span>
-              </button>
+          </div>
+          <textarea id="src-text" class="flex-1 w-full bg-transparent resize-none border-0 text-slate-200 placeholder-slate-600 focus:outline-none text-base leading-relaxed font-sans" placeholder="Nhập văn bản cần dịch hoặc nạp tài liệu (.docx, .txt, .srt, .md)..." data-i18n-placeholder="src_placeholder" oninput="updateCharCount()"></textarea>
+          <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+            <button onclick="clearSourceText()" class="text-xs text-slate-500 hover:text-slate-300 flex items-center gap-1 transition cursor-pointer">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> <span data-i18n="btn_clear">Xóa nội dung</span>
+            </button>
+            <button onclick="startTranslation()" id="btn-translate" class="px-6 py-2 rounded-[8px] bg-indigo-600 hover:bg-indigo-500 border border-indigo-400/20 text-white font-medium text-xs sm:text-sm flex items-center gap-2 shadow-lg transition cursor-pointer">
+              <i data-lucide="languages" class="w-4 h-4"></i> <span data-i18n="btn_translate">Dịch tài liệu</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Target Box -->
+        <div class="flex flex-col h-[520px] sm:h-[580px] lg:h-[620px] rounded-[10px] bg-slate-900 border border-slate-800 p-4 shadow-sm relative">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i> <span data-i18n="target_box_title">Bản dịch bảo toàn cấu trúc</span>
+            </span>
+            <div id="translate-status" class="text-xs text-indigo-400 hidden flex items-center gap-1">
+              <span class="w-2 h-2 status-dot bg-indigo-400 animate-ping"></span> <span data-i18n="streaming_status">Đang dịch...</span>
             </div>
           </div>
-
-          <div class="flex flex-col h-[520px] sm:h-[580px] lg:h-[620px] rounded-[10px] bg-slate-900 border border-slate-800 p-4 shadow-sm relative">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-800/80 mb-2">
-              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i> <span data-i18n="target_box_title">Bản dịch</span>
-              </span>
-              <div id="translate-status" class="text-xs text-indigo-400 hidden flex items-center gap-1">
-                <span class="w-2 h-2 status-dot bg-indigo-400 animate-ping"></span> <span data-i18n="streaming_status">Đang dịch...</span>
-              </div>
-            </div>
-            <div id="target-text" class="flex-1 w-full overflow-y-auto text-slate-200 text-base leading-relaxed whitespace-pre-wrap select-text">
-              <span class="text-slate-600 italic" data-i18n="target_placeholder">Bản dịch sẽ hiển thị ở đây...</span>
-            </div>
-            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-end space-x-2">
-              <button onclick="copyTargetText()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
-                <i data-lucide="copy" class="w-3.5 h-3.5"></i> <span data-i18n="btn_copy">Sao chép</span>
-              </button>
-              <button onclick="downloadTargetText()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition">
-                <i data-lucide="download" class="w-3.5 h-3.5"></i> <span data-i18n="btn_download_txt">Tải về (.txt)</span>
-              </button>
-            </div>
+          <div id="target-text" class="flex-1 w-full overflow-y-auto text-slate-200 text-base leading-relaxed whitespace-pre-wrap select-text">
+            <span class="text-slate-600 italic" data-i18n="target_placeholder">Bản dịch giữ nguyên format sẽ hiển thị tại đây...</span>
+          </div>
+          <div class="pt-3 border-t border-slate-800/80 flex items-center justify-end space-x-2">
+            <button onclick="copyTargetText()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition cursor-pointer">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i> <span data-i18n="btn_copy">Sao chép</span>
+            </button>
+            <button onclick="downloadDocumentResult()" id="btn-download-doc" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 flex items-center gap-1.5 transition font-medium cursor-pointer">
+              <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-400"></i> <span id="btn-download-label">Tải tài liệu đã dịch</span>
+            </button>
           </div>
         </div>
       </div>
+    </section>
 
+    <!-- ========================================== -->
+    <!-- TAB 3: DEDICATED WEB PAGE TRANSLATOR -->
+    <!-- ========================================== -->
+    <section id="tab-web" class="space-y-4 hidden">
       <!-- SUB-MODE 2: WEB PAGE TRANSLATOR -->
-      <div id="web-mode-container" class="space-y-4 hidden">
+      <div id="web-mode-container" class="space-y-4">
         <!-- URL Input & Configuration Card -->
         <div class="rounded-[10px] bg-slate-900 border border-slate-800 p-5 shadow-lg space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-2">
@@ -1444,10 +1556,10 @@
     </section>
 
     <!-- ========================================== -->
-    <!-- TAB 3: AUDIO TRANSCRIBE & VOICE -->
+    <!-- TAB 4: AUDIO TRANSCRIBE & VOICE -->
     <!-- ========================================== -->
     <section id="tab-transcribe" class="space-y-4 hidden">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div class="rounded-[10px] bg-slate-900 border border-slate-800 p-5 flex flex-col justify-between">
           <div>
             <h3 class="font-bold text-base mb-3 flex items-center gap-2">
@@ -1734,7 +1846,7 @@
   <!-- MODAL: EXPORT HARDSUB OPTIONS CHOICE -->
   <!-- ========================================== -->
   <div id="export-choice-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-[10px] max-w-lg w-full p-6 shadow-lg border border-slate-800 space-y-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-[10px] w-full max-w-md sm:max-w-lg mx-auto p-4 sm:p-6 shadow-lg border border-slate-800 space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-slate-800">
         <div>
           <h3 class="font-bold text-base text-white flex items-center gap-2">
@@ -1791,7 +1903,7 @@
   <!-- MODAL: CLIENT-SIDE HARDSUB PROGRESS -->
   <!-- ========================================== -->
   <div id="client-burn-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-[10px] max-w-md w-full p-6 shadow-lg border border-slate-800 space-y-4 text-center">
+    <div class="bg-slate-900 border border-slate-800 rounded-[10px] w-full max-w-sm sm:max-w-md mx-auto p-4 sm:p-6 shadow-lg border border-slate-800 space-y-4 text-center">
       <div class="w-14 h-14 rounded-[10px] bg-emerald-700 text-white border border-emerald-500/30 flex items-center justify-center mx-auto shadow-lg shadow-sm animate-pulse">
         <i data-lucide="zap" class="w-8 h-8 text-white"></i>
       </div>
@@ -1828,7 +1940,7 @@
   <!-- MODAL: KEY POOL STATUS -->
   <!-- ========================================== -->
   <div id="pool-modal" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-[10px] max-w-2xl w-full p-6 shadow-lg border border-slate-800 space-y-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-[10px] w-full max-w-md sm:max-w-2xl mx-auto p-4 sm:p-6 shadow-lg border border-slate-800 space-y-4">
       <div class="flex items-center justify-between pb-3 border-b border-slate-800">
         <div>
           <h3 class="font-bold text-lg text-white flex items-center gap-2">
@@ -1876,7 +1988,9 @@
         pool_loading: "Pool: Đang tải...",
         pool_status: "7 Keys: #{pointer}",
         tab_video: "Video",
-        tab_translate: "Văn bản",
+        tab_translate: "Tài liệu",
+        tab_document: "Tài liệu",
+        tab_web: "Dịch Web",
         tab_transcribe: "Giọng nói",
         tab_manga: "Dịch Truyện",
         video_opt1_title: "Tải tệp video",
@@ -1984,7 +2098,9 @@
         drawer_subtitle: "Trung tâm điều khiển",
         drawer_section_nav: "Điều hướng chức năng",
         drawer_tab_video: "Video Subtitles",
-        drawer_tab_translate: "Dịch văn bản",
+        drawer_tab_translate: "Dịch tài liệu & văn bản",
+        drawer_tab_document: "Dịch tài liệu & văn bản",
+        drawer_tab_web: "Dịch trang web",
         drawer_tab_transcribe: "Giọng nói",
         drawer_tab_manga: "Dịch Truyện",
         drawer_section_pref: "Cài đặt giao diện",
@@ -2056,7 +2172,9 @@
         pool_loading: "Pool: Loading...",
         pool_status: "7 Keys: #{pointer}",
         tab_video: "Video",
-        tab_translate: "Text",
+        tab_translate: "Document",
+        tab_document: "Document",
+        tab_web: "Web Translate",
         tab_transcribe: "Voice",
         tab_manga: "Manga",
         drawer_tab_manga: "Manga Translator",
@@ -2206,7 +2324,9 @@
         drawer_subtitle: "Control Center",
         drawer_section_nav: "Navigation",
         drawer_tab_video: "Video Subtitles",
-        drawer_tab_translate: "Text Translation",
+        drawer_tab_translate: "Document & Text",
+        drawer_tab_document: "Document & Text",
+        drawer_tab_web: "Web Page Translator",
         drawer_tab_transcribe: "Voice Transcribe",
         drawer_section_pref: "Preferences",
         drawer_lang_title: "Interface Language",
@@ -2633,12 +2753,13 @@
     // TAB SWITCH & URL HASH ROUTING
     // ==========================================
     function switchTab(tab, updateHash = true) {
-      const validTabs = ['video', 'translate', 'transcribe', 'manga'];
+      const validTabs = ['video', 'document', 'web', 'transcribe', 'manga'];
+      if (tab === 'translate') tab = 'document';
       if (!validTabs.includes(tab)) {
         tab = 'video';
       }
 
-      if (tab !== 'video' && uploadedVideo) {
+      if (tab !== 'video' && typeof uploadedVideo !== 'undefined' && uploadedVideo) {
         uploadedVideo.pause();
       }
 
@@ -2650,14 +2771,14 @@
         // Desktop minimalist pill tab buttons in header
         const btn = document.getElementById(`tab-btn-${t}`);
         if (btn) {
-          btn.classList.remove('bg-indigo-600', 'text-white', 'shadow');
+          btn.classList.remove('bg-indigo-600', 'shadow');
           btn.classList.add('text-slate-400', 'hover:text-white', 'hover:bg-slate-700/50');
         }
 
         // Drawer tab buttons
         const mBtn = document.getElementById(`mobile-tab-btn-${t}`);
         if (mBtn) {
-          mBtn.classList.remove('bg-indigo-600', 'text-white', 'shadow');
+          mBtn.classList.remove('bg-indigo-600', 'shadow');
           mBtn.classList.add('bg-slate-800/80', 'text-slate-300', 'hover:bg-slate-800', 'hover:text-white');
         }
       });
@@ -2668,13 +2789,13 @@
       const activeBtn = document.getElementById(`tab-btn-${tab}`);
       if (activeBtn) {
         activeBtn.classList.remove('text-slate-400', 'hover:text-white', 'hover:bg-slate-700/50');
-        activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow');
+        activeBtn.classList.add('bg-indigo-600', 'shadow');
       }
 
       const activeMBtn = document.getElementById(`mobile-tab-btn-${tab}`);
       if (activeMBtn) {
         activeMBtn.classList.remove('bg-slate-800/80', 'text-slate-300', 'hover:bg-slate-800', 'hover:text-white');
-        activeMBtn.classList.add('bg-indigo-600', 'text-white', 'shadow');
+        activeMBtn.classList.add('bg-indigo-600', 'shadow');
       }
 
       if (updateHash) {
@@ -2730,6 +2851,16 @@
       }, 300);
     }
 
+        // Auto-close drawer when resizing to desktop >= 1024px
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 1024) {
+        const drawer = document.getElementById('mobile-drawer');
+        if (drawer && !drawer.classList.contains('hidden')) {
+          closeDrawer();
+        }
+      }
+    });
+
     function switchDrawerTab(tab) {
       switchTab(tab);
       closeDrawer();
@@ -2767,7 +2898,7 @@
 
     window.addEventListener('hashchange', () => {
       const hash = window.location.hash.replace('#', '').toLowerCase();
-      if (['video', 'translate', 'transcribe', 'manga'].includes(hash)) {
+      if (['video', 'document', 'web', 'transcribe', 'manga', 'translate'].includes(hash)) {
         switchTab(hash, false);
       }
     });
