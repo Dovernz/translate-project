@@ -1098,3 +1098,9 @@ def get_home():
         with open(html_file, "r", encoding="utf-8") as f:
             return f.read()
     return "<h1>Translator App Ready</h1>"
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8090))
+    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=False)
