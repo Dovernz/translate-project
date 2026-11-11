@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import time
 import json
 import uuid
@@ -8,6 +9,29 @@ import asyncio
 import subprocess
 from pathlib import Path
 from typing import Dict, Any, List, Optional
+import yt_dlp
+
+if hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+if hasattr(sys.stderr, 'reconfigure'):
+    try:
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
+def safe_log(msg: str):
+    try:
+        print(msg)
+    except UnicodeEncodeError:
+        try:
+            print(msg.encode('ascii', errors='backslashreplace').decode('ascii'))
+        except Exception:
+            pass
+    except Exception:
+        pass
 
 def extract_youtube_id(url: str) -> Optional[str]:
     patterns = [
@@ -36,25 +60,32 @@ def cleanup_storage(upload_dir: Path, output_dir: Path, max_age_minutes: int = 3
 
 def get_video_info(url: str) -> Dict[str, Any]:
     yt_id = extract_youtube_id(url)
-    cmd = [
-        "yt-dlp",
-        "--dump-single-json",
-        "--no-playlist",
-        "--skip-download",
-        url
-    ]
+    ydl_opts = {
+        'quiet': True,
+        'no_warnings': True,
+        'noplaylist': True,
+        'skip_download': True,
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android', 'web']
+            }
+        }
+    }
     try:
-        res = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=20)
-        data = json.loads(res.stdout)
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            data = ydl.extract_info(url, download=False)
+        if not data:
+            raise ValueError("Không lấy được thông tin video")
         return {
             "title": data.get("title", "Video không tên"),
             "duration": data.get("duration", 0),
-            "thumbnail": data.get("thumbnail", ""),
+            "thumbnail": data.get("thumbnail", "") or (f"https://img.youtube.com/vi/{yt_id}/hqdefault.jpg" if yt_id else ""),
             "uploader": data.get("uploader", ""),
             "webpage_url": data.get("webpage_url", url),
             "youtube_id": yt_id
         }
     except Exception as e:
+        safe_log(f"[WARN] get_video_info thất bại ({url}): {e}")
         return {
             "title": "Video Stream",
             "duration": 0,
@@ -71,26 +102,34 @@ def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict
     """
     output_dir.mkdir(parents=True, exist_ok=True)
     tmp_id = str(uuid.uuid4())[:8]
-    sub_path_template = str(output_dir / f"{tmp_id}_sub")
+    sub_path_template = str(output_dir / f"{tmp_id}_sub.%(ext)s")
     
-    cmd = [
-        "yt-dlp",
-        "--skip-download",
-        "--write-auto-sub",
-        "--write-sub",
-        "--sub-lang", "en,vi,ko,ja,zh",
-        "--sub-format", "vtt",
-        "-o", sub_path_template,
-        url
-    ]
+    ydl_opts = {
+        'quiet': True,
+        'no_warnings': True,
+        'noplaylist': True,
+        'skip_download': True,
+        'writesubtitles': True,
+        'writeautomaticsub': True,
+        'subtitleslangs': ['en', 'vi', 'ko', 'ja', 'zh'],
+        'subtitlesformat': 'vtt',
+        'outtmpl': sub_path_template,
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android', 'web']
+            }
+        }
+    }
     try:
-        subprocess.run(cmd, capture_output=True, text=True, timeout=20)
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
+            
         vtt_files = list(output_dir.glob(f"{tmp_id}_sub.*.vtt"))
         if not vtt_files:
             return None
             
         vtt_file = vtt_files[0]
-        with open(vtt_file, "r", encoding="utf-8") as f:
+        with open(vtt_file, "r", encoding="utf-8", errors="replace") as f:
             vtt_content = f.read()
             
         blocks = vtt_content.split('\n\n')
@@ -143,13 +182,14 @@ def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict
             })
 
         try:
-            vtt_file.unlink()
+            for vf in vtt_files:
+                vf.unlink(missing_ok=True)
         except Exception:
             pass
             
         return subs if len(subs) > 0 else None
     except Exception as e:
-        print(f"[DEBUG] Lỗi trích xuất auto-subs: {e}")
+        safe_log(f"[DEBUG] Lỗi trích xuất auto-subs: {e}")
         return None
 
 def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
@@ -157,19 +197,27 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
     video_id = str(uuid.uuid4())[:8]
     output_template = str(output_dir / f"{video_id}_%(title).50s.%(ext)s")
     
-    cmd = [
-        "yt-dlp",
-        "-f", "bv*[height<=720]+ba/b[height<=720]/best",
-        "--merge-output-format", "mp4",
-        "--no-playlist",
-        "-o", output_template,
-        url
-    ]
+    ydl_opts = {
+        'format': 'bv*[height<=720]+ba/b[height<=720]/best',
+        'merge_output_format': 'mp4',
+        'noplaylist': True,
+        'quiet': True,
+        'no_warnings': True,
+        'outtmpl': output_template,
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android', 'web']
+            }
+        }
+    }
     try:
-        subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=180)
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
+            
         matches = list(output_dir.glob(f"{video_id}_*"))
-        if matches:
-            saved_file = matches[0]
+        video_matches = [f for f in matches if f.suffix.lower() in [".mp4", ".mkv", ".webm", ".mov", ".m4v"]]
+        if video_matches:
+            saved_file = video_matches[0]
             audio_path = output_dir / f"{video_id}_audio.mp3"
             extract_audio_from_video(saved_file, audio_path)
             
@@ -180,21 +228,52 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
                 "video_url": f"/uploads/{saved_file.name}",
                 "size_bytes": saved_file.stat().st_size
             }
-    except Exception as e:
-        print(f"[ERROR] Tải video thất bại: {e}")
-        try:
-            audio_template = str(output_dir / f"{video_id}_audio.%(ext)s")
-            cmd_audio = ["yt-dlp", "-x", "--audio-format", "mp3", "--no-playlist", "-o", audio_template, url]
-            subprocess.run(cmd_audio, capture_output=True, text=True, check=True, timeout=90)
+        elif matches:
+            saved_file = matches[0]
             return {
                 "success": True,
                 "video_id": video_id,
-                "filename": f"Audio_{video_id}.mp3",
-                "video_url": "",
-                "is_audio_only": True
+                "filename": saved_file.name,
+                "video_url": f"/uploads/{saved_file.name}",
+                "size_bytes": saved_file.stat().st_size
             }
+    except Exception as e:
+        safe_log(f"[ERROR] Tải video thất bại: {e}")
+        try:
+            audio_template = str(output_dir / f"{video_id}_audio.%(ext)s")
+            ydl_audio_opts = {
+                'format': 'bestaudio/best',
+                'noplaylist': True,
+                'quiet': True,
+                'no_warnings': True,
+                'outtmpl': audio_template,
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '192',
+                }],
+                'extractor_args': {
+                    'youtube': {
+                        'player_client': ['android', 'web']
+                    }
+                }
+            }
+            with yt_dlp.YoutubeDL(ydl_audio_opts) as ydl:
+                ydl.download([url])
+                
+            audio_matches = list(output_dir.glob(f"{video_id}_audio.*"))
+            if audio_matches:
+                audio_file = audio_matches[0]
+                return {
+                    "success": True,
+                    "video_id": video_id,
+                    "filename": audio_file.name,
+                    "video_url": "",
+                    "is_audio_only": True,
+                    "size_bytes": audio_file.stat().st_size
+                }
         except Exception as e2:
-            print(f"[ERROR] Fallback audio thất bại: {e2}")
+            safe_log(f"[ERROR] Fallback audio thất bại: {e2}")
 
     return {"success": False, "error": "Không thể tải video từ đường dẫn này."}
 
@@ -214,7 +293,7 @@ def extract_audio_from_video(video_path: Path, output_audio: Path) -> bool:
         subprocess.run(cmd, capture_output=True, check=True, timeout=120)
         return output_audio.exists() and output_audio.stat().st_size > 0
     except Exception as e:
-        print(f"[ERROR] Trích xuất audio thất bại: {e}")
+        safe_log(f"[ERROR] Trích xuất audio thất bại: {e}")
         return False
 
 def parse_time_to_seconds(ts: str) -> float:
@@ -260,7 +339,7 @@ def parse_subtitles_from_ai(ai_output: str) -> List[Dict[str, Any]]:
             for idx, it in enumerate(items, 1):
                 start_sec = parse_time_to_seconds(str(it.get("start", "0")))
                 end_sec = parse_time_to_seconds(str(it.get("end", str(start_sec + 3.0))))
-                result.append({
+                item_dict = {
                     "id": idx,
                     "start": start_sec,
                     "end": end_sec,
@@ -268,7 +347,10 @@ def parse_subtitles_from_ai(ai_output: str) -> List[Dict[str, Any]]:
                     "end_str": seconds_to_vtt_time(end_sec),
                     "original": it.get("original", "").strip(),
                     "translated": it.get("translated", it.get("text", "")).strip()
-                })
+                }
+                if "translations" in it:
+                    item_dict["translations"] = it.get("translations")
+                result.append(item_dict)
             return result
     except Exception:
         pass
@@ -295,23 +377,31 @@ def parse_subtitles_from_ai(ai_output: str) -> List[Dict[str, Any]]:
         })
     return result
 
-def export_srt(subtitles: List[Dict[str, Any]], output_path: Path):
+def export_srt(subtitles: List[Dict[str, Any]], output_path: Path, lang: Optional[str] = None):
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         for idx, sub in enumerate(subtitles, 1):
             s_str = seconds_to_srt_time(sub["start"])
             e_str = seconds_to_srt_time(sub["end"])
-            text = sub.get("translated") or sub.get("text") or ""
+            text = None
+            if lang and isinstance(sub.get("translations"), dict) and lang in sub["translations"]:
+                text = sub["translations"][lang]
+            if not text:
+                text = sub.get("translated") or sub.get("text") or ""
             f.write(f"{idx}\n{s_str} --> {e_str}\n{text}\n\n")
 
-def export_vtt(subtitles: List[Dict[str, Any]], output_path: Path):
+def export_vtt(subtitles: List[Dict[str, Any]], output_path: Path, lang: Optional[str] = None):
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("WEBVTT\n\n")
         for idx, sub in enumerate(subtitles, 1):
             s_str = seconds_to_vtt_time(sub["start"])
             e_str = seconds_to_vtt_time(sub["end"])
-            text = sub.get("translated") or sub.get("text") or ""
+            text = None
+            if lang and isinstance(sub.get("translations"), dict) and lang in sub["translations"]:
+                text = sub["translations"][lang]
+            if not text:
+                text = sub.get("translated") or sub.get("text") or ""
             f.write(f"{idx}\n{s_str} --> {e_str}\n{text}\n\n")
 
 def hex_color_to_ass(hex_color: str) -> str:
@@ -373,9 +463,9 @@ def burn_subtitles_to_video(
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
         if proc.returncode != 0:
-            print(f"[FFMPEG ERROR] {proc.stderr}")
+            safe_log(f"[FFMPEG ERROR] {proc.stderr}")
             return False
         return output_video.exists() and output_video.stat().st_size > 0
     except Exception as e:
-        print(f"[ERROR] Burn video failed: {e}")
+        safe_log(f"[ERROR] Burn video failed: {e}")
         return False

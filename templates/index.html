@@ -1121,6 +1121,24 @@
               
               <!-- Action Buttons -->
               <div class="flex items-center gap-2 flex-wrap">
+                <!-- Video Target Language Selector -->
+                <div class="flex items-center gap-1.5 bg-slate-800/80 border border-slate-700/70 rounded-lg px-2.5 py-1">
+                  <i data-lucide="languages" class="w-4 h-4 text-indigo-400"></i>
+                  <span class="text-xs text-slate-300 font-medium" data-i18n="video_target_lang_label">Dịch sang:</span>
+                  <select id="video-target-lang" class="bg-slate-900 border border-slate-700 rounded-md px-2 py-1 text-xs text-indigo-200 font-medium focus:outline-none focus:border-indigo-500 cursor-pointer" onchange="onVideoTargetLangChange(this.value)">
+                    <option value="vi" selected>Tiếng Việt</option>
+                    <option value="en">English (Anh)</option>
+                    <option value="ja">日本語 (Nhật)</option>
+                    <option value="ko">한국어 (Hàn)</option>
+                    <option value="zh">中文 (Trung)</option>
+                    <option value="fr">Français (Pháp)</option>
+                    <option value="de">Deutsch (Đức)</option>
+                    <option value="es">Español (TBN)</option>
+                    <option value="ru">Русский (Nga)</option>
+                    <option value="th">ไทย (Thái)</option>
+                  </select>
+                </div>
+
                 <button onclick="startAutoSubtitling()" id="btn-auto-sub" class="px-4 py-2 rounded-[8px] bg-indigo-600 hover:bg-indigo-500 border border-indigo-400/20 text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-sm transition cursor-pointer touch-manipulation">
                   <i data-lucide="subtitles" class="w-4 h-4"></i> <span data-i18n="btn_auto_sub">Tạo Phụ Đề</span>
                 </button>
@@ -1138,14 +1156,24 @@
               <h3 class="font-semibold text-xs sm:text-sm text-slate-200 flex items-center gap-1.5">
                 <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i> <span data-i18n="customizer_title">Tùy chỉnh phụ đề</span>
               </h3>
-              <!-- DUAL SUBTITLES (BILINGUAL MODE) TOGGLE -->
-              <label class="flex items-center gap-2 cursor-pointer select-none">
-                <span class="font-medium text-slate-300 text-xs" data-i18n="dual_sub_title">Song ngữ</span>
-                <div class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" id="dual-sub-toggle" class="sr-only peer" onchange="toggleDualSubtitles(this.checked)">
-                  <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-[8px] peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-[8px] after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
-                </div>
-              </label>
+              <div class="flex items-center gap-3">
+                <!-- MULTI-LANG SUBTITLE TOGGLE -->
+                <label class="flex items-center gap-1.5 cursor-pointer select-none text-xs text-slate-300" title="Tự động tạo phụ đề cho 5 ngôn ngữ phổ biến (Việt, Anh, Nhật, Trung, Hàn)">
+                  <span class="font-medium text-slate-300 text-xs" data-i18n="multi_sub_title">Đa ngôn ngữ</span>
+                  <div class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="multi-lang-sub-toggle" class="sr-only peer">
+                    <div class="w-8 h-4 bg-slate-700 peer-focus:outline-none rounded-[8px] peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-[8px] after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
+                  </div>
+                </label>
+                <!-- DUAL SUBTITLES (BILINGUAL MODE) TOGGLE -->
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                  <span class="font-medium text-slate-300 text-xs" data-i18n="dual_sub_title">Song ngữ</span>
+                  <div class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="dual-sub-toggle" class="sr-only peer" onchange="toggleDualSubtitles(this.checked)">
+                    <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-[8px] peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-[8px] after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                  </div>
+                </label>
+              </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 text-xs">
@@ -2200,6 +2228,9 @@
         drawer_section_links: "Liên kết",
         alert_no_video: "Vui lòng chọn video trước!",
         alert_no_subs: "Vui lòng quét phụ đề trước khi xuất video!",
+        video_target_lang_label: "Dịch sang:",
+        multi_sub_title: "Đa ngôn ngữ",
+        btn_translating_sub: "Đang dịch...",
         alert_clean_success: "Đã dọn dẹp sạch server! 0-byte tồn đọng.",
         alert_copied: "Đã sao chép!",
         alert_no_text: "Vui lòng nhập nội dung!",
@@ -2425,6 +2456,9 @@
         drawer_section_links: "Links",
         alert_no_video: "Please choose a video first!",
         alert_no_subs: "Please scan subtitles before exporting video!",
+        video_target_lang_label: "Target Lang:",
+        multi_sub_title: "Multi-Lang",
+        btn_translating_sub: "Translating...",
         alert_clean_success: "Server cleaned up! 0 bytes remaining.",
         alert_copied: "Copied to clipboard!",
         alert_no_text: "Please enter text to translate!",
@@ -3167,15 +3201,18 @@
     // ==========================================
     function getCacheKeys() {
       const keys = [];
+      const curLang = document.getElementById('video-target-lang')?.value || 'vi';
       if (currentLoadedUrl) {
+        keys.push(`geminitrans_cache_${curLang}_${currentLoadedUrl.trim()}`);
         keys.push(`geminitrans_cache_${currentLoadedUrl.trim()}`);
         keys.push(`geminitrans_cache_url_${encodeURIComponent(currentLoadedUrl.trim().toLowerCase())}`);
       }
       if (currentFileSignature) {
+        keys.push(`geminitrans_cache_${curLang}_${currentFileSignature}`);
         keys.push(`geminitrans_cache_${currentFileSignature}`);
-        keys.push(`geminitrans_cache_file_${currentFileSignature}`);
       }
       if (currentVideoId) {
+        keys.push(`geminitrans_cache_${curLang}_${currentVideoId}`);
         keys.push(`geminitrans_cache_${currentVideoId}`);
       }
       return keys;
@@ -3465,6 +3502,69 @@
     }
 
     // AI AUTO SUBTITLING
+    // Chuyển đổi ngôn ngữ hiển thị hoặc dịch phụ đề sang ngôn ngữ mới
+    async function onVideoTargetLangChange(newLang) {
+      if (!currentVideoSubtitles || !currentVideoSubtitles.length) {
+        return;
+      }
+      
+      // Kiểm tra nếu các cue đã có bản dịch sang ngôn ngữ này
+      const hasLangInSubs = currentVideoSubtitles.some(s => s.translations && s.translations[newLang]);
+      if (hasLangInSubs) {
+        currentVideoSubtitles.forEach(s => {
+          if (s.translations && s.translations[newLang]) {
+            s.translated = s.translations[newLang];
+          }
+        });
+        renderSubtitleTimeline(currentVideoSubtitles);
+        updateVideoTextTrack(currentVideoSubtitles);
+        saveSubtitleCache(currentVideoSubtitles);
+        return;
+      }
+
+      // Hỏi người dùng để dịch tức thì bằng AI mà không cần quét lại video
+      const langSelect = document.getElementById('video-target-lang');
+      const langName = langSelect ? langSelect.options[langSelect.selectedIndex].text : newLang;
+      const confirmMsg = currentLang === 'vi' 
+        ? `Dịch toàn bộ phụ đề hiện tại sang ${langName}?\n(Quá trình diễn ra siêu tốc bằng AI, không cần quét lại video)`
+        : `Translate existing subtitles to ${langName}?\n(Instant AI translation without re-scanning video)`;
+        
+      if (!confirm(confirmMsg)) return;
+
+      const btn = document.getElementById('btn-auto-sub');
+      btn.disabled = true;
+      btn.innerHTML = `<span class="w-3.5 h-3.5 rounded-[8px] bg-white animate-ping mr-1"></span> ${t('btn_translating_sub') || 'Đang dịch...'}`;
+
+      try {
+        const res = await fetch('/api/video/translate-subtitles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            video_id: currentVideoId,
+            subtitles: currentVideoSubtitles,
+            target_lang: newLang
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || `Server HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        currentVideoSubtitles = data.subtitles || currentVideoSubtitles;
+        renderSubtitleTimeline(currentVideoSubtitles);
+        updateVideoTextTrack(currentVideoSubtitles);
+        saveSubtitleCache(currentVideoSubtitles);
+      } catch (err) {
+        alert("Lỗi dịch phụ đề: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="subtitles" class="w-4 h-4"></i> ${t('btn_auto_sub')}`;
+        lucide.createIcons();
+      }
+    }
+
     async function startAutoSubtitling(bypassCache = false) {
       if (!currentVideoId) {
         const urlInput = document.getElementById('video-url-input').value.trim();
@@ -3498,10 +3598,19 @@
       `;
 
       try {
+        const targetLang = document.getElementById('video-target-lang')?.value || 'vi';
+        const isMulti = document.getElementById('multi-lang-sub-toggle')?.checked || false;
+        const targetLangs = isMulti ? ['vi', 'en', 'ja', 'zh', 'ko'] : [targetLang];
+
         const res = await fetch('/api/video/auto-subtitle', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ video_id: currentVideoId, target_lang: 'vi', url: document.getElementById('video-url-input').value.trim() })
+          body: JSON.stringify({
+            video_id: currentVideoId,
+            target_lang: targetLang,
+            target_langs: isMulti ? targetLangs : undefined,
+            url: document.getElementById('video-url-input').value.trim()
+          })
         });
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
@@ -4002,12 +4111,13 @@
       if (!currentVideoSubtitles.length) return alert(t('alert_no_subs'));
       let srt = '';
       const isDual = document.getElementById('dual-sub-toggle')?.checked;
+      const curLang = document.getElementById('video-target-lang')?.value || 'vi';
       currentVideoSubtitles.forEach((s, idx) => {
         const sTime = formatSrtTime(s.start);
         const eTime = formatSrtTime(s.end);
         let text = '';
         const orig = (s.original || '').trim();
-        const trans = (s.translated || '').trim();
+        const trans = (s.translations && s.translations[curLang] ? s.translations[curLang] : (s.translated || '')).trim();
         if (isDual && orig && trans && orig !== trans) {
           text = `${orig}\n${trans}`;
         } else {
@@ -4019,7 +4129,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `GeminiTrans_${currentVideoId || 'subs'}.srt`;
+      a.download = `GeminiTrans_${currentVideoId || 'subs'}_${curLang}.srt`;
       a.click();
     }
 
@@ -4027,12 +4137,13 @@
       if (!currentVideoSubtitles.length) return alert(t('alert_no_subs'));
       let vtt = 'WEBVTT\n\n';
       const isDual = document.getElementById('dual-sub-toggle')?.checked;
+      const curLang = document.getElementById('video-target-lang')?.value || 'vi';
       currentVideoSubtitles.forEach((s, idx) => {
         const sTime = formatVttTime(s.start);
         const eTime = formatVttTime(s.end);
         let text = '';
         const orig = (s.original || '').trim();
-        const trans = (s.translated || '').trim();
+        const trans = (s.translations && s.translations[curLang] ? s.translations[curLang] : (s.translated || '')).trim();
         if (isDual && orig && trans && orig !== trans) {
           text = `${orig}\n${trans}`;
         } else {
@@ -4044,7 +4155,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `GeminiTrans_${currentVideoId || 'subs'}.vtt`;
+      a.download = `GeminiTrans_${currentVideoId || 'subs'}_${curLang}.vtt`;
       a.click();
     }
 
@@ -4120,7 +4231,7 @@
           // Check and restore local cache in 0.05s without calling AI Studio
           checkAndLoadSubtitleCache();
         } else {
-          throw new Error(data.detail || "Cannot load video");
+          throw new Error(data.error || data.detail || "Cannot load video");
         }
       } catch (err) {
         stopAndCleanAllPlayers();
