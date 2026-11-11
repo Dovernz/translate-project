@@ -67,7 +67,7 @@ def get_video_info(url: str) -> Dict[str, Any]:
         'skip_download': True,
         'extractor_args': {
             'youtube': {
-                'player_client': ['android', 'web']
+                'player_client': ['android', 'ios', 'mweb', 'web']
             }
         }
     }
@@ -116,7 +116,7 @@ def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict
         'outtmpl': sub_path_template,
         'extractor_args': {
             'youtube': {
-                'player_client': ['android', 'web']
+                'player_client': ['android', 'ios', 'mweb', 'web']
             }
         }
     }
@@ -198,7 +198,7 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
     output_template = str(output_dir / f"{video_id}_%(title).50s.%(ext)s")
     
     ydl_opts = {
-        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/bv*+ba/best',
+        'format': 'bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bestvideo+bestaudio/best',
         'merge_output_format': 'mp4',
         'noplaylist': True,
         'quiet': True,
@@ -206,7 +206,7 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
         'outtmpl': output_template,
         'extractor_args': {
             'youtube': {
-                'player_client': ['web', 'mweb', 'android', 'ios']
+                'player_client': ['android', 'ios', 'mweb', 'web']
             }
         }
     }
@@ -238,11 +238,13 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
                 "size_bytes": saved_file.stat().st_size
             }
     except Exception as e:
-        safe_log(f"[ERROR] Tải video thất bại: {e}")
+        err_msg = str(e)
+        safe_log(f"[ERROR] Tải video thất bại: {err_msg}")
+        fb_err = ""
         try:
             audio_template = str(output_dir / f"{video_id}_audio.%(ext)s")
             ydl_audio_opts = {
-                'format': 'bestaudio/best',
+                'format': 'bestaudio/ba/b/best',
                 'noplaylist': True,
                 'quiet': True,
                 'no_warnings': True,
@@ -254,7 +256,7 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
                 }],
                 'extractor_args': {
                     'youtube': {
-                        'player_client': ['android', 'web']
+                        'player_client': ['android', 'ios']
                     }
                 }
             }
@@ -273,7 +275,11 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
                     "size_bytes": audio_file.stat().st_size
                 }
         except Exception as e2:
-            safe_log(f"[ERROR] Fallback audio thất bại: {e2}")
+            fb_err = str(e2)
+            safe_log(f"[ERROR] Fallback audio thất bại: {fb_err}")
+
+        detail_err = f"Lỗi tải video: {err_msg}" + (f" | Lỗi fallback audio: {fb_err}" if fb_err else "")
+        return {"success": False, "error": detail_err}
 
     return {"success": False, "error": "Không thể tải video từ đường dẫn này."}
 

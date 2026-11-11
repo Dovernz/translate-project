@@ -726,7 +726,13 @@
       }
     }
   </style>
-</head>
+
+    <style>
+    .doc-canvas:empty:before { content: attr(data-placeholder); color: #64748b; }
+    .doc-canvas-table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+    .doc-canvas-table td, .doc-canvas-table th { border: 1px solid #475569; padding: 8px; }
+    </style>
+    </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col overflow-x-hidden">
 
   <!-- Header (Fluid Wide Screen - Unified for PC and Mobile) -->
@@ -1371,9 +1377,7 @@
                     </h3>
                     <span id="doc-source-counter" class="text-[10px] text-slate-500 font-mono bg-slate-800 px-2 py-0.5 rounded">0 ký tự</span>
                 </div>
-                <textarea id="doc-source-editor" 
-                    class="w-full min-h-[540px] bg-slate-900 border border-slate-800 text-slate-100 p-4 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all resize-none leading-relaxed"
-                    placeholder="Nhập nội dung cần dịch hoặc tải tệp lên..."></textarea>
+                <div id="doc-source-editor" contenteditable="true" class="doc-canvas w-full min-h-[560px] max-h-[750px] overflow-y-auto bg-slate-900 border border-slate-800 text-slate-100 p-6 rounded-2xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none leading-relaxed transition-all" data-placeholder="Nhập nội dung, dán văn bản có bảng biểu, hoặc kéo thả tệp vào đây..."></div>
             </div>
 
             <!-- Target Column -->
@@ -1387,9 +1391,7 @@
                     </div>
                     <span id="doc-target-counter" class="text-[10px] text-slate-500 font-mono bg-slate-800 px-2 py-0.5 rounded">0 ký tự</span>
                 </div>
-                <textarea id="doc-target-editor" 
-                    class="w-full min-h-[540px] bg-slate-900 border border-slate-800 text-slate-100 p-4 rounded-xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all resize-none leading-relaxed"
-                    placeholder="Bản dịch sẽ xuất hiện ở đây..."></textarea>
+                <div id="doc-target-editor" contenteditable="true" class="doc-canvas w-full min-h-[560px] max-h-[750px] overflow-y-auto bg-slate-900 border border-slate-800 text-slate-100 p-6 rounded-2xl focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none leading-relaxed transition-all" data-placeholder="Bản dịch trực quan sẽ xuất hiện ở đây..."></div>
             </div>
         </div>
 
@@ -6489,12 +6491,12 @@ document.addEventListener('mousedown', (e) => {
         };
 
         const updateCounters = () => {
-            document.getElementById('doc-source-counter').innerText = `${docSource.value.length} ký tự`;
-            document.getElementById('doc-target-counter').innerText = `${docTarget.value.length} ký tự`;
+            document.getElementById('doc-source-counter').innerText = `${docSource.innerHTML.length} ký tự`;
+            document.getElementById('doc-target-counter').innerText = `${docTarget.innerHTML.length} ký tự`;
         };
 
         const triggerTranslation = async () => {
-            const text = docSource.value.trim();
+            const text = docSource.innerHTML.trim();
             if (!text) return;
             
             docStatus.innerText = "Đang dịch...";
@@ -6514,7 +6516,7 @@ document.addEventListener('mousedown', (e) => {
                 });
                 const data = await response.json();
                 if (data.translated_text) {
-                    docTarget.value = data.translated_text;
+                    docTarget.innerHTML = data.translated_text;
                     updateCounters();
                 }
                 docStatus.innerText = "Đã cập nhật";
@@ -6544,22 +6546,22 @@ document.addEventListener('mousedown', (e) => {
             const s = document.getElementById('doc-source-lang');
             const t = document.getElementById('doc-target-lang');
             [s.value, t.value] = [t.value, s.value];
-            const sVal = docSource.value;
-            docSource.value = docTarget.value;
-            docTarget.value = sVal;
+            const sVal = docSource.innerHTML;
+            docSource.innerHTML = docTarget.innerHTML;
+            docTarget.innerHTML = sVal;
             updateCounters();
         });
 
         document.getElementById('doc-clear-all').addEventListener('click', () => {
             if(confirm("Xóa toàn bộ nội dung?")) {
-                docSource.value = "";
-                docTarget.value = "";
+                docSource.innerHTML = "";
+                docTarget.innerHTML = "";
                 updateCounters();
             }
         });
 
         document.getElementById('doc-copy-target').addEventListener('click', () => {
-            navigator.clipboard.writeText(docTarget.value);
+            navigator.clipboard.writeText(docTarget.innerHTML);
             alert("Đã sao chép bản dịch!");
         });
 
@@ -6580,7 +6582,7 @@ document.addEventListener('mousedown', (e) => {
                 const res = await fetch('/api/document/extract', { method: 'POST', body: formData });
                 const data = await res.json();
                 if (data.text) {
-                    docSource.value = data.text;
+                    docSource.innerHTML = data.html || data.text;
                     document.getElementById('doc-file-badge').classList.remove('hidden');
                     document.getElementById('doc-upload-prompt').classList.add('hidden');
                     document.getElementById('doc-file-info').innerText = `${file.name} (${(file.size/1024).toFixed(1)} KB)`;
@@ -6598,7 +6600,7 @@ document.addEventListener('mousedown', (e) => {
         });
 
         window.exportDoc = async (fmt) => {
-            const content = docTarget.value;
+            const content = docTarget.innerHTML;
             if (!content) return alert("Không có nội dung để xuất");
             
             try {

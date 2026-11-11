@@ -178,6 +178,13 @@ async def translate_text(req: TranslateRequest):
         "de": "Tiếng Đức"
     }
     tgt_name = lang_names.get(tgt, tgt)
+    if any(tag in req.text for tag in ["<table", "<p", "<div", "<span"]):
+        system_instruction = (
+            f"Bạn là một dịch giả AI chuyên nghiệp. Đây là tài liệu HTML có cấu trúc. "
+            f"BẮT BUỘC giữ nguyên 100% tất cả các thẻ HTML (table, tr, td, th, p, b, i, u, div, span, v.v.), class, style và cấu trúc bảng biểu. "
+            f"Chỉ dịch toàn bộ văn bản giữa các thẻ sang {tgt_name}. "
+            f"TUYỆT ĐỐI KHÔNG bọc nội dung trong markdown code block (không dùng ```html ... ```) mà trả về trực tiếp mã HTML."
+        )
 
     system_instruction = (
         f"Bạn là một dịch giả chuyên nghiệp AI. Hãy dịch chuẩn xác toàn bộ nội dung sau từ {src} sang {tgt_name}. "
@@ -194,6 +201,12 @@ async def translate_text(req: TranslateRequest):
         return StreamingResponse(event_generator(), media_type="text/event-stream")
     else:
         result = await pool.generate_content(req.text, system_instruction, req.tier)
+        if result:
+            s_res = result.strip()
+            if s_res.startswith("```html"):
+                result = s_res[7:].rstrip("`").strip()
+            elif s_res.startswith("```"):
+                result = s_res[3:].rstrip("`").strip()
         return {"translated_text": result}
 
 

@@ -1,3 +1,8 @@
+from docx.table import Table as DocxTable
+from docx.text.paragraph import Paragraph as DocxParagraph
+from docx.oxml import CT_P, CT_Tbl
+from bs4 import BeautifulSoup
+import bs4
 """
 Module hỗ trợ dịch tài liệu cho dự án GeminiTrans.
 Tương thích Python 3.14+, hỗ trợ dịch và bảo toàn định dạng (Format-Preserving)
@@ -479,93 +484,142 @@ async def translate_document(
         "char_count": char_count,
         "paragraph_count": paragraph_count
     }
+
 def get_document_preview(filename: str, file_bytes: bytes) -> dict:
-    import io
     ext = filename.split('.')[-1].lower()
-    text = ""
-    try:
-        if ext == 'docx':
-            from docx import Document
-            doc = Document(io.BytesIO(file_bytes))
-            paras = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
-            for table in doc.tables:
-                for row in table.rows:
-                    for cell in row.cells:
-                        for p in cell.paragraphs:
-                            if p.text.strip():
-                                paras.append(p.text.strip())
-            text = "\n".join(paras[:50])
-        elif ext == 'pdf':
-            from pypdf import PdfReader
-            reader = PdfReader(io.BytesIO(file_bytes))
-            pages = []
-            for i in range(min(5, len(reader.pages))):
-                pages.append(reader.pages[i].extract_text())
-            text = "\n".join(pages)
-        elif ext == 'srt':
-            content_str = file_bytes.decode('utf-8', errors='ignore')
-            lines = content_str.splitlines()
-            dialogs = [l for l in lines if not l.isdigit() and '-->' not in l and l.strip()][:30]
-            text = "\n".join(dialogs)
-        else:
-            text = file_bytes.decode('utf-8', errors='ignore')[:2000]
-    except Exception as e:
-        text = f"Không thể trích xuất xem trước: {str(e)}"
+    plain_text = ""
+    html_content = ""
     
-    return {"text": text, "format": ext}
+    if ext == 'docx':
+        html_content = docx_to_rich_html(file_bytes)
+        plain_text = BeautifulSoup(html_content, 'html.parser').get_text(separator="\n")
+    elif ext in ['txt', 'md', 'srt']:
+        plain_text = file_bytes.decode('utf-8', errors='ignore')
+        html_content = "".join([f"<p>{html.escape(line)}</p>" for line in plain_text.splitlines() if line.strip()])
+    elif ext == 'pdf':
+        from pypdf import PdfReader
+        reader = PdfReader(io.BytesIO(file_bytes))
+        lines = []
+        for page in reader.pages:
+            lines.append(page.extract_text() or "")
+        plain_text = "\n".join(lines)
+        html_content = "".join([f"<p>{html.escape(line)}</p>" for line in plain_text.splitlines() if line.strip()])
+    else:
+        plain_text = "Unsupported format"
+        html_content = f"<p>{plain_text}</p>"
+        
+    return {"text": plain_text, "html": html_content, "format": ext}
+
 
 def export_edited_document(content: str, format: str, original_filename: str = "") -> tuple[bytes, str, str]:
-    import io, os
+    import os, io, html, bs4
+    from bs4 import BeautifulSoup
     from docx import Document
-    out_io = io.BytesIO()
-    ext = format.lower().strip('.')
+    
     base = os.path.splitext(original_filename)[0] if original_filename else "document_translated"
-    out_filename = f"{base}.{ext}"
-
-    if ext == "docx":
+    
+    if format == 'docx':
+        soup = BeautifulSoup(content, 'html.parser')
         doc = Document()
-        for p in content.split("\n"):
-            p_str = p.strip()
-            if not p_str:
-                continue
-            if p_str.startswith("### "):
-                doc.add_heading(p_str[4:], level=3)
-            elif p_str.startswith("## "):
-                doc.add_heading(p_str[3:], level=2)
-            elif p_str.startswith("# "):
-                doc.add_heading(p_str[2:], level=1)
-            else:
-                doc.add_paragraph(p_str)
+        for elem in soup.find_all(['h1', 'h2', 'h3', 'p', 'table', 'ul', 'ol']):
+            if elem.name in ['h1', 'h2', 'h3']:
+                doc.add_heading(elem.get_text().strip(), level=int(elem.name[1]))
+            elif elem.name == 'p':
+                p_obj = doc.add_paragraph()
+                for child in elem.children:
+                    if isinstance(child, bs4.element.NavigableString):
+                        p_obj.add_run(str(child))
+                    elif child.name in ['b', 'strong']:
+                        p_obj.add_run(child.get_text()).bold = True
+                    elif child.name in ['i', 'em']:
+                        p_obj.add_run(child.get_text()).italic = True
+                    elif child.name == 'u':
+                        p_obj.add_run(child.get_text()).underline = True
+                    else:
+                        p_obj.add_run(child.get_text())
+            elif elem.name == 'table':
+                rows = elem.find_all('tr')
+                if rows:
+                    max_cols = 0
+                    for r in rows:
+                        max_cols = max(max_cols, len(r.find_all(['td', 'th'])))
+                    if max_cols > 0:
+                        tbl = doc.add_table(rows=0, cols=max_cols)
+                        tbl.style = 'Table Grid'
+                        for r in rows:
+                            row_cells = tbl.add_row().cells
+                            cells = r.find_all(['td', 'th'])
+                            for idx, c in enumerate(cells[:max_cols]):
+                                row_cells[idx].text = c.get_text().strip()
+            elif elem.name in ['ul', 'ol']:
+                style = 'List Bullet' if elem.name == 'ul' else 'List Number'
+                for li in elem.find_all('li'):
+                    doc.add_paragraph(li.get_text().strip(), style=style)
+        
+        out_io = io.BytesIO()
         doc.save(out_io)
-        mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    elif ext == "pdf":
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-        from reportlab.lib.pagesizes import A4
-        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.pdfbase import pdfmetrics
-        from reportlab.pdfbase.ttfonts import TTFont
-        import html
-        font_name = "Helvetica"
-        if os.path.exists("C:/Windows/Fonts/arial.ttf"):
-            try:
-                pdfmetrics.registerFont(TTFont("Arial", "C:/Windows/Fonts/arial.ttf"))
-                font_name = "Arial"
-            except Exception:
-                pass
-        doc = SimpleDocTemplate(out_io, pagesize=A4, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
-        styles = getSampleStyleSheet()
-        style = ParagraphStyle("VNPdf", parent=styles["Normal"], fontName=font_name, fontSize=11, leading=15)
-        story = []
-        for p in content.split("\n"):
-            if p.strip():
-                story.append(Paragraph(html.escape(p.strip()).replace("\n", "<br/>"), style))
-                story.append(Spacer(1, 8))
-        doc.build(story)
-        mime = "application/pdf"
-    elif ext in ["srt", "md", "txt"]:
-        out_io.write(content.encode("utf-8"))
-        mime = "text/plain" if ext != "md" else "text/markdown"
+        return out_io.getvalue(), f"{base}.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+    elif format == 'pdf':
+        from reportlab.lib.pagesizes import letter
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.utils import simpleSplit
+        soup = BeautifulSoup(content, 'html.parser')
+        text_data = soup.get_text(separator="\n")
+        out_io = io.BytesIO()
+        c = canvas.Canvas(out_io, pagesize=letter)
+        width, height = letter
+        y = height - 40
+        for line in text_data.splitlines():
+            lines = simpleSplit(line, "Helvetica", 10, width - 80)
+            for l in lines:
+                if y < 40:
+                    c.showPage()
+                    y = height - 40
+                c.drawString(40, y, l)
+                y -= 14
+        c.save()
+        return out_io.getvalue(), f"{base}.pdf", "application/pdf"
+    
     else:
-        out_io.write(content.encode("utf-8"))
-        mime = "application/octet-stream"
-    return out_io.getvalue(), out_filename, mime
+        soup = BeautifulSoup(content, 'html.parser')
+        text_data = soup.get_text(separator="\n")
+        ext = format if format in ['txt', 'srt', 'md'] else 'txt'
+        return text_data.encode('utf-8'), f"{base}.{ext}", "text/plain"
+
+def docx_to_rich_html(file_bytes: bytes) -> str:
+    from docx import Document
+    doc = Document(io.BytesIO(file_bytes))
+    html_out = []
+    for child in doc.element.body:
+        if isinstance(child, CT_P):
+            p = DocxParagraph(child, doc)
+            tag = 'p'
+            style_name = p.style.name.lower()
+            if 'heading 1' in style_name: tag = 'h1'
+            elif 'heading 2' in style_name: tag = 'h2'
+            elif 'heading 3' in style_name: tag = 'h3'
+            
+            p_html = f"<{tag}>"
+            for run in p.runs:
+                text = html.escape(run.text)
+                if run.bold: text = f"<b>{text}</b>"
+                if run.italic: text = f"<i>{text}</i>"
+                if run.underline: text = f"<u>{text}</u>"
+                p_html += text
+            p_html += f"</{tag}>"
+            html_out.append(p_html)
+        elif isinstance(child, CT_Tbl):
+            t = DocxTable(child, doc)
+            tbl_html = '<table class="doc-canvas-table w-full border-collapse border border-slate-600 my-3">'
+            for row in t.rows:
+                tbl_html += '<tr>'
+                for cell in row.cells:
+                    tbl_html += '<td class="border border-slate-600 p-2 align-top">'
+                    for cp in cell.paragraphs:
+                        tbl_html += f"<p>{html.escape(cp.text)}</p>"
+                    tbl_html += '</td>'
+                tbl_html += '</tr>'
+            tbl_html += '</table>'
+            html_out.append(tbl_html)
+    return "".join(html_out)
