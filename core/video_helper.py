@@ -198,7 +198,7 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
     output_template = str(output_dir / f"{video_id}_%(title).50s.%(ext)s")
     
     ydl_opts = {
-        'format': 'bv*[height<=720]+ba/b[height<=720]/best',
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/bv*+ba/best',
         'merge_output_format': 'mp4',
         'noplaylist': True,
         'quiet': True,
@@ -206,7 +206,7 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
         'outtmpl': output_template,
         'extractor_args': {
             'youtube': {
-                'player_client': ['android', 'web']
+                'player_client': ['web', 'mweb', 'android', 'ios']
             }
         }
     }
