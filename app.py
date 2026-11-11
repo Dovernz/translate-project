@@ -1139,6 +1139,34 @@ async def perform_system_update():
         }
 
 
+@app.get("/static/qrcode.min.js")
+def get_qrcode_js():
+    js_file = Path(__file__).parent / "templates" / "qrcode.min.js"
+    if js_file.exists():
+        return FileResponse(js_file, media_type="application/javascript")
+    raise HTTPException(status_code=404, detail="Not found")
+
+
+@app.get("/api/network-info")
+def get_network_info():
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('8.8.8.8', 1))
+        local_ip = s.getsockname()[0]
+    except Exception:
+        local_ip = '127.0.0.1'
+    finally:
+        s.close()
+    port = int(os.environ.get("PORT", 8090))
+    return {
+        "local_ip": local_ip,
+        "port": port,
+        "lan_url": f"http://{local_ip}:{port}",
+        "localhost_url": f"http://localhost:{port}"
+    }
+
+
 @app.get("/", response_class=HTMLResponse)
 def get_home():
     html_file = Path(__file__).parent / "templates" / "index.html"
