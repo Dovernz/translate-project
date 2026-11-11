@@ -6074,5 +6074,95 @@
     });
   </script>
 
+  <!-- Shutdown Overlay Modal -->
+  <div id="shutdown-overlay" class="fixed inset-0 z-[99999] bg-[#0b0f19]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center transition-all duration-500 opacity-0 pointer-events-none">
+    <div class="relative bg-slate-900/90 border border-slate-700/60 rounded-3xl p-8 max-w-md w-full shadow-2xl flex flex-col items-center text-center">
+      <div class="w-20 h-20 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-500 mb-5 shadow-lg shadow-rose-500/10 animate-pulse">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824-2.12v4.242" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v4m0 0a8 8 0 108 8" />
+        </svg>
+      </div>
+      <h2 class="text-2xl font-bold text-white tracking-tight mb-2">GeminiTrans Đã Tắt</h2>
+      <p class="text-slate-400 text-sm mb-6 leading-relaxed">
+        Máy chủ tại <code class="text-rose-400 bg-rose-950/40 px-2 py-0.5 rounded border border-rose-800/30">localhost:8090</code> đã dừng hoạt động an toàn.<br>Đang tự động đóng tab...
+      </p>
+      <button onclick="closeTabOrRedirect()" class="w-full py-3 px-5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-medium shadow-lg shadow-rose-900/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        <span>Đóng tab này ngay</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // CONNECTION WATCHDOG / HEARTBEAT
+    // ==========================================
+    let isServerShuttingDown = false;
+    let failedPingCount = 0;
+    const MAX_FAILED_PINGS = 2;
+
+    function closeTabOrRedirect() {
+      try {
+        window.open('', '_self', '');
+        window.close();
+      } catch (e) {}
+      setTimeout(() => {
+        document.body.innerHTML = `
+          <div style="display:flex;height:100vh;align-items:center;justify-content:center;background:#0b0f19;color:#94a3b8;font-family:system-ui,-apple-system,sans-serif;text-align:center;padding:20px;">
+            <div style="max-width:480px;background:#1e293b;border:1px solid #334155;border-radius:16px;padding:32px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+              <div style="font-size:48px;margin-bottom:16px;">🔌</div>
+              <h1 style="color:#f1f5f9;font-size:22px;font-weight:700;margin-bottom:10px;">GeminiTrans đã tắt hoàn toàn</h1>
+              <p style="color:#94a3b8;font-size:14px;line-height:1.6;margin-bottom:20px;">Máy chủ backend đã dừng. Bạn có thể đóng tab này an toàn bằng phím tắt <kbd style="background:#0f172a;padding:2px 6px;border-radius:4px;border:1px solid #475569;color:#e2e8f0;">Ctrl + W</kbd>.</p>
+            </div>
+          </div>`;
+      }, 300);
+    }
+
+    function triggerShutdownUI() {
+      if (isServerShuttingDown) return;
+      isServerShuttingDown = true;
+      const overlay = document.getElementById('shutdown-overlay');
+      if (overlay) {
+        overlay.classList.remove('opacity-0', 'pointer-events-none');
+        overlay.classList.add('opacity-100', 'pointer-events-auto');
+      }
+      setTimeout(closeTabOrRedirect, 1000);
+    }
+
+    async function checkServerHeartbeat() {
+      if (isServerShuttingDown) return;
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const res = await fetch('/api/pool-status', { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        if (res.ok) {
+          const data = await res.json();
+          failedPingCount = 0;
+          if (data && data.status === 'shutting_down') {
+            triggerShutdownUI();
+            return;
+          }
+        } else if (res.status === 502 || res.status === 503 || res.status === 504) {
+          failedPingCount++;
+          if (failedPingCount >= MAX_FAILED_PINGS) {
+            triggerShutdownUI();
+          }
+        }
+      } catch (err) {
+        failedPingCount++;
+        if (failedPingCount >= MAX_FAILED_PINGS) {
+          triggerShutdownUI();
+        }
+      }
+    }
+
+    setInterval(checkServerHeartbeat, 2500);
+  </script>
+
 </body>
 </html>

@@ -117,9 +117,24 @@ class BurnSubRequest(BaseModel):
     mask_old_sub: bool = True
     vertical_margin: int = 35
 
+is_server_shutting_down = False
+
 @app.get("/api/pool-status")
 def get_pool_status():
+    if is_server_shutting_down:
+        return {"status": "shutting_down", "total_keys": 0, "active_keys": 0, "keys": []}
     return pool.get_status()
+
+@app.post("/api/shutdown")
+async def shutdown_server():
+    global is_server_shutting_down
+    is_server_shutting_down = True
+    import os, signal, asyncio
+    async def kill_later():
+        await asyncio.sleep(0.5)
+        os.kill(os.getpid(), signal.SIGTERM)
+    asyncio.create_task(kill_later())
+    return {"status": "shutting_down", "message": "Server is shutting down"}
 
 @app.get("/api/models")
 def get_models():

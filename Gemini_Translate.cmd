@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 setlocal enabledelayedexpansion
 chcp 65001 >nul
 title GeminiTrans
@@ -7,21 +7,45 @@ set "CURRENT_DIR=%~dp0"
 if "%CURRENT_DIR:~-1%"=="\" set "CURRENT_DIR=%CURRENT_DIR:~0,-1%"
 set "CONFIG_PATH_FILE=%CURRENT_DIR%\.install_path"
 
+rem =======================================================================
+rem  XÁC ĐỊNH THƯ MỤC CÀI ĐẶT (BASE_DIR) VÀ THƯ MỤC MÃ NGUỒN (APP_DIR = ...\CODE)
+rem =======================================================================
 set "APP_DIR="
 if exist "%CONFIG_PATH_FILE%" (
     set /p "APP_DIR="<"%CONFIG_PATH_FILE%"
 )
-if "!APP_DIR!"=="" (
-    if exist "%CURRENT_DIR%\app.py" (
-        set "APP_DIR=%CURRENT_DIR%"
-    ) else if exist "%USERPROFILE%\GeminiTrans\app.py" (
-        set "APP_DIR=%USERPROFILE%\GeminiTrans"
-    ) else if exist "D:\Thành\Translate\app.py" (
-        set "APP_DIR=D:\Thành\Translate\CODE"
-    ) else (
-        set "APP_DIR=%CURRENT_DIR%"
+
+if not "!APP_DIR!"=="" (
+    if exist "!APP_DIR!\CODE\app.py" (
+        set "APP_DIR=!APP_DIR!\CODE"
     )
 )
+
+if "!APP_DIR!"=="" (
+    if /i "%CURRENT_DIR:~-5%"=="\CODE" (
+        set "APP_DIR=%CURRENT_DIR%"
+    ) else if /i "%CURRENT_DIR:~-5%"=="/CODE" (
+        set "APP_DIR=%CURRENT_DIR%"
+    ) else if exist "%CURRENT_DIR%\CODE\app.py" (
+        set "APP_DIR=%CURRENT_DIR%\CODE"
+    ) else if exist "%CURRENT_DIR%\app.py" (
+        set "APP_DIR=%CURRENT_DIR%"
+    ) else if exist "D:\Thành\Translate\CODE\app.py" (
+        set "APP_DIR=D:\Thành\Translate\CODE"
+    ) else if exist "D:\Thành\Translate\app.py" (
+        set "APP_DIR=D:\Thành\Translate\CODE"
+    ) else if exist "%USERPROFILE%\GeminiTrans\CODE\app.py" (
+        set "APP_DIR=%USERPROFILE%\GeminiTrans\CODE"
+    ) else if exist "%USERPROFILE%\GeminiTrans\app.py" (
+        set "APP_DIR=%USERPROFILE%\GeminiTrans"
+    ) else (
+        set "APP_DIR=%CURRENT_DIR%\CODE"
+    )
+)
+
+set "BASE_DIR=!APP_DIR!"
+if /i "!APP_DIR:~-5!"=="\CODE" set "BASE_DIR=!APP_DIR:~0,-5!"
+if /i "!APP_DIR:~-5!"=="/CODE" set "BASE_DIR=!APP_DIR:~0,-5!"
 
 set "REPO_URL=https://github.com/Dovernz/translate-project.git"
 set "REPO_ZIP_URL=https://github.com/Dovernz/translate-project/archive/refs/heads/main.zip"
@@ -37,25 +61,33 @@ if not "%~1"=="" (
 )
 
 :MENU
+@echo off
 set "choice="
 cls
 call :CHECK_STATUS_INTERNAL
-if "!IS_RUNNING!"=="1" (set "SERVER_STATUS=ĐANG CHẠY") else (set "SERVER_STATUS=ĐÃ TẮT")
+if "!IS_RUNNING!"=="1" (set "SERVER_STATUS=RUNNING") else (set "SERVER_STATUS=SHUTTED DOWN")
+
+set "CUSTOM_DOMAIN=!APP_URL!"
+findstr /C:"translate.local" "%HOSTS_FILE%" >nul 2>&1
+if !errorlevel! equ 0 set "CUSTOM_DOMAIN=http://translate.local"
 
 echo =======================================================================
-echo     GEMINITRANS - HỆ THỐNG DỊCH THUẬT AI
-echo     Trạng thái: [!SERVER_STATUS!]  ^|  URL: !APP_URL!
-echo     Thư mục app: !APP_DIR!  ^|  CUSTOM_DOMAIN: !CUSTOM_DOMAIN!
+echo                GEMINITRANS - HỆ THỐNG DỊCH AI
+echo     STATUS           : !SERVER_STATUS!
+echo     URL              : !APP_URL!
+echo     CUSTOM DOMAIN    : !CUSTOM_DOMAIN!
+echo     ROOT FOLDER      : !BASE_DIR!
+echo     ROOT CODE FOLDER : !APP_DIR!
 echo =======================================================================
 echo   [1] Bật web (Mở !APP_URL!)
 echo   [2] Tắt web
-echo   [3] Cài đặt / Khởi tạo môi trường độc lập
-echo   [4] Cập nhật mã nguồn
-echo   [5] Xóa cài đặt hoàn toàn
-echo   [6] Cấu hình tên miền (Cần quyền Admin)
-echo   [0] Thoát
+echo   [3] Install (Tạo folder CODE)
+echo   [4] Update
+echo   [5] Uninstall (Xóa folder CODE)
+echo   [6] Config Domain (Cần quyền Admin)
+echo   [0] Exit
 echo =======================================================================
-set /p "choice=Nhập lựa chọn (0-6): "
+set /p "choice= Select (0-6): "
 
 :DISPATCH
 if "%choice%"=="1" goto START_APP
@@ -126,7 +158,7 @@ if exist "!APP_DIR!\runtime\python.exe" (
     "!APP_DIR!\runtime\python.exe" -c "import sys" >nul 2>&1
     if !errorlevel! equ 0 (
         set "PY_RUN=!APP_DIR!\runtime\python.exe"
-        echo [INFO] Python Portable dang thieu thu vien, tu dong cai dat...
+        echo [INFO] Python Portable đang thiếu thư viện, tự động cài đặt...
         call :INSTALL_DEPS
         exit /b 0
     )
@@ -140,7 +172,7 @@ if exist "!APP_DIR!\.venv\Scripts\python.exe" (
     "!APP_DIR!\.venv\Scripts\python.exe" -c "import sys" >nul 2>&1
     if !errorlevel! equ 0 (
         set "PY_RUN=!APP_DIR!\.venv\Scripts\python.exe"
-        echo [INFO] Python .venv dang thieu thu vien, tu dong cai dat...
+        echo [INFO] Python .venv đang thiếu thư viện, tự động cài đặt...
         call :INSTALL_DEPS
         exit /b 0
     )
@@ -154,7 +186,7 @@ if exist "!APP_DIR!\venv\Scripts\python.exe" (
     "!APP_DIR!\venv\Scripts\python.exe" -c "import sys" >nul 2>&1
     if !errorlevel! equ 0 (
         set "PY_RUN=!APP_DIR!\venv\Scripts\python.exe"
-        echo [INFO] Python venv dang thieu thu vien, tu dong cai dat...
+        echo [INFO] Python venv đang thiếu thư viện, tự động cài đặt...
         call :INSTALL_DEPS
         exit /b 0
     )
@@ -164,6 +196,10 @@ exit /b 0
 :START_APP
 call :CHECK_STATUS_INTERNAL
 if "!IS_RUNNING!"=="1" (
+
+set "CUSTOM_DOMAIN=!APP_URL!"
+findstr /C:"translate.local" "%HOSTS_FILE%" >nul 2>&1
+if !errorlevel! equ 0 set "CUSTOM_DOMAIN=http://translate.local"
     echo GeminiTrans đang chạy sẵn. Đang mở trình duyệt...
     start "" !APP_URL!
     if not "%~1"=="" exit /b 0
@@ -172,7 +208,7 @@ if "!IS_RUNNING!"=="1" (
 
 if not exist "!APP_DIR!\app.py" (
     echo [INFO] Chưa tìm thấy mã nguồn ứng dụng tại: !APP_DIR!
-    echo [INFO] Đang tự động tải và thiết lập môi trường độc lập...
+    echo [INFO] Đang tự động tải và thiết lập môi trường trong thư mục CODE...
     if not exist "!APP_DIR!" mkdir "!APP_DIR!"
     cd /d "!APP_DIR!"
     call :SYNC_SOURCE_CODE
@@ -196,7 +232,7 @@ if exist "docker-compose.yml" (
 )
 
 if "!DOCKER_SUCCESS!"=="0" (
-    echo [INFO] Docker Engine không chạy hoặc không có. Khởi chạy bằng Python cục bộ...
+    echo [INFO] Khởi chạy bằng Python cục bộ từ thư mục CODE...
 )
 
 call :FIND_PYTHON
@@ -254,6 +290,11 @@ pause
 goto MENU
 
 :STOP_APP
+echo.
+echo [*] Đang gửi yêu cầu dừng an toàn tới GeminiTrans...
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "try { $resp = Invoke-RestMethod -Uri 'http://127.0.0.1:!APP_PORT!/api/shutdown' -Method POST -TimeoutSec 2; Write-Host '[OK] May chu dang dong an toan.' } catch {}" >nul 2>&1
+
 cd /d "!APP_DIR!" 2>nul
 if exist "docker-compose.yml" (
     docker info >nul 2>&1
@@ -262,12 +303,30 @@ if exist "docker-compose.yml" (
     )
 )
 
+echo [*] Đang giải phóng cổng kết nối !APP_PORT!...
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "$port = [int]'!APP_PORT!'; " ^
+  "try { " ^
+  "    Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | " ^
+  "    ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue } " ^
+  "} catch {}" >nul 2>&1
+
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr /R /C:":!APP_PORT! .*LISTENING"') do (
     taskkill /f /pid %%a >nul 2>&1
 )
 
+echo [*] Dọn dẹp các tiến trình nền liên quan...
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "$appPath = [System.IO.Path]::GetFullPath('!APP_DIR!').TrimEnd(''); " ^
+  "Get-CimInstance Win32_Process | Where-Object { " ^
+  "    $cmd = $_.CommandLine; " ^
+  "    $cmd -and ($cmd -like ('*' + $appPath + '*')) -and ($cmd -like '*uvicorn*' -or $cmd -like '*app:app*') -and ($_.ProcessId -ne $PID) " ^
+  "} | Stop-Process -Force -ErrorAction SilentlyContinue" >nul 2>&1
+
 ping -n 2 127.0.0.1 >nul
-echo Đã tắt web thành công.
+echo =======================================================================
+echo [OK] Đã tắt web thành công và giải phóng cổng !APP_PORT!.
+echo =======================================================================
 if not "%~1"=="" exit /b 0
 ping -n 2 127.0.0.1 >nul
 goto MENU
@@ -277,9 +336,14 @@ cls
 echo =======================================================================
 echo                        CÀI ĐẶT GEMINITRANS
 echo =======================================================================
-echo Chọn thư mục cài đặt:
-echo   [1] Thư mục hiện tại: !CURRENT_DIR!
-echo   [2] Nhập đường dẫn tùy chọn (nhập path mới)
+echo Thư mục gốc chứa file quản lý: !BASE_DIR!
+echo Toàn bộ mã nguồn và môi trường sẽ được tạo tập trung trong:
+echo   !BASE_DIR!\CODE
+echo (Khi cần gỡ cài đặt, chỉ cần xóa duy nhất thư mục CODE là sạch 100%%)
+echo.
+echo Chọn thư mục cài đặt gốc:
+echo   [1] Thư mục hiện tại: !BASE_DIR!
+echo   [2] Nhập đường dẫn tùy chọn khác
 echo   Hoặc dán trực tiếp đường dẫn thư mục vào đây (vd: D:\App\Translate)
 echo =======================================================================
 set "DIR_CHOICE=1"
@@ -287,30 +351,55 @@ set /p "DIR_CHOICE=Nhập lựa chọn (1/2 hoặc dán path, Mặc định 1): 
 set "DIR_CHOICE=!DIR_CHOICE:"=!"
 
 if "!DIR_CHOICE!"=="1" (
-    set "APP_DIR=!CURRENT_DIR!"
+    set "TARGET_BASE=!BASE_DIR!"
 ) else if "!DIR_CHOICE!"=="2" (
     set "CUSTOM_DIR="
     set /p "CUSTOM_DIR=Nhập đường dẫn thư mục muốn lưu: "
     set "CUSTOM_DIR=!CUSTOM_DIR:"=!"
     if not "!CUSTOM_DIR!"=="" (
-        set "APP_DIR=!CUSTOM_DIR!"
+        set "TARGET_BASE=!CUSTOM_DIR!"
     ) else (
-        set "APP_DIR=!CURRENT_DIR!"
+        set "TARGET_BASE=!BASE_DIR!"
     )
 ) else if not "!DIR_CHOICE!"=="" (
-    set "APP_DIR=!DIR_CHOICE!"
+    set "TARGET_BASE=!DIR_CHOICE!"
 ) else (
-    set "APP_DIR=!CURRENT_DIR!"
+    set "TARGET_BASE=!BASE_DIR!"
 )
 
-if "!APP_DIR:~-1!"=="\" set "APP_DIR=!APP_DIR:~0,-1!"
-if "!APP_DIR:~-1!"=="/" set "APP_DIR=!APP_DIR:~0,-1!"
+if "!TARGET_BASE:~-1!"=="\" set "TARGET_BASE=!TARGET_BASE:~0,-1!"
+if "!TARGET_BASE:~-1!"=="/" set "TARGET_BASE=!TARGET_BASE:~0,-1!"
 
-echo !APP_DIR!>"%CONFIG_PATH_FILE%"
-echo Thư mục cài đặt: !APP_DIR!
-echo.
+if /i "!TARGET_BASE:~-5!"=="\CODE" (
+    set "APP_DIR=!TARGET_BASE!"
+    set "BASE_DIR=!TARGET_BASE:~0,-5!"
+) else if /i "!TARGET_BASE:~-5!"=="/CODE" (
+    set "APP_DIR=!TARGET_BASE!"
+    set "BASE_DIR=!TARGET_BASE:~0,-5!"
+) else (
+    set "BASE_DIR=!TARGET_BASE!"
+    set "APP_DIR=!BASE_DIR!\CODE"
+)
 
+if not exist "!BASE_DIR!" mkdir "!BASE_DIR!"
 if not exist "!APP_DIR!" mkdir "!APP_DIR!"
+
+echo !APP_DIR!>"!BASE_DIR!\.install_path"
+if not "!BASE_DIR!"=="!CURRENT_DIR!" (
+    echo !APP_DIR!>"%CONFIG_PATH_FILE%"
+)
+
+if exist "%~f0" (
+    if not "%~f0"=="!BASE_DIR!\Gemini_Translate.cmd" (
+        copy /y "%~f0" "!BASE_DIR!\Gemini_Translate.cmd" >nul 2>&1
+    )
+    copy /y "%~f0" "!APP_DIR!\Gemini_Translate.cmd" >nul 2>&1
+)
+
+echo.
+echo Thư mục gốc: !BASE_DIR!
+echo Thư mục CODE: !APP_DIR!
+echo.
 cd /d "!APP_DIR!"
 
 call :SYNC_SOURCE_CODE
@@ -320,7 +409,7 @@ call :ENSURE_ENV_CONFIG
 echo.
 echo Địa chỉ truy cập ứng dụng: !APP_URL! (Hoạt động độc lập 100%%, không cần Admin)
 echo Đang tạo phím tắt trên Desktop...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut([System.IO.Path]::Combine([Environment]::GetFolderPath('Desktop'), 'GeminiTrans.lnk')); $s.TargetPath = '%~f0'; $s.Arguments = '1'; $s.WorkingDirectory = '%~dp0'; $s.Description = 'GeminiTrans (http://localhost:8090)'; $s.Save()" >nul 2>&1
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut([System.IO.Path]::Combine([Environment]::GetFolderPath('Desktop'), 'GeminiTrans.lnk')); $s.TargetPath = '!BASE_DIR!\Gemini_Translate.cmd'; $s.Arguments = '1'; $s.WorkingDirectory = '!BASE_DIR!'; $s.Description = 'GeminiTrans (http://localhost:8090)'; $s.Save()" >nul 2>&1
 
 echo =======================================================================
 echo Cài đặt hoàn tất! Bạn có thể bật ứng dụng ngay bây giờ.
@@ -330,7 +419,7 @@ goto MENU
 
 :SYNC_SOURCE_CODE
 if exist "app.py" (
-    echo Đã có sẵn mã nguồn ứng dụng trong thư mục.
+    echo Đã có sẵn mã nguồn ứng dụng trong thư mục CODE.
     exit /b 0
 )
 
@@ -357,10 +446,10 @@ for /f "delims=" %%a in ('dir /b /a 2^>nul') do (
 
 :PROCEED_GIT_DOWNLOAD
 if "!IS_EMPTY!"=="1" (
-    echo Đang tải mã nguồn từ GitHub qua Git...
+    echo Đang tải mã nguồn từ GitHub qua Git vào thư mục CODE...
     git clone "!REPO_URL!" .
 ) else (
-    echo Thư mục đã có tệp tin. Đang khởi tạo và đồng bộ mã nguồn Git...
+    echo Thư mục CODE đã có tệp tin. Đang khởi tạo và đồng bộ mã nguồn Git...
     git init >nul 2>&1
     git remote add origin "!REPO_URL!" >nul 2>&1
     git remote set-url origin "!REPO_URL!" >nul 2>&1
@@ -374,7 +463,7 @@ if "!IS_EMPTY!"=="1" (
 exit /b 0
 
 :DOWNLOAD_ZIP_SOURCE
-echo Đang tải mã nguồn bản nén ZIP từ GitHub...
+echo Đang tải mã nguồn bản nén ZIP từ GitHub vào thư mục CODE...
 set "TEMP_ZIP=%TEMP%\geminitrans_main_%RANDOM%.zip"
 set "TEMP_EXTRACT=%TEMP%\geminitrans_ext_%RANDOM%"
 powershell -NoProfile -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; (New-Object System.Net.WebClient).DownloadFile('!REPO_ZIP_URL!', '!TEMP_ZIP!'); Expand-Archive -Path '!TEMP_ZIP!' -DestinationPath '!TEMP_EXTRACT!' -Force; Copy-Item -Path '!TEMP_EXTRACT!\translate-project-main\*' -Destination '!APP_DIR!' -Recurse -Force; Remove-Item -Path '!TEMP_EXTRACT!' -Recurse -Force; Remove-Item -Path '!TEMP_ZIP!' -Force"
@@ -385,24 +474,39 @@ call :FIND_PYTHON
 if not "!PY_RUN!"=="" goto INSTALL_DEPS
 
 set "SYS_PY="
-python -c "import sys" >nul 2>&1
-if !errorlevel! equ 0 (
-    set "SYS_PY=python"
-) else (
-    py -c "import sys" >nul 2>&1
-    if !errorlevel! equ 0 (
-        set "SYS_PY=py"
+rem Ưu tiên kiểm tra Python thực thụ từ uv (AppData/Local)
+for /f "delims=" %%p in ('dir /b /s "%APPDATA%\uv\python\python.exe" "%LOCALAPPDATA%\uv\python\python.exe" 2^>nul') do (
+    if exist "%%p" (
+        "%%p" -c "import sys" >nul 2>&1
+        if !errorlevel! equ 0 (
+            set "SYS_PY=%%p"
+            goto FOUND_SYS_PY
+        )
     )
 )
 
+rem Kiểm tra Python hệ thống thực thụ (loại trừ Windows Store stub)
+python -c "import sys" >nul 2>&1
+if !errorlevel! equ 0 (
+    set "SYS_PY=python"
+    goto FOUND_SYS_PY
+)
+
+py -c "import sys" >nul 2>&1
+if !errorlevel! equ 0 (
+    set "SYS_PY=py"
+    goto FOUND_SYS_PY
+)
+
+:FOUND_SYS_PY
 if not "!SYS_PY!"=="" (
     echo Phát hiện Python trên hệ thống: !SYS_PY!
     echo Đang khởi tạo môi trường Python virtualenv độc lập cho ứng dụng...
-    if not exist "!APP_DIR!\venv\Scripts\python.exe" (
-        "!SYS_PY!" -m venv "!APP_DIR!\venv" >nul 2>&1
+    if not exist "!APP_DIR!\.venv\Scripts\python.exe" (
+        "!SYS_PY!" -m venv "!APP_DIR!\.venv" >nul 2>&1
     )
-    if exist "!APP_DIR!\venv\Scripts\python.exe" (
-        set "PY_RUN=!APP_DIR!\venv\Scripts\python.exe"
+    if exist "!APP_DIR!\.venv\Scripts\python.exe" (
+        set "PY_RUN=!APP_DIR!\.venv\Scripts\python.exe"
         goto INSTALL_DEPS
     )
 )
@@ -488,20 +592,22 @@ goto MENU
 :UNINSTALL_APP
 cls
 echo =====================================================================
-echo                            XOA CAI DAT DU AN
+echo                         XÓA CÀI ĐẶT DỰ ÁN
 echo =====================================================================
-echo Thu muc cai dat: !APP_DIR!
+echo Thư mục gốc: !BASE_DIR!
+echo Thư mục CODE sẽ xóa: !APP_DIR!
 echo.
-echo Luu y:
-echo - Toan bo ma nguon, moi truong venv va du lieu du an se bi xoa sach.
-echo - Duy nhat file 'Gemini_Translate.cmd' se duoc giu lai tai thu muc nay
-echo   de ban co the cai dat lai bat cu luc nao.
+echo Lưu ý:
+echo - Thư mục 'CODE' (chứa toàn bộ mã nguồn, thư viện ảo, cache) sẽ bị xóa sạch.
+echo - File 'Gemini_Translate.cmd' và thư mục 'Docs' ở ngoài được giữ nguyên vẹn 100%%.
+echo - Bạn có thể cài đặt lại ứng dụng bất kỳ lúc nào chỉ bằng cách mở lại file cmd.
 echo =====================================================================
-set /p "confirm=Ban co chac chan muon xoa sach cai dat? (Y/N): "
+set "confirm="
+set /p "confirm=Bạn có chắc chắn muốn xóa thư mục CODE? (Y/N, mặc định N): "
 if /i not "!confirm!"=="Y" goto MENU
 
 echo.
-echo [*] Dang dung tien trinh dich vu va web server...
+echo [*] Đang dừng tiến trình dịch vụ và web server...
 call :STOP_APP >nul 2>&1
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
@@ -513,28 +619,37 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 
 cd /d "%TEMP%"
 
-if not exist "!APP_DIR!\Gemini_Translate.cmd" (
-    if exist "%~f0" copy /y "%~f0" "!APP_DIR!\Gemini_Translate.cmd" >nul 2>&1
+if exist "%~f0" (
+    if not exist "!BASE_DIR!\Gemini_Translate.cmd" (
+        copy /y "%~f0" "!BASE_DIR!\Gemini_Translate.cmd" >nul 2>&1
+    )
 )
 
-echo [*] Dang xoa toan bo cac file va thu muc du an (giu lai Gemini_Translate.cmd)...
+echo [*] Đang xóa thư mục CODE...
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "$appDir = [System.IO.Path]::GetFullPath('!APP_DIR!'); " ^
   "if (Test-Path -LiteralPath $appDir) { " ^
-  "    Get-ChildItem -LiteralPath $appDir -Force | Where-Object { $_.Name -ne 'Gemini_Translate.cmd' } | ForEach-Object { " ^
-  "        try { " ^
-  "            $_.Attributes = 'Normal'; " ^
-  "            if ($_.PSIsContainer) { Get-ChildItem -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.Attributes = 'Normal' } } " ^
-  "            Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction Stop " ^
-  "        } catch { " ^
-  "            try { Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue } catch {} " ^
+  "    if ($appDir -match '(?i)[\/\\]CODE$') { " ^
+  "        Get-ChildItem -LiteralPath $appDir -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.Attributes = 'Normal' }; " ^
+  "        Remove-Item -LiteralPath $appDir -Recurse -Force -ErrorAction SilentlyContinue; " ^
+  "    } else { " ^
+  "        if (Test-Path -LiteralPath (Join-Path $appDir 'CODE')) { " ^
+  "            Remove-Item -LiteralPath (Join-Path $appDir 'CODE') -Recurse -Force -ErrorAction SilentlyContinue; " ^
   "        } " ^
-  "    }; " ^
-  "    $leftover = Get-ChildItem -LiteralPath $appDir -Force | Where-Object { $_.Name -ne 'Gemini_Translate.cmd' }; " ^
-  "    if ($leftover) { $leftover | ForEach-Object { try { Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue } catch {} } } " ^
+  "        Get-ChildItem -LiteralPath $appDir -Force | Where-Object { $_.Name -ne 'Gemini_Translate.cmd' -and $_.Name -ne 'Docs' } | ForEach-Object { " ^
+  "            try { " ^
+  "                $_.Attributes = 'Normal'; " ^
+  "                if ($_.PSIsContainer) { Get-ChildItem -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object { $_.Attributes = 'Normal' } } " ^
+  "                Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction Stop " ^
+  "            } catch { " ^
+  "                try { Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction SilentlyContinue } catch {} " ^
+  "            } " ^
+  "        }; " ^
+  "    } " ^
   "}"
 
 if exist "%CONFIG_PATH_FILE%" del /f /q "%CONFIG_PATH_FILE%" >nul 2>&1
+if exist "!BASE_DIR!\.install_path" del /f /q "!BASE_DIR!\.install_path" >nul 2>&1
 set "DESKTOP_LNK=%USERPROFILE%\Desktop\GeminiTrans.lnk"
 if exist "!DESKTOP_LNK!" del /f /q "!DESKTOP_LNK!" >nul 2>&1
 
@@ -543,13 +658,13 @@ if !errorlevel! equ 0 (
     powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Start-Process cmd -ArgumentList '/c (powershell -Command \"\"(Get-Content -Path $env:windir\System32\drivers\etc\hosts) | Where-Object { $_ -notmatch ''translate.local'' } | Set-Content -Path $env:windir\System32\drivers\etc\hosts\"\" ) & (netsh interface portproxy delete v4tov4 listenport=80 listenaddress=127.0.0.1 >nul 2>&1)' -Verb RunAs -Wait -ErrorAction Stop } catch {}" >nul 2>&1
 )
 
-cd /d "!APP_DIR!" 2>nul
+cd /d "!BASE_DIR!" 2>nul
 echo.
 echo =====================================================================
-echo [THANH CONG] Da xoa sach toan bo du an thanh cong!
-echo Thu muc hien tai chi con duy nhat file:
-echo   !APP_DIR!\Gemini_Translate.cmd
-echo Ban co the chay lai file nay de cai dat moi bat cu khi nao.
+echo [THÀNH CÔNG] Đã xóa toàn bộ thư mục CODE sạch sẽ 100%%!
+echo Thư mục gốc vẫn giữ lại file:
+echo   !BASE_DIR!\Gemini_Translate.cmd
+echo Bạn có thể chạy lại file này để cài đặt mới bất cứ khi nào.
 echo =====================================================================
 pause
 goto MENU
