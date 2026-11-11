@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
 # Sao chép đặc tả dependency
-COPY pyproject.toml .
+COPY pyproject.toml requirements.txt* ./
 
 # Cài đặt toàn bộ dependencies vào system environment
 RUN uv pip install --system --no-cache -r pyproject.toml
