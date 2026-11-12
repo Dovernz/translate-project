@@ -65,11 +65,6 @@ def get_video_info(url: str) -> Dict[str, Any]:
         'no_warnings': True,
         'noplaylist': True,
         'skip_download': True,
-        'extractor_args': {
-            'youtube': {
-                'player_client': ['android', 'ios', 'mweb', 'web']
-            }
-        }
     }
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -114,11 +109,6 @@ def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict
         'subtitleslangs': ['en', 'vi', 'ko', 'ja', 'zh'],
         'subtitlesformat': 'vtt',
         'outtmpl': sub_path_template,
-        'extractor_args': {
-            'youtube': {
-                'player_client': ['android', 'ios', 'mweb', 'web']
-            }
-        }
     }
     try:
         try:
@@ -208,17 +198,7 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
         'no_warnings': True,
         'outtmpl': output_template,
     }
-    ydl_profiles = [
-        base_ydl_opts,
-        {
-            **base_ydl_opts,
-            'extractor_args': {
-                'youtube': {
-                    'player_client': ['android', 'ios', 'mweb', 'web']
-                }
-            }
-        },
-    ]
+    ydl_profiles = [base_ydl_opts]
     download_errors = []
 
     def remove_partial_downloads():
@@ -284,17 +264,7 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
             'preferredquality': '192',
         }],
     }
-    audio_profiles = [
-        base_audio_opts,
-        {
-            **base_audio_opts,
-            'extractor_args': {
-                'youtube': {
-                    'player_client': ['android', 'ios']
-                }
-            }
-        },
-    ]
+    audio_profiles = [base_audio_opts]
 
     for profile_index, ydl_audio_opts in enumerate(audio_profiles):
         try:
