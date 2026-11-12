@@ -6,6 +6,7 @@ import json
 import uuid
 import shutil
 import asyncio
+import importlib.metadata
 import subprocess
 from pathlib import Path
 from typing import Dict, Any, List, Optional
@@ -90,6 +91,37 @@ def get_video_info(url: str) -> Dict[str, Any]:
             "youtube_id": yt_id,
             "error": str(e)
         }
+
+def _bgutil_ytdlp_fallback_options(base_options: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Build the opt-in mweb/bgutil retry only when its runtime is installed."""
+    if os.getenv("BGUTIL_YTDLP_FALLBACK", "").strip().lower() not in {"1", "true", "yes"}:
+        return None
+
+    server_home = os.getenv("BGUTIL_YTDLP_SERVER_HOME", "").strip()
+    if not server_home:
+        safe_log("[WARN] BGUTIL YouTube fallback is enabled but BGUTIL_YTDLP_SERVER_HOME is not set")
+        return None
+
+    server_path = Path(server_home)
+    if not (server_path / "src" / "main.ts").is_file() or not (server_path / "node_modules").is_dir():
+        safe_log(f"[WARN] BGUTIL YouTube fallback provider files are missing from {server_path}")
+        return None
+    if not shutil.which("deno"):
+        safe_log("[WARN] BGUTIL YouTube fallback is enabled but Deno is unavailable")
+        return None
+    try:
+        importlib.metadata.version("bgutil-ytdlp-pot-provider")
+    except importlib.metadata.PackageNotFoundError:
+        safe_log("[WARN] BGUTIL YouTube fallback is enabled but the yt-dlp provider package is not installed")
+        return None
+
+    return {
+        **base_options,
+        "extractor_args": {
+            "youtube": {"player_client": ["mweb"]},
+            "youtubepot-bgutilscript": {"server_home": [str(server_path)]},
+        },
+    }
 
 def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict[str, Any]]]:
     """
@@ -199,6 +231,9 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
         'outtmpl': output_template,
     }
     ydl_profiles = [base_ydl_opts]
+    bgutil_profile = _bgutil_ytdlp_fallback_options(base_ydl_opts)
+    if bgutil_profile:
+        ydl_profiles.append(bgutil_profile)
     download_errors = []
 
     def remove_partial_downloads():
@@ -265,6 +300,9 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
         }],
     }
     audio_profiles = [base_audio_opts]
+    bgutil_audio_profile = _bgutil_ytdlp_fallback_options(base_audio_opts)
+    if bgutil_audio_profile:
+        audio_profiles.append(bgutil_audio_profile)
 
     for profile_index, ydl_audio_opts in enumerate(audio_profiles):
         try:

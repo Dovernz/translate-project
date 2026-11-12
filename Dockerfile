@@ -15,7 +15,17 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     curl \
+    git \
+    && git clone --quiet --depth 1 --branch 2.0.2 https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /opt/bgutil-ytdlp-pot-provider \
+    && test "$(git -C /opt/bgutil-ytdlp-pot-provider rev-parse HEAD)" = "26475e9d3665b972c4aeb83b4dbaafcf64b88438" \
+    && cd /opt/bgutil-ytdlp-pot-provider/server \
+    && deno install --allow-scripts=npm:canvas --frozen \
+    && rm -rf /opt/bgutil-ytdlp-pot-provider/.git \
+    && apt-get purge -y --auto-remove git \
     && rm -rf /var/lib/apt/lists/*
+
+ENV BGUTIL_YTDLP_FALLBACK=1 \
+    BGUTIL_YTDLP_SERVER_HOME=/opt/bgutil-ytdlp-pot-provider/server
 
 # Cài đặt uv siêu tốc từ astral-sh
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv

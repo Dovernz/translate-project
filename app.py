@@ -154,6 +154,19 @@ def get_runtime_info():
         ejs_version = version("yt-dlp-ejs")
     except PackageNotFoundError:
         ejs_version = None
+    try:
+        bgutil_version = version("bgutil-ytdlp-pot-provider")
+    except PackageNotFoundError:
+        bgutil_version = None
+
+    bgutil_home = os.environ.get("BGUTIL_YTDLP_SERVER_HOME", "")
+    bgutil_server_path = Path(bgutil_home) if bgutil_home else None
+    bgutil_script_available = bool(
+        bgutil_server_path
+        and (bgutil_server_path / "src" / "main.ts").is_file()
+        and (bgutil_server_path / "node_modules").is_dir()
+        and shutil.which("deno")
+    )
 
     return {
         "render": os.environ.get("RENDER") == "true",
@@ -163,6 +176,10 @@ def get_runtime_info():
         "yt_dlp_ejs_version": ejs_version,
         "deno_available": shutil.which("deno") is not None,
         "node_available": shutil.which("node") is not None,
+        "bgutil_ytdlp_version": bgutil_version,
+        "bgutil_fallback_enabled": os.environ.get("BGUTIL_YTDLP_FALLBACK", "").strip().lower()
+        in {"1", "true", "yes"},
+        "bgutil_script_available": bgutil_script_available,
     }
 
 @app.post("/api/shutdown")
