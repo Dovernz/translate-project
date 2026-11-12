@@ -121,9 +121,12 @@ def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict
         }
     }
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-            
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+        except Exception as e:
+            safe_log(f"[WARN] Tải một số phụ đề thất bại, kiểm tra phụ đề đã tải được: {e}")
+
         vtt_files = list(output_dir.glob(f"{tmp_id}_sub.*.vtt"))
         if not vtt_files:
             return None
@@ -181,16 +184,16 @@ def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict
                 "translated": ""
             })
 
-        try:
-            for vf in vtt_files:
-                vf.unlink(missing_ok=True)
-        except Exception:
-            pass
-            
         return subs if len(subs) > 0 else None
     except Exception as e:
         safe_log(f"[DEBUG] Lỗi trích xuất auto-subs: {e}")
         return None
+    finally:
+        for vtt_file in output_dir.glob(f"{tmp_id}_sub.*.vtt"):
+            try:
+                vtt_file.unlink(missing_ok=True)
+            except OSError as e:
+                safe_log(f"[WARN] Không thể xóa phụ đề tạm {vtt_file}: {e}")
 
 def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
