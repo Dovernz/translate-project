@@ -209,6 +209,7 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
         'outtmpl': output_template,
     }
     ydl_profiles = [
+        base_ydl_opts,
         {
             **base_ydl_opts,
             'extractor_args': {
@@ -217,7 +218,6 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
                 }
             }
         },
-        base_ydl_opts,
     ]
     download_errors = []
 
@@ -285,6 +285,7 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
         }],
     }
     audio_profiles = [
+        base_audio_opts,
         {
             **base_audio_opts,
             'extractor_args': {
@@ -293,7 +294,6 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
                 }
             }
         },
-        base_audio_opts,
     ]
 
     for profile_index, ydl_audio_opts in enumerate(audio_profiles):

@@ -2,6 +2,7 @@
 # GeminiTrans Multi-Modal Translator Dockerfile
 # ==========================================
 FROM python:3.12-slim
+COPY --from=denoland/deno:bin-2.9.8 /deno /usr/local/bin/deno
 
 # Thiết lập môi trường không đệm stdout và không sinh pyc rác
 ENV PYTHONUNBUFFERED=1 \
