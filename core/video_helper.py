@@ -199,74 +199,112 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
     video_id = str(uuid.uuid4())[:8]
     output_template = str(output_dir / f"{video_id}_%(title).50s.%(ext)s")
-    
-    ydl_opts = {
+
+    base_ydl_opts = {
         'format': 'bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bestvideo+bestaudio/best',
         'merge_output_format': 'mp4',
         'noplaylist': True,
         'quiet': True,
         'no_warnings': True,
         'outtmpl': output_template,
-        'extractor_args': {
-            'youtube': {
-                'player_client': ['android', 'ios', 'mweb', 'web']
-            }
-        }
     }
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-            
-        matches = list(output_dir.glob(f"{video_id}_*"))
-        video_matches = [f for f in matches if f.suffix.lower() in [".mp4", ".mkv", ".webm", ".mov", ".m4v"]]
-        if video_matches:
-            saved_file = video_matches[0]
-            audio_path = output_dir / f"{video_id}_audio.mp3"
-            extract_audio_from_video(saved_file, audio_path)
-            
-            return {
-                "success": True,
-                "video_id": video_id,
-                "filename": saved_file.name,
-                "video_url": f"/uploads/{saved_file.name}",
-                "size_bytes": saved_file.stat().st_size
-            }
-        elif matches:
-            saved_file = matches[0]
-            return {
-                "success": True,
-                "video_id": video_id,
-                "filename": saved_file.name,
-                "video_url": f"/uploads/{saved_file.name}",
-                "size_bytes": saved_file.stat().st_size
-            }
-    except Exception as e:
-        err_msg = str(e)
-        safe_log(f"[ERROR] Tải video thất bại: {err_msg}")
-        fb_err = ""
-        try:
-            audio_template = str(output_dir / f"{video_id}_audio.%(ext)s")
-            ydl_audio_opts = {
-                'format': 'bestaudio/ba/b/best',
-                'noplaylist': True,
-                'quiet': True,
-                'no_warnings': True,
-                'outtmpl': audio_template,
-                'postprocessors': [{
-                    'key': 'FFmpegExtractAudio',
-                    'preferredcodec': 'mp3',
-                    'preferredquality': '192',
-                }],
-                'extractor_args': {
-                    'youtube': {
-                        'player_client': ['android', 'ios']
-                    }
+    ydl_profiles = [
+        {
+            **base_ydl_opts,
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'ios', 'mweb', 'web']
                 }
             }
+        },
+        base_ydl_opts,
+    ]
+    download_errors = []
+
+    def remove_partial_downloads():
+        for path in output_dir.glob(f"{video_id}_*"):
+            try:
+                path.unlink(missing_ok=True)
+            except OSError as e:
+                safe_log(f"[WARN] Không thể xóa video tải dở {path}: {e}")
+
+    for profile_index, ydl_opts in enumerate(ydl_profiles):
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+
+            matches = [
+                path for path in output_dir.glob(f"{video_id}_*")
+                if path.is_file() and path.stat().st_size > 0
+            ]
+            video_matches = [
+                path for path in matches
+                if path.suffix.lower() in [".mp4", ".mkv", ".webm", ".mov", ".m4v"]
+            ]
+            if video_matches:
+                saved_file = video_matches[0]
+                audio_path = output_dir / f"{video_id}_audio.mp3"
+                extract_audio_from_video(saved_file, audio_path)
+
+                return {
+                    "success": True,
+                    "video_id": video_id,
+                    "filename": saved_file.name,
+                    "video_url": f"/uploads/{saved_file.name}",
+                    "size_bytes": saved_file.stat().st_size
+                }
+            if matches:
+                saved_file = matches[0]
+                return {
+                    "success": True,
+                    "video_id": video_id,
+                    "filename": saved_file.name,
+                    "video_url": f"/uploads/{saved_file.name}",
+                    "size_bytes": saved_file.stat().st_size
+                }
+
+            download_errors.append("yt-dlp không tạo được file video")
+        except Exception as e:
+            download_errors.append(str(e))
+            safe_log(f"[WARN] Tải video thất bại (profile {profile_index + 1}): {e}")
+
+        remove_partial_downloads()
+
+    fallback_errors = []
+    audio_template = str(output_dir / f"{video_id}_audio.%(ext)s")
+    base_audio_opts = {
+        'format': 'bestaudio/ba/b/best',
+        'noplaylist': True,
+        'quiet': True,
+        'no_warnings': True,
+        'outtmpl': audio_template,
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+    }
+    audio_profiles = [
+        {
+            **base_audio_opts,
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'ios']
+                }
+            }
+        },
+        base_audio_opts,
+    ]
+
+    for profile_index, ydl_audio_opts in enumerate(audio_profiles):
+        try:
             with yt_dlp.YoutubeDL(ydl_audio_opts) as ydl:
                 ydl.download([url])
-                
-            audio_matches = list(output_dir.glob(f"{video_id}_audio.*"))
+
+            audio_matches = [
+                path for path in output_dir.glob(f"{video_id}_audio.mp3")
+                if path.is_file() and path.stat().st_size > 0
+            ]
             if audio_matches:
                 audio_file = audio_matches[0]
                 return {
@@ -277,14 +315,18 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
                     "is_audio_only": True,
                     "size_bytes": audio_file.stat().st_size
                 }
-        except Exception as e2:
-            fb_err = str(e2)
-            safe_log(f"[ERROR] Fallback audio thất bại: {fb_err}")
 
-        detail_err = f"Lỗi tải video: {err_msg}" + (f" | Lỗi fallback audio: {fb_err}" if fb_err else "")
-        return {"success": False, "error": detail_err}
+            fallback_errors.append("yt-dlp không tạo được file audio MP3")
+        except Exception as e:
+            fallback_errors.append(str(e))
+            safe_log(f"[ERROR] Fallback audio thất bại (profile {profile_index + 1}): {e}")
 
-    return {"success": False, "error": "Không thể tải video từ đường dẫn này."}
+        remove_partial_downloads()
+
+    err_msg = download_errors[-1] if download_errors else "Không thể tải video từ đường dẫn này."
+    fb_err = fallback_errors[-1] if fallback_errors else ""
+    detail_err = f"Lỗi tải video: {err_msg}" + (f" | Lỗi fallback audio: {fb_err}" if fb_err else "")
+    return {"success": False, "error": detail_err}
 
 def extract_audio_from_video(video_path: Path, output_audio: Path) -> bool:
     output_audio.parent.mkdir(parents=True, exist_ok=True)

@@ -741,7 +741,7 @@
       <!-- Left: Hamburger Menu Button (ON LEFT) + Logo GeminiTrans -->
       <div class="flex items-center gap-3">
         <!-- Hamburger Menu Button on LEFT -->
-        <button id="btn-mobile-menu" onclick="toggleDrawer()" class="flex lg:hidden p-2 sm:px-3 sm:py-2 rounded-[8px] bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition cursor-pointer active:scale-95 items-center justify-center gap-2 shadow-sm min-h-[40px] min-w-[40px]" aria-label="Open menu" title="Menu & Cài đặt">
+        <button id="btn-mobile-menu" onclick="toggleDrawer()" class="flex lg:hidden p-2 sm:px-3 sm:py-2 rounded-[8px] bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 transition cursor-pointer active:scale-95 items-center justify-center gap-2 shadow-sm min-h-[40px] min-w-[40px]" aria-label="Open menu" aria-controls="mobile-drawer" aria-expanded="false" title="Menu & Cài đặt">
           <i data-lucide="menu" class="w-5 h-5"></i>
           <span class="hidden sm:inline-block text-xs font-medium text-slate-300" data-i18n="btn_menu_text">Menu</span>
         </button>
@@ -837,7 +837,7 @@
   <!-- ========================================== -->
   <!-- SLIDE-OVER DRAWER MENU (PC & MOBILE)       -->
   <!-- ========================================== -->
-  <div id="mobile-drawer" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+  <div id="mobile-drawer" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-hidden="true">
     <!-- Backdrop with blur -->
     <div id="mobile-drawer-backdrop" onclick="closeDrawer()" class="fixed inset-0 bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>
 
@@ -2980,25 +2980,49 @@ function switchTab(tab, updateUrl = true) {
 // Slide-over drawer controls
 function toggleDrawer() {
   const drawer = document.getElementById('mobile-drawer');
-  const backdrop = document.getElementById('mobile-backdrop');
-  if (!drawer || !backdrop) return;
-  const isOpen = !drawer.classList.contains('translate-x-full');
+  if (!drawer) return;
+  const isOpen = !drawer.classList.contains('hidden');
   if (isOpen) {
     closeDrawer();
   } else {
-    drawer.classList.remove('translate-x-full');
+    openDrawer();
+  }
+}
+
+function openDrawer() {
+  const drawer = document.getElementById('mobile-drawer');
+  const panel = document.getElementById('mobile-drawer-panel');
+  const backdrop = document.getElementById('mobile-drawer-backdrop');
+  const menuButton = document.getElementById('btn-mobile-menu');
+  if (!drawer || !panel || !backdrop) return;
+
+  drawer.classList.remove('hidden');
+  drawer.setAttribute('aria-hidden', 'false');
+  if (menuButton) menuButton.setAttribute('aria-expanded', 'true');
+  requestAnimationFrame(() => {
+    panel.classList.remove('-translate-x-full');
     backdrop.classList.remove('opacity-0', 'pointer-events-none');
     backdrop.classList.add('opacity-100');
-  }
+  });
 }
 
 function closeDrawer() {
   const drawer = document.getElementById('mobile-drawer');
-  const backdrop = document.getElementById('mobile-backdrop');
-  if (!drawer || !backdrop) return;
-  drawer.classList.add('translate-x-full');
+  const panel = document.getElementById('mobile-drawer-panel');
+  const backdrop = document.getElementById('mobile-drawer-backdrop');
+  const menuButton = document.getElementById('btn-mobile-menu');
+  if (!drawer || !panel || !backdrop || drawer.classList.contains('hidden')) return;
+
+  panel.classList.add('-translate-x-full');
   backdrop.classList.remove('opacity-100');
   backdrop.classList.add('opacity-0', 'pointer-events-none');
+  if (menuButton) menuButton.setAttribute('aria-expanded', 'false');
+  window.setTimeout(() => {
+    if (panel.classList.contains('-translate-x-full')) {
+      drawer.classList.add('hidden');
+      drawer.setAttribute('aria-hidden', 'true');
+    }
+  }, 300);
 }
 
 window.addEventListener('resize', () => {
