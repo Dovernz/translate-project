@@ -13,10 +13,12 @@ if hasattr(sys.stderr, 'reconfigure'):
         pass
 import re
 import os
+import shutil
 import time
 import uuid
 import json
 import asyncio
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException, Body, BackgroundTasks
@@ -145,6 +147,23 @@ def get_pool_status():
     if is_server_shutting_down:
         return {"status": "shutting_down", "total_keys": 0, "active_keys": 0, "keys": []}
     return pool.get_status()
+
+@app.get("/api/runtime-info")
+def get_runtime_info():
+    try:
+        ejs_version = version("yt-dlp-ejs")
+    except PackageNotFoundError:
+        ejs_version = None
+
+    return {
+        "render": os.environ.get("RENDER") == "true",
+        "revision": os.environ.get("RENDER_GIT_COMMIT", "unknown"),
+        "branch": os.environ.get("RENDER_GIT_BRANCH", "unknown"),
+        "yt_dlp_version": version("yt-dlp"),
+        "yt_dlp_ejs_version": ejs_version,
+        "deno_available": shutil.which("deno") is not None,
+        "node_available": shutil.which("node") is not None,
+    }
 
 @app.post("/api/shutdown")
 async def shutdown_server():
