@@ -56,7 +56,22 @@ class _YouTubeDiagnosticLogger:
         elif "failed while generating pot" in text or "failed to get a po token" in text:
             _record_youtube_diagnostic("token_generation_failed")
         elif "player response playability status:" in text:
-            _record_youtube_diagnostic("client_unplayable")
+            status_match = re.search(r"playability status:\s*([a-z_]+)", text)
+            status = status_match.group(1) if status_match else "unknown"
+            if status not in {
+                "ok",
+                "unplayable",
+                "login_required",
+                "error",
+                "age_check_required",
+                "content_check_required",
+                "live_stream_offline",
+                "video_unavailable",
+                "private",
+                "unlisted",
+            }:
+                status = "other"
+            _record_youtube_diagnostic(f"client_status_{status}")
         elif "downloading mweb player api json" in text:
             _record_youtube_diagnostic("mweb_player_requested")
         elif "downloading tv player api json" in text:
@@ -176,6 +191,7 @@ def _bgutil_ytdlp_fallback_options(base_options: Dict[str, Any]) -> Optional[Dic
 
     return {
         **base_options,
+        "verbose": True,
         "logger": _YouTubeDiagnosticLogger(),
         "extractor_args": {
             "youtube": {"player_client": ["mweb", "tv", "web_safari"]},
