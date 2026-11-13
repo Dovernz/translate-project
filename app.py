@@ -13,6 +13,7 @@ if hasattr(sys.stderr, 'reconfigure'):
         pass
 import re
 import os
+import gc
 import shutil
 import time
 import uuid
@@ -76,6 +77,8 @@ MANGA_UPLOAD_DIR = UPLOAD_DIR / "manga"
 MANGA_OUTPUT_DIR = OUTPUT_DIR / "manga"
 MANGA_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 MANGA_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+video_processing_semaphore = asyncio.Semaphore(2)
 
 
 async def _storage_cleanup_worker():
@@ -549,59 +552,62 @@ async def process_video_url(req: VideoProcessUrlRequest):
     if not url_str:
         return JSONResponse(status_code=200, content={"success": False, "error": "Vui lòng cung cấp link video", "detail": "Vui lòng cung cấp link video", "error_detail": "Empty URL"})
 
-    youtube_id = extract_youtube_id(url_str)
-    youtube_captions_attempted = False
-    last_caption_err = ""
-    try:
-        if youtube_id and req.target_lang in SUPPORTED_VIDEO_LANGUAGES:
-            youtube_captions_attempted = True
-            try:
-                subtitles = await _fetch_and_translate_youtube_captions(
-                    url_str,
-                    req.target_lang,
-                )
-                if subtitles:
-                    return {
-                        "success": True,
-                        "mode": "youtube_captions",
-                        "youtube_id": youtube_id,
-                        "subtitles": subtitles,
-                        "target_lang": req.target_lang,
-                    }
-            except Exception as caption_error:
-                last_caption_err = str(caption_error)
-                safe_log(f"[WARN] YouTube transcript-first processing failed: {caption_error}")
-
-        # Dọn dẹp ổ đĩa định kỳ để tránh tốn dung lượng
+    async with video_processing_semaphore:
+        youtube_id = extract_youtube_id(url_str)
+        youtube_captions_attempted = False
+        last_caption_err = ""
         try:
-            cleanup_storage(UPLOAD_DIR, OUTPUT_DIR, max_age_minutes=30)
-        except Exception as e_clean:
-            safe_log(f"[WARN] cleanup_storage error: {e_clean}")
+            if youtube_id and req.target_lang in SUPPORTED_VIDEO_LANGUAGES:
+                youtube_captions_attempted = True
+                try:
+                    subtitles = await _fetch_and_translate_youtube_captions(
+                        url_str,
+                        req.target_lang,
+                    )
+                    if subtitles:
+                        return {
+                            "success": True,
+                            "mode": "youtube_captions",
+                            "youtube_id": youtube_id,
+                            "subtitles": subtitles,
+                            "target_lang": req.target_lang,
+                        }
+                except Exception as caption_error:
+                    last_caption_err = str(caption_error)
+                    safe_log(f"[WARN] YouTube transcript-first processing failed: {caption_error}")
 
-        loop = asyncio.get_event_loop()
-        res = await loop.run_in_executor(None, download_video_from_url, url_str, UPLOAD_DIR)
-        if not res or not res.get("success"):
-            err_msg = (res.get("error") if res else None) or "Không thể tải video từ đường dẫn này."
+            # Dọn dẹp ổ đĩa định kỳ để tránh tốn dung lượng
+            try:
+                cleanup_storage(UPLOAD_DIR, OUTPUT_DIR, max_age_minutes=30)
+            except Exception as e_clean:
+                safe_log(f"[WARN] cleanup_storage error: {e_clean}")
+
+            loop = asyncio.get_event_loop()
+            res = await loop.run_in_executor(None, download_video_from_url, url_str, UPLOAD_DIR)
+            if not res or not res.get("success"):
+                err_msg = (res.get("error") if res else None) or "Không thể tải video từ đường dẫn này."
+                return JSONResponse(status_code=200, content={
+                    "success": False,
+                    "error": err_msg,
+                    "detail": err_msg,
+                    "error_detail": last_caption_err or err_msg,
+                    "youtube_captions_attempted": youtube_captions_attempted,
+                })
+            if youtube_captions_attempted:
+                res["youtube_captions_attempted"] = True
+            return res
+        except Exception as e:
+            safe_log(f"[ERROR] process_video_url error: {e}")
+            err_msg = f"Lỗi xử lý video: {str(e)}"
             return JSONResponse(status_code=200, content={
                 "success": False,
                 "error": err_msg,
                 "detail": err_msg,
-                "error_detail": last_caption_err or err_msg,
+                "error_detail": str(e),
                 "youtube_captions_attempted": youtube_captions_attempted,
             })
-        if youtube_captions_attempted:
-            res["youtube_captions_attempted"] = True
-        return res
-    except Exception as e:
-        safe_log(f"[ERROR] process_video_url error: {e}")
-        err_msg = f"Lỗi xử lý video: {str(e)}"
-        return JSONResponse(status_code=200, content={
-            "success": False,
-            "error": err_msg,
-            "detail": err_msg,
-            "error_detail": str(e),
-            "youtube_captions_attempted": youtube_captions_attempted,
-        })
+        finally:
+            gc.collect()
 
 @app.post("/api/video/youtube-captions")
 async def fetch_youtube_captions(req: YouTubeCaptionRequest):
@@ -613,22 +619,25 @@ async def fetch_youtube_captions(req: YouTubeCaptionRequest):
     if req.target_lang not in SUPPORTED_VIDEO_LANGUAGES:
         raise HTTPException(status_code=400, detail="Ngôn ngữ dịch phụ đề không được hỗ trợ.")
 
-    try:
-        subtitles = await _fetch_and_translate_youtube_captions(
-            url_str,
-            req.target_lang,
-        )
-    except Exception as e:
-        safe_log(f"[ERROR] YouTube caption processing failed: {e}")
-        return JSONResponse(
-            status_code=422,
-            content={
-                "success": False,
-                "detail": "Không thể tạo phụ đề YouTube lúc này. Vui lòng thử lại.",
-                "error_detail": str(e),
-                "subtitles": [],
-            },
-        )
+    async with video_processing_semaphore:
+        try:
+            subtitles = await _fetch_and_translate_youtube_captions(
+                url_str,
+                req.target_lang,
+            )
+        except Exception as e:
+            safe_log(f"[ERROR] YouTube caption processing failed: {e}")
+            return JSONResponse(
+                status_code=422,
+                content={
+                    "success": False,
+                    "detail": "Không thể tạo phụ đề YouTube lúc này. Vui lòng thử lại.",
+                    "error_detail": str(e),
+                    "subtitles": [],
+                },
+            )
+        finally:
+            gc.collect()
 
     if not subtitles:
         return JSONResponse(
@@ -650,6 +659,33 @@ async def fetch_youtube_captions(req: YouTubeCaptionRequest):
         "youtube_id": youtube_id,
         "target_lang": req.target_lang,
     }
+
+@app.post("/api/video/youtube-captions/stream")
+async def stream_youtube_captions_endpoint(req: YouTubeCaptionRequest):
+    """Streaming endpoint chống 502/Gateway Timeout: Stream từng sub cue hoặc status ping qua SSE."""
+    url_str = req.url.strip()
+    youtube_id = extract_youtube_id(url_str)
+    if not youtube_id:
+        raise HTTPException(status_code=400, detail="URL không phải video YouTube hợp lệ.")
+
+    async def event_generator():
+        yield f"data: {json.dumps({'type': 'status', 'message': 'Đang kết nối và trích xuất phụ đề YouTube...'}, ensure_ascii=False)}\n\n"
+        try:
+            async with video_processing_semaphore:
+                subtitles = await _fetch_and_translate_youtube_captions(url_str, req.target_lang)
+                if not subtitles:
+                    yield f"data: {json.dumps({'type': 'error', 'message': 'Không tìm thấy phụ đề cho video này.'}, ensure_ascii=False)}\n\n"
+                    return
+                for cue in subtitles:
+                    yield f"data: {json.dumps({'type': 'cue', 'cue': cue}, ensure_ascii=False)}\n\n"
+                    await asyncio.sleep(0.01)
+                yield f"data: {json.dumps({'type': 'done', 'total': len(subtitles), 'subtitles': subtitles}, ensure_ascii=False)}\n\n"
+        except Exception as stream_err:
+            yield f"data: {json.dumps({'type': 'error', 'message': str(stream_err)}, ensure_ascii=False)}\n\n"
+        finally:
+            gc.collect()
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @app.post("/api/video/transcribe-capture-chunk")
 async def transcribe_captured_video_audio(
@@ -751,44 +787,56 @@ async def upload_video(file: UploadFile = File(...)):
 
 @app.post("/api/video/auto-subtitle")
 async def auto_subtitle_video(req: AutoSubRequest):
-    loop = asyncio.get_event_loop()
-    return await process_auto_subtitle(req, pool, loop, UPLOAD_DIR, OUTPUT_DIR)
+    async with video_processing_semaphore:
+        try:
+            loop = asyncio.get_event_loop()
+            return await process_auto_subtitle(req, pool, loop, UPLOAD_DIR, OUTPUT_DIR)
+        finally:
+            gc.collect()
 
 @app.post("/api/video/translate-subtitles")
 async def translate_subtitles_endpoint(req: TranslateSubtitlesRequest):
-    return await process_translate_subtitles(req, pool, OUTPUT_DIR)
+    async with video_processing_semaphore:
+        try:
+            return await process_translate_subtitles(req, pool, OUTPUT_DIR)
+        finally:
+            gc.collect()
 
 @app.post("/api/video/burn-subtitles")
 async def burn_subtitles_endpoint(req: BurnSubRequest):
-    matches = [p for p in UPLOAD_DIR.glob(f"{req.video_id}_*") if not p.name.endswith(".mp3")]
-    if not matches:
-        raise HTTPException(status_code=404, detail="Không tìm thấy file video gốc để in phụ đề.")
-    
-    video_path = matches[0]
-    srt_path = OUTPUT_DIR / f"{req.video_id}.srt"
-    vtt_path = OUTPUT_DIR / f"{req.video_id}.vtt"
-    output_video_path = OUTPUT_DIR / f"{req.video_id}_subtitled.mp4"
+    async with video_processing_semaphore:
+        try:
+            matches = [p for p in UPLOAD_DIR.glob(f"{req.video_id}_*") if not p.name.endswith(".mp3")]
+            if not matches:
+                raise HTTPException(status_code=404, detail="Không tìm thấy file video gốc để in phụ đề.")
+            
+            video_path = matches[0]
+            srt_path = OUTPUT_DIR / f"{req.video_id}.srt"
+            vtt_path = OUTPUT_DIR / f"{req.video_id}.vtt"
+            output_video_path = OUTPUT_DIR / f"{req.video_id}_subtitled.mp4"
 
-    export_srt(req.subtitles, srt_path)
-    export_vtt(req.subtitles, vtt_path)
+            export_srt(req.subtitles, srt_path)
+            export_vtt(req.subtitles, vtt_path)
 
-    loop = asyncio.get_event_loop()
-    success = await loop.run_in_executor(
-        None,
-        burn_subtitles_to_video,
-        video_path,
-        srt_path,
-        output_video_path,
-        req.font_size,
-        req.text_color,
-        req.bg_color,
-        req.bg_opacity,
-        req.mask_old_sub,
-        req.vertical_margin
-    )
+            loop = asyncio.get_event_loop()
+            success = await loop.run_in_executor(
+                None,
+                burn_subtitles_to_video,
+                video_path,
+                srt_path,
+                output_video_path,
+                req.font_size,
+                req.text_color,
+                req.bg_color,
+                req.bg_opacity,
+                req.mask_old_sub,
+                req.vertical_margin
+            )
 
-    if not success or not output_video_path.exists():
-        raise HTTPException(status_code=500, detail="Không thể burn phụ đề vào video qua ffmpeg.")
+            if not success or not output_video_path.exists():
+                raise HTTPException(status_code=500, detail="Không thể burn phụ đề vào video qua ffmpeg.")
+        finally:
+            gc.collect()
 
     return {
         "status": "success",

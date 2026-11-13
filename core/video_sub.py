@@ -1,4 +1,5 @@
 import re
+import gc
 import json
 import asyncio
 from pathlib import Path
@@ -144,13 +145,6 @@ async def process_auto_subtitle(req: AutoSubRequest, pool, loop, upload_dir: Pat
             if not success or not audio_path.exists():
                 raise HTTPException(status_code=500, detail="Không thể trích xuất âm thanh từ video.")
 
-        with open(audio_path, "rb") as f:
-            audio_bytes = f.read()
-        try:
-            audio_path.unlink(missing_ok=True)
-        except OSError as cleanup_error:
-            print(f"[WARN] Could not remove intermediate audio {audio_path}: {cleanup_error}")
-
         if not is_multi:
             prompt = (
                 f"Bạn là chuyên gia nhận diện giọng nói và dịch phụ đề video tự động. "
@@ -173,11 +167,20 @@ async def process_auto_subtitle(req: AutoSubRequest, pool, loop, upload_dir: Pat
             )
 
         try:
-            ai_response = await pool.generate_multimodal(
-                audio_bytes=audio_bytes,
-                mime_type="audio/mp3",
-                prompt=prompt
-            )
+            if hasattr(pool, "generate_multimodal_file"):
+                ai_response = await pool.generate_multimodal_file(
+                    file_path=audio_path,
+                    mime_type="audio/mp3",
+                    prompt=prompt
+                )
+            else:
+                with open(audio_path, "rb") as f:
+                    audio_bytes = f.read()
+                ai_response = await pool.generate_multimodal(
+                    audio_bytes=audio_bytes,
+                    mime_type="audio/mp3",
+                    prompt=prompt
+                )
             extracted_subs = parse_subtitles_from_ai(ai_response)
             if not extracted_subs:
                 extracted_subs = [{
@@ -197,6 +200,12 @@ async def process_auto_subtitle(req: AutoSubRequest, pool, loop, upload_dir: Pat
                     sub["translated"] = sub["translations"][primary_lang]
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Lỗi AI Subtitling: {str(e)}")
+        finally:
+            try:
+                audio_path.unlink(missing_ok=True)
+            except OSError as cleanup_error:
+                print(f"[WARN] Could not remove intermediate audio {audio_path}: {cleanup_error}")
+            gc.collect()
 
     # Xuất các file phụ đề SRT & VTT
     srt_path = output_dir / f"{req.video_id}.srt"
