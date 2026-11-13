@@ -732,6 +732,9 @@
       top: 0;
       left: 0;
     }
+    #yt-player-box.hidden {
+      display: none !important;
+    }
     #yt-player-box iframe,
     #yt-player-box > div,
     #youtube-player-api-target {
@@ -2766,7 +2769,7 @@
         document.querySelectorAll('.sub-item-card.active-cue').forEach(el => el.classList.remove('active-cue', 'border-amber-400', 'bg-slate-800'));
         return;
       }
-      const activeCard = document.getElementById(sub-card-);
+      const activeCard = document.getElementById(`sub-card-${active.id}`);
       if (!activeCard) return;
 
       if (!activeCard.classList.contains('active-cue')) {
