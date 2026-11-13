@@ -278,12 +278,14 @@ class KeyPool:
         canonical_url = f"https://www.youtube.com/watch?v={video_id}" if video_id else video_url
 
         prompt = (
-            "Tạo transcript phụ đề từ video YouTube công khai được cung cấp. "
-            "Trả về duy nhất JSON array, không markdown hay giải thích. "
-            'Mỗi phần tử có dạng {"start":"HH:MM:SS.mmm",'
-            '"end":"HH:MM:SS.mmm","original":"lời thoại nguyên văn"}. '
-            "Giữ nguyên ngôn ngữ được nói, chia thành các câu thoại ngắn có timestamp "
-            "chính xác theo video. Bỏ qua nhạc nền và không suy đoán lời thoại."
+            "Trích xuất transcript phụ đề từ video YouTube công khai được cung cấp. "
+            "YÊU CẦU BẮT BUỘC:\n"
+            "1. Chia nhỏ phụ đề thành từng đoạn ngắn tự nhiên (subtitle cues), mỗi đoạn chỉ kéo dài từ 2 đến 5 giây "
+            "(tối đa 1-2 câu ngắn), có timestamp start và end chính xác theo video.\n"
+            "2. TUYỆT ĐỐI KHÔNG gom toàn bộ video thành 1 đoạn dài duy nhất.\n"
+            "3. Trả về duy nhất JSON array hợp lệ, không markdown hay giải thích ngoài JSON:\n"
+            '[{"id": 1, "start": "HH:MM:SS.mmm", "end": "HH:MM:SS.mmm", "original": "lời thoại nguyên văn"}]\n'
+            "4. Bỏ qua nhạc nền và không tự suy đoán lời thoại."
         )
         parts = [
             {

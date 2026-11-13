@@ -1,0 +1,1172 @@
+[
+    {
+        "id": 1,
+        "start": 0.1,
+        "end": 1.6,
+        "start_str": "00:00:00.100",
+        "end_str": "00:00:01.600",
+        "original": "I'm Reta. I'm a product manager at",
+        "text": "I'm Reta. I'm a product manager at",
+        "translated": "Tôi là Reta. Tôi là quản lý sản phẩm tại",
+        "translations": {
+            "vi": "Tôi là Reta. Tôi là quản lý sản phẩm tại"
+        }
+    },
+    {
+        "id": 2,
+        "start": 1.6,
+        "end": 3.5,
+        "start_str": "00:00:01.600",
+        "end_str": "00:00:03.500",
+        "original": "DataBricks. Today, we are boots on the",
+        "text": "DataBricks. Today, we are boots on the",
+        "translated": "DataBricks. Hôm nay, chúng tôi có mặt",
+        "translations": {
+            "vi": "DataBricks. Hôm nay, chúng tôi có mặt"
+        }
+    },
+    {
+        "id": 3,
+        "start": 3.5,
+        "end": 6.0,
+        "start_str": "00:00:03.500",
+        "end_str": "00:00:06.000",
+        "original": "ground at headquarters in San Francisco.",
+        "text": "ground at headquarters in San Francisco.",
+        "translated": "trực tiếp tại trụ sở chính ở San Francisco.",
+        "translations": {
+            "vi": "trực tiếp tại trụ sở chính ở San Francisco."
+        }
+    },
+    {
+        "id": 4,
+        "start": 6.0,
+        "end": 7.2,
+        "start_str": "00:00:06.000",
+        "end_str": "00:00:07.200",
+        "original": "We're going to talk to designers,",
+        "text": "We're going to talk to designers,",
+        "translated": "Chúng tôi sẽ trò chuyện với các nhà thiết kế,",
+        "translations": {
+            "vi": "Chúng tôi sẽ trò chuyện với các nhà thiết kế,"
+        }
+    },
+    {
+        "id": 5,
+        "start": 7.2,
+        "end": 9.2,
+        "start_str": "00:00:07.200",
+        "end_str": "00:00:09.200",
+        "original": "engineers, marketing managers, all",
+        "text": "engineers, marketing managers, all",
+        "translated": "kỹ sư, quản lý tiếp thị, tất cả",
+        "translations": {
+            "vi": "kỹ sư, quản lý tiếp thị, tất cả"
+        }
+    },
+    {
+        "id": 6,
+        "start": 9.2,
+        "end": 10.6,
+        "start_str": "00:00:09.200",
+        "end_str": "00:00:10.600",
+        "original": "different types of employees to figure",
+        "text": "different types of employees to figure",
+        "translated": "các loại nhân viên khác nhau để tìm hiểu",
+        "translations": {
+            "vi": "các loại nhân viên khác nhau để tìm hiểu"
+        }
+    },
+    {
+        "id": 7,
+        "start": 10.6,
+        "end": 12.4,
+        "start_str": "00:00:10.600",
+        "end_str": "00:00:12.400",
+        "original": "out how they Genie. How do you Genie?",
+        "text": "out how they Genie. How do you Genie?",
+        "translated": "xem họ dùng Genie như thế nào. Bạn dùng Genie thế nào?",
+        "translations": {
+            "vi": "xem họ dùng Genie như thế nào. Bạn dùng Genie thế nào?"
+        }
+    },
+    {
+        "id": 8,
+        "start": 12.4,
+        "end": 15.1,
+        "start_str": "00:00:12.400",
+        "end_str": "00:00:15.100",
+        "original": "How do you Genie? Hey, how do you Genie?",
+        "text": "How do you Genie? Hey, how do you Genie?",
+        "translated": "Bạn dùng Genie thế nào? Này, bạn dùng Genie thế nào?",
+        "translations": {
+            "vi": "Bạn dùng Genie thế nào? Này, bạn dùng Genie thế nào?"
+        }
+    },
+    {
+        "id": 9,
+        "start": 15.1,
+        "end": 17.0,
+        "start_str": "00:00:15.100",
+        "end_str": "00:00:17.000",
+        "original": "&gt;&gt; I use Genie for all kinds of things.",
+        "text": "&gt;&gt; I use Genie for all kinds of things.",
+        "translated": ">> Tôi dùng Genie cho đủ mọi việc.",
+        "translations": {
+            "vi": ">> Tôi dùng Genie cho đủ mọi việc."
+        }
+    },
+    {
+        "id": 10,
+        "start": 17.0,
+        "end": 18.8,
+        "start_str": "00:00:17.000",
+        "end_str": "00:00:18.800",
+        "original": "&gt;&gt; Yeah, I use it uh pretty pretty much",
+        "text": "&gt;&gt; Yeah, I use it uh pretty pretty much",
+        "translated": ">> Đúng vậy, tôi dùng nó hầu như",
+        "translations": {
+            "vi": ">> Đúng vậy, tôi dùng nó hầu như"
+        }
+    },
+    {
+        "id": 11,
+        "start": 18.8,
+        "end": 20.0,
+        "start_str": "00:00:18.800",
+        "end_str": "00:00:20.000",
+        "original": "every [music] day, I would say.",
+        "text": "every [music] day, I would say.",
+        "translated": "là [âm nhạc] mỗi ngày luôn.",
+        "translations": {
+            "vi": "là [âm nhạc] mỗi ngày luôn."
+        }
+    },
+    {
+        "id": 12,
+        "start": 19.7,
+        "end": 21.6,
+        "start_str": "00:00:19.700",
+        "end_str": "00:00:21.600",
+        "original": "&gt;&gt; I Genie on my phone on the computer.",
+        "text": "&gt;&gt; I Genie on my phone on the computer.",
+        "translated": ">> Tôi dùng Genie trên điện thoại và trên máy tính.",
+        "translations": {
+            "vi": ">> Tôi dùng Genie trên điện thoại và trên máy tính."
+        }
+    },
+    {
+        "id": 13,
+        "start": 21.6,
+        "end": 22.9,
+        "start_str": "00:00:21.600",
+        "end_str": "00:00:22.900",
+        "original": "&gt;&gt; I see you're actually working on Genie",
+        "text": "&gt;&gt; I see you're actually working on Genie",
+        "translated": ">> Tôi thấy bạn thực sự đang làm việc trên ứng dụng",
+        "translations": {
+            "vi": ">> Tôi thấy bạn thực sự đang làm việc trên ứng dụng"
+        }
+    },
+    {
+        "id": 14,
+        "start": 22.9,
+        "end": 24.099999999999998,
+        "start_str": "00:00:22.900",
+        "end_str": "00:00:24.100",
+        "original": "desktop right here.",
+        "text": "desktop right here.",
+        "translated": "Genie desktop ngay tại đây.",
+        "translations": {
+            "vi": "Genie desktop ngay tại đây."
+        }
+    },
+    {
+        "id": 15,
+        "start": 23.8,
+        "end": 25.0,
+        "start_str": "00:00:23.800",
+        "end_str": "00:00:25.000",
+        "original": "&gt;&gt; Yeah, I love the Genie desktop.",
+        "text": "&gt;&gt; Yeah, I love the Genie desktop.",
+        "translated": ">> Vâng, tôi thích phiên bản Genie desktop lắm.",
+        "translations": {
+            "vi": ">> Vâng, tôi thích phiên bản Genie desktop lắm."
+        }
+    },
+    {
+        "id": 16,
+        "start": 25.0,
+        "end": 26.8,
+        "start_str": "00:00:25.000",
+        "end_str": "00:00:26.800",
+        "original": "&gt;&gt; I can just say, hey, pull this Google",
+        "text": "&gt;&gt; I can just say, hey, pull this Google",
+        "translated": ">> Tôi chỉ có thể nói, này, hãy mở Google",
+        "translations": {
+            "vi": ">> Tôi chỉ có thể nói, này, hãy mở Google"
+        }
+    },
+    {
+        "id": 17,
+        "start": 26.8,
+        "end": 28.0,
+        "start_str": "00:00:26.800",
+        "end_str": "00:00:28.000",
+        "original": "Doc. [music] I can't remember the name",
+        "text": "Doc. [music] I can't remember the name",
+        "translated": "Doc này lên. [âm nhạc] Tôi không nhớ tên",
+        "translations": {
+            "vi": "Doc này lên. [âm nhạc] Tôi không nhớ tên"
+        }
+    },
+    {
+        "id": 18,
+        "start": 27.8,
+        "end": 29.0,
+        "start_str": "00:00:27.800",
+        "end_str": "00:00:29.000",
+        "original": "of it.",
+        "text": "of it.",
+        "translated": "của nó.",
+        "translations": {
+            "vi": "của nó."
+        }
+    },
+    {
+        "id": 19,
+        "start": 28.2,
+        "end": 29.4,
+        "start_str": "00:00:28.200",
+        "end_str": "00:00:29.400",
+        "original": "&gt;&gt; Yeah.",
+        "text": "&gt;&gt; Yeah.",
+        "translated": ">> Vâng.",
+        "translations": {
+            "vi": ">> Vâng."
+        }
+    },
+    {
+        "id": 20,
+        "start": 28.7,
+        "end": 30.5,
+        "start_str": "00:00:28.700",
+        "end_str": "00:00:30.500",
+        "original": "&gt;&gt; Uh get the context in and answer a",
+        "text": "&gt;&gt; Uh get the context in and answer a",
+        "translated": ">> Ờ, lấy ngữ cảnh vào và trả lời một",
+        "translations": {
+            "vi": ">> Ờ, lấy ngữ cảnh vào và trả lời một"
+        }
+    },
+    {
+        "id": 21,
+        "start": 30.5,
+        "end": 31.7,
+        "start_str": "00:00:30.500",
+        "end_str": "00:00:31.700",
+        "original": "question.",
+        "text": "question.",
+        "translated": "câu hỏi.",
+        "translations": {
+            "vi": "câu hỏi."
+        }
+    },
+    {
+        "id": 22,
+        "start": 31.2,
+        "end": 32.599,
+        "start_str": "00:00:31.200",
+        "end_str": "00:00:32.599",
+        "original": "&gt;&gt; Hey, hey.",
+        "text": "&gt;&gt; Hey, hey.",
+        "translated": ">> Này, này.",
+        "translations": {
+            "vi": ">> Này, này."
+        }
+    },
+    {
+        "id": 23,
+        "start": 32.599,
+        "end": 34.6,
+        "start_str": "00:00:32.599",
+        "end_str": "00:00:34.600",
+        "original": "How do you Genie? What do you think sets",
+        "text": "How do you Genie? What do you think sets",
+        "translated": "Bạn dùng Genie thế nào? Bạn nghĩ điều gì làm cho",
+        "translations": {
+            "vi": "Bạn dùng Genie thế nào? Bạn nghĩ điều gì làm cho"
+        }
+    },
+    {
+        "id": 24,
+        "start": 34.6,
+        "end": 35.800000000000004,
+        "start_str": "00:00:34.600",
+        "end_str": "00:00:35.800",
+        "original": "Genie apart?",
+        "text": "Genie apart?",
+        "translated": "Genie trở nên khác biệt?",
+        "translations": {
+            "vi": "Genie trở nên khác biệt?"
+        }
+    },
+    {
+        "id": 25,
+        "start": 35.8,
+        "end": 37.8,
+        "start_str": "00:00:35.800",
+        "end_str": "00:00:37.800",
+        "original": "&gt;&gt; I think what sets Genie apart is that it",
+        "text": "&gt;&gt; I think what sets Genie apart is that it",
+        "translated": ">> Tôi nghĩ điều làm cho Genie khác biệt chính là nó",
+        "translations": {
+            "vi": ">> Tôi nghĩ điều làm cho Genie khác biệt chính là nó"
+        }
+    },
+    {
+        "id": 26,
+        "start": 37.8,
+        "end": 39.3,
+        "start_str": "00:00:37.800",
+        "end_str": "00:00:39.300",
+        "original": "has [music] the most context about what",
+        "text": "has [music] the most context about what",
+        "translated": "has [music] the most context about what",
+        "translations": {
+            "vi": "has [music] the most context about what"
+        }
+    },
+    {
+        "id": 27,
+        "start": 39.3,
+        "end": 40.8,
+        "start_str": "00:00:39.300",
+        "end_str": "00:00:40.800",
+        "original": "I'm working on in my day to day.",
+        "text": "I'm working on in my day to day.",
+        "translated": "I'm working on in my day to day.",
+        "translations": {
+            "vi": "I'm working on in my day to day."
+        }
+    },
+    {
+        "id": 28,
+        "start": 40.8,
+        "end": 43.0,
+        "start_str": "00:00:40.800",
+        "end_str": "00:00:43.000",
+        "original": "&gt;&gt; It links the sources internally that it",
+        "text": "&gt;&gt; It links the sources internally that it",
+        "translated": "&gt;&gt; It links the sources internally that it",
+        "translations": {
+            "vi": "&gt;&gt; It links the sources internally that it"
+        }
+    },
+    {
+        "id": 29,
+        "start": 43.0,
+        "end": 44.6,
+        "start_str": "00:00:43.000",
+        "end_str": "00:00:44.600",
+        "original": "pulled the data from and so it's like",
+        "text": "pulled the data from and so it's like",
+        "translated": "pulled the data from and so it's like",
+        "translations": {
+            "vi": "pulled the data from and so it's like"
+        }
+    },
+    {
+        "id": 30,
+        "start": 44.6,
+        "end": 46.6,
+        "start_str": "00:00:44.600",
+        "end_str": "00:00:46.600",
+        "original": "very easy for me to trust it.",
+        "text": "very easy for me to trust it.",
+        "translated": "very easy for me to trust it.",
+        "translations": {
+            "vi": "very easy for me to trust it."
+        }
+    },
+    {
+        "id": 31,
+        "start": 46.6,
+        "end": 48.7,
+        "start_str": "00:00:46.600",
+        "end_str": "00:00:48.700",
+        "original": "&gt;&gt; I can see that one's certified by our",
+        "text": "&gt;&gt; I can see that one's certified by our",
+        "translated": "&gt;&gt; I can see that one's certified by our",
+        "translations": {
+            "vi": "&gt;&gt; I can see that one's certified by our"
+        }
+    },
+    {
+        "id": 32,
+        "start": 48.7,
+        "end": 50.4,
+        "start_str": "00:00:48.700",
+        "end_str": "00:00:50.400",
+        "original": "log food [music] team or that one is",
+        "text": "log food [music] team or that one is",
+        "translated": "log food [music] team or that one is",
+        "translations": {
+            "vi": "log food [music] team or that one is"
+        }
+    },
+    {
+        "id": 33,
+        "start": 50.4,
+        "end": 51.6,
+        "start_str": "00:00:50.400",
+        "end_str": "00:00:51.600",
+        "original": "like popular.",
+        "text": "like popular.",
+        "translated": "like popular.",
+        "translations": {
+            "vi": "like popular."
+        }
+    },
+    {
+        "id": 34,
+        "start": 51.2,
+        "end": 52.9,
+        "start_str": "00:00:51.200",
+        "end_str": "00:00:52.900",
+        "original": "&gt;&gt; It's leveraging Genie ontology, which is",
+        "text": "&gt;&gt; It's leveraging Genie ontology, which is",
+        "translated": "&gt;&gt; It's leveraging Genie ontology, which is",
+        "translations": {
+            "vi": "&gt;&gt; It's leveraging Genie ontology, which is"
+        }
+    },
+    {
+        "id": 35,
+        "start": 52.9,
+        "end": 55.0,
+        "start_str": "00:00:52.900",
+        "end_str": "00:00:55.000",
+        "original": "this knowledge graph of information",
+        "text": "this knowledge graph of information",
+        "translated": "this knowledge graph of information",
+        "translations": {
+            "vi": "this knowledge graph of information"
+        }
+    },
+    {
+        "id": 36,
+        "start": 55.0,
+        "end": 56.6,
+        "start_str": "00:00:55.000",
+        "end_str": "00:00:56.600",
+        "original": "that's been gleaned from all the",
+        "text": "that's been gleaned from all the",
+        "translated": "that's been gleaned from all the",
+        "translations": {
+            "vi": "that's been gleaned from all the"
+        }
+    },
+    {
+        "id": 37,
+        "start": 56.6,
+        "end": 58.0,
+        "start_str": "00:00:56.600",
+        "end_str": "00:00:58.000",
+        "original": "metadata in your Genie catalog.",
+        "text": "metadata in your Genie catalog.",
+        "translated": "metadata in your Genie catalog.",
+        "translations": {
+            "vi": "metadata in your Genie catalog."
+        }
+    },
+    {
+        "id": 38,
+        "start": 58.0,
+        "end": 59.3,
+        "start_str": "00:00:58.000",
+        "end_str": "00:00:59.300",
+        "original": "&gt;&gt; What's your favorite thing you've built",
+        "text": "&gt;&gt; What's your favorite thing you've built",
+        "translated": "&gt;&gt; What's your favorite thing you've built",
+        "translations": {
+            "vi": "&gt;&gt; What's your favorite thing you've built"
+        }
+    },
+    {
+        "id": 39,
+        "start": 59.3,
+        "end": 60.9,
+        "start_str": "00:00:59.300",
+        "end_str": "00:01:00.900",
+        "original": "in Genie or are building?",
+        "text": "in Genie or are building?",
+        "translated": "in Genie or are building?",
+        "translations": {
+            "vi": "in Genie or are building?"
+        }
+    },
+    {
+        "id": 40,
+        "start": 60.9,
+        "end": 63.1,
+        "start_str": "00:01:00.900",
+        "end_str": "00:01:03.100",
+        "original": "&gt;&gt; I think the integration with third party",
+        "text": "&gt;&gt; I think the integration with third party",
+        "translated": "&gt;&gt; I think the integration with third party",
+        "translations": {
+            "vi": "&gt;&gt; I think the integration with third party"
+        }
+    },
+    {
+        "id": 41,
+        "start": 63.1,
+        "end": 65.3,
+        "start_str": "00:01:03.100",
+        "end_str": "00:01:05.300",
+        "original": "assets so that when I search in Genie, I",
+        "text": "assets so that when I search in Genie, I",
+        "translated": "assets so that when I search in Genie, I",
+        "translations": {
+            "vi": "assets so that when I search in Genie, I"
+        }
+    },
+    {
+        "id": 42,
+        "start": 65.3,
+        "end": 66.9,
+        "start_str": "00:01:05.300",
+        "end_str": "00:01:06.900",
+        "original": "can easily find my documents, my [music]",
+        "text": "can easily find my documents, my [music]",
+        "translated": "can easily find my documents, my [music]",
+        "translations": {
+            "vi": "can easily find my documents, my [music]"
+        }
+    },
+    {
+        "id": 43,
+        "start": 66.9,
+        "end": 69.0,
+        "start_str": "00:01:06.900",
+        "end_str": "00:01:09.000",
+        "original": "PowerPoints, my slides. Makes it super",
+        "text": "PowerPoints, my slides. Makes it super",
+        "translated": "PowerPoints, my slides. Makes it super",
+        "translations": {
+            "vi": "PowerPoints, my slides. Makes it super"
+        }
+    },
+    {
+        "id": 44,
+        "start": 69.0,
+        "end": 70.8,
+        "start_str": "00:01:09.000",
+        "end_str": "00:01:10.800",
+        "original": "easy to like pull in context into my",
+        "text": "easy to like pull in context into my",
+        "translated": "easy to like pull in context into my",
+        "translations": {
+            "vi": "easy to like pull in context into my"
+        }
+    },
+    {
+        "id": 45,
+        "start": 70.8,
+        "end": 72.0,
+        "start_str": "00:01:10.800",
+        "end_str": "00:01:12.000",
+        "original": "Genie chats. [music]",
+        "text": "Genie chats. [music]",
+        "translated": "Genie chats. [music]",
+        "translations": {
+            "vi": "Genie chats. [music]"
+        }
+    },
+    {
+        "id": 46,
+        "start": 71.7,
+        "end": 73.3,
+        "start_str": "00:01:11.700",
+        "end_str": "00:01:13.300",
+        "original": "&gt;&gt; I think for me, it would have to be",
+        "text": "&gt;&gt; I think for me, it would have to be",
+        "translated": "&gt;&gt; I think for me, it would have to be",
+        "translations": {
+            "vi": "&gt;&gt; I think for me, it would have to be"
+        }
+    },
+    {
+        "id": 47,
+        "start": 73.3,
+        "end": 75.0,
+        "start_str": "00:01:13.300",
+        "end_str": "00:01:15.000",
+        "original": "ontology home. It's a really easy way to",
+        "text": "ontology home. It's a really easy way to",
+        "translated": "ontology home. It's a really easy way to",
+        "translations": {
+            "vi": "ontology home. It's a really easy way to"
+        }
+    },
+    {
+        "id": 48,
+        "start": 75.0,
+        "end": 76.3,
+        "start_str": "00:01:15.000",
+        "end_str": "00:01:16.300",
+        "original": "see everything that's going on in your",
+        "text": "see everything that's going on in your",
+        "translated": "see everything that's going on in your",
+        "translations": {
+            "vi": "see everything that's going on in your"
+        }
+    },
+    {
+        "id": 49,
+        "start": 76.3,
+        "end": 78.2,
+        "start_str": "00:01:16.300",
+        "end_str": "00:01:18.200",
+        "original": "org [music] and it'll actually sort of",
+        "text": "org [music] and it'll actually sort of",
+        "translated": "org [music] and it'll actually sort of",
+        "translations": {
+            "vi": "org [music] and it'll actually sort of"
+        }
+    },
+    {
+        "id": 50,
+        "start": 78.2,
+        "end": 79.7,
+        "start_str": "00:01:18.200",
+        "end_str": "00:01:19.700",
+        "original": "give you insights of things you might",
+        "text": "give you insights of things you might",
+        "translated": "give you insights of things you might",
+        "translations": {
+            "vi": "give you insights of things you might"
+        }
+    },
+    {
+        "id": 51,
+        "start": 79.7,
+        "end": 81.2,
+        "start_str": "00:01:19.700",
+        "end_str": "00:01:21.200",
+        "original": "want to do. We're really excited about",
+        "text": "want to do. We're really excited about",
+        "translated": "want to do. We're really excited about",
+        "translations": {
+            "vi": "want to do. We're really excited about"
+        }
+    },
+    {
+        "id": 52,
+        "start": 81.2,
+        "end": 83.2,
+        "start_str": "00:01:21.200",
+        "end_str": "00:01:23.200",
+        "original": "the new Genie one homepage because it",
+        "text": "the new Genie one homepage because it",
+        "translated": "the new Genie one homepage because it",
+        "translations": {
+            "vi": "the new Genie one homepage because it"
+        }
+    },
+    {
+        "id": 53,
+        "start": 83.2,
+        "end": 85.0,
+        "start_str": "00:01:23.200",
+        "end_str": "00:01:25.000",
+        "original": "brings business insights directly to the",
+        "text": "brings business insights directly to the",
+        "translated": "brings business insights directly to the",
+        "translations": {
+            "vi": "brings business insights directly to the"
+        }
+    },
+    {
+        "id": 54,
+        "start": 85.0,
+        "end": 86.7,
+        "start_str": "00:01:25.000",
+        "end_str": "00:01:26.700",
+        "original": "user and helps them start their day. It",
+        "text": "user and helps them start their day. It",
+        "translated": "user and helps them start their day. It",
+        "translations": {
+            "vi": "user and helps them start their day. It"
+        }
+    },
+    {
+        "id": 55,
+        "start": 86.7,
+        "end": 87.9,
+        "start_str": "00:01:26.700",
+        "end_str": "00:01:27.900",
+        "original": "helps them throughout their day.",
+        "text": "helps them throughout their day.",
+        "translated": "helps them throughout their day.",
+        "translations": {
+            "vi": "helps them throughout their day."
+        }
+    },
+    {
+        "id": 56,
+        "start": 87.8,
+        "end": 89.8,
+        "start_str": "00:01:27.800",
+        "end_str": "00:01:29.800",
+        "original": "&gt;&gt; We talk to a lot of customers and they",
+        "text": "&gt;&gt; We talk to a lot of customers and they",
+        "translated": "&gt;&gt; We talk to a lot of customers and they",
+        "translations": {
+            "vi": "&gt;&gt; We talk to a lot of customers and they"
+        }
+    },
+    {
+        "id": 57,
+        "start": 89.8,
+        "end": 92.1,
+        "start_str": "00:01:29.800",
+        "end_str": "00:01:32.100",
+        "original": "have a lot of awesome requests. I have",
+        "text": "have a lot of awesome requests. I have",
+        "translated": "have a lot of awesome requests. I have",
+        "translations": {
+            "vi": "have a lot of awesome requests. I have"
+        }
+    },
+    {
+        "id": 58,
+        "start": 92.1,
+        "end": 94.1,
+        "start_str": "00:01:32.100",
+        "end_str": "00:01:34.100",
+        "original": "Genie pulling all of that context and",
+        "text": "Genie pulling all of that context and",
+        "translated": "Genie pulling all of that context and",
+        "translations": {
+            "vi": "Genie pulling all of that context and"
+        }
+    },
+    {
+        "id": 59,
+        "start": 94.1,
+        "end": 96.0,
+        "start_str": "00:01:34.100",
+        "end_str": "00:01:36.000",
+        "original": "basically tell me what are the most",
+        "text": "basically tell me what are the most",
+        "translated": "basically tell me what are the most",
+        "translations": {
+            "vi": "basically tell me what are the most"
+        }
+    },
+    {
+        "id": 60,
+        "start": 96.0,
+        "end": 97.7,
+        "start_str": "00:01:36.000",
+        "end_str": "00:01:37.700",
+        "original": "important points to look at, what are",
+        "text": "important points to look at, what are",
+        "translated": "important points to look at, what are",
+        "translations": {
+            "vi": "important points to look at, what are"
+        }
+    },
+    {
+        "id": 61,
+        "start": 97.7,
+        "end": 98.9,
+        "start_str": "00:01:37.700",
+        "end_str": "00:01:38.900",
+        "original": "customers [clears throat] raising, and",
+        "text": "customers [clears throat] raising, and",
+        "translated": "customers [clears throat] raising, and",
+        "translations": {
+            "vi": "customers [clears throat] raising, and"
+        }
+    },
+    {
+        "id": 62,
+        "start": 98.9,
+        "end": 100.5,
+        "start_str": "00:01:38.900",
+        "end_str": "00:01:40.500",
+        "original": "where should I put my energy?",
+        "text": "where should I put my energy?",
+        "translated": "where should I put my energy?",
+        "translations": {
+            "vi": "where should I put my energy?"
+        }
+    },
+    {
+        "id": 63,
+        "start": 100.5,
+        "end": 102.7,
+        "start_str": "00:01:40.500",
+        "end_str": "00:01:42.700",
+        "original": "&gt;&gt; I use it for all of my MBR planning, you",
+        "text": "&gt;&gt; I use it for all of my MBR planning, you",
+        "translated": "&gt;&gt; I use it for all of my MBR planning, you",
+        "translations": {
+            "vi": "&gt;&gt; I use it for all of my MBR planning, you"
+        }
+    },
+    {
+        "id": 64,
+        "start": 102.7,
+        "end": 104.4,
+        "start_str": "00:01:42.700",
+        "end_str": "00:01:44.400",
+        "original": "know, pulls that all of the metrics I",
+        "text": "know, pulls that all of the metrics I",
+        "translated": "know, pulls that all of the metrics I",
+        "translations": {
+            "vi": "know, pulls that all of the metrics I"
+        }
+    },
+    {
+        "id": 65,
+        "start": 104.4,
+        "end": 105.60000000000001,
+        "start_str": "00:01:44.400",
+        "end_str": "00:01:45.600",
+        "original": "need.",
+        "text": "need.",
+        "translated": "need.",
+        "translations": {
+            "vi": "need."
+        }
+    },
+    {
+        "id": 66,
+        "start": 104.7,
+        "end": 105.9,
+        "start_str": "00:01:44.700",
+        "end_str": "00:01:45.900",
+        "original": "&gt;&gt; Last question.",
+        "text": "&gt;&gt; Last question.",
+        "translated": "&gt;&gt; Last question.",
+        "translations": {
+            "vi": "&gt;&gt; Last question."
+        }
+    },
+    {
+        "id": 67,
+        "start": 105.6,
+        "end": 106.8,
+        "start_str": "00:01:45.600",
+        "end_str": "00:01:46.800",
+        "original": "&gt;&gt; Mhm.",
+        "text": "&gt;&gt; Mhm.",
+        "translated": "&gt;&gt; Mhm.",
+        "translations": {
+            "vi": "&gt;&gt; Mhm."
+        }
+    },
+    {
+        "id": 68,
+        "start": 106.2,
+        "end": 107.4,
+        "start_str": "00:01:46.200",
+        "end_str": "00:01:47.400",
+        "original": "&gt;&gt; Finish my sentence [music] for me,",
+        "text": "&gt;&gt; Finish my sentence [music] for me,",
+        "translated": "&gt;&gt; Finish my sentence [music] for me,",
+        "translations": {
+            "vi": "&gt;&gt; Finish my sentence [music] for me,"
+        }
+    },
+    {
+        "id": 69,
+        "start": 107.0,
+        "end": 109.3,
+        "start_str": "00:01:47.000",
+        "end_str": "00:01:49.300",
+        "original": "Jason. Genie not only gives me answers,",
+        "text": "Jason. Genie not only gives me answers,",
+        "translated": "Jason. Genie not only gives me answers,",
+        "translations": {
+            "vi": "Jason. Genie not only gives me answers,"
+        }
+    },
+    {
+        "id": 70,
+        "start": 109.3,
+        "end": 110.9,
+        "start_str": "00:01:49.300",
+        "end_str": "00:01:50.900",
+        "original": "it gives me",
+        "text": "it gives me",
+        "translated": "it gives me",
+        "translations": {
+            "vi": "it gives me"
+        }
+    },
+    {
+        "id": 71,
+        "start": 110.9,
+        "end": 112.10000000000001,
+        "start_str": "00:01:50.900",
+        "end_str": "00:01:52.100",
+        "original": "&gt;&gt; Insights.",
+        "text": "&gt;&gt; Insights.",
+        "translated": "&gt;&gt; Insights.",
+        "translations": {
+            "vi": "&gt;&gt; Insights."
+        }
+    },
+    {
+        "id": 72,
+        "start": 111.8,
+        "end": 113.0,
+        "start_str": "00:01:51.800",
+        "end_str": "00:01:53.000",
+        "original": "&gt;&gt; Love it. [music]",
+        "text": "&gt;&gt; Love it. [music]",
+        "translated": "&gt;&gt; Love it. [music]",
+        "translations": {
+            "vi": "&gt;&gt; Love it. [music]"
+        }
+    },
+    {
+        "id": 73,
+        "start": 112.5,
+        "end": 113.7,
+        "start_str": "00:01:52.500",
+        "end_str": "00:01:53.700",
+        "original": "&gt;&gt; Insights.",
+        "text": "&gt;&gt; Insights.",
+        "translated": "&gt;&gt; Insights.",
+        "translations": {
+            "vi": "&gt;&gt; Insights."
+        }
+    },
+    {
+        "id": 74,
+        "start": 113.2,
+        "end": 115.7,
+        "start_str": "00:01:53.200",
+        "end_str": "00:01:55.700",
+        "original": "&gt;&gt; Ooh, it gives me ability to be",
+        "text": "&gt;&gt; Ooh, it gives me ability to be",
+        "translated": "&gt;&gt; Ooh, it gives me ability to be",
+        "translations": {
+            "vi": "&gt;&gt; Ooh, it gives me ability to be"
+        }
+    },
+    {
+        "id": 75,
+        "start": 115.7,
+        "end": 116.9,
+        "start_str": "00:01:55.700",
+        "end_str": "00:01:56.900",
+        "original": "everywhere.",
+        "text": "everywhere.",
+        "translated": "everywhere.",
+        "translations": {
+            "vi": "everywhere."
+        }
+    },
+    {
+        "id": 76,
+        "start": 116.4,
+        "end": 117.60000000000001,
+        "start_str": "00:01:56.400",
+        "end_str": "00:01:57.600",
+        "original": "&gt;&gt; Time.",
+        "text": "&gt;&gt; Time.",
+        "translated": ">> Thời gian.",
+        "translations": {
+            "vi": ">> Thời gian."
+        }
+    },
+    {
+        "id": 77,
+        "start": 117.0,
+        "end": 118.2,
+        "start_str": "00:01:57.000",
+        "end_str": "00:01:58.200",
+        "original": "&gt;&gt; A lot of time.",
+        "text": "&gt;&gt; A lot of time.",
+        "translated": ">> Rất nhiều thời gian.",
+        "translations": {
+            "vi": ">> Rất nhiều thời gian."
+        }
+    },
+    {
+        "id": 78,
+        "start": 117.8,
+        "end": 119.0,
+        "start_str": "00:01:57.800",
+        "end_str": "00:01:59.000",
+        "original": "&gt;&gt; Yeah.",
+        "text": "&gt;&gt; Yeah.",
+        "translated": ">> Phải.",
+        "translations": {
+            "vi": ">> Phải."
+        }
+    },
+    {
+        "id": 79,
+        "start": 118.2,
+        "end": 119.4,
+        "start_str": "00:01:58.200",
+        "end_str": "00:01:59.400",
+        "original": "&gt;&gt; I'd say time.",
+        "text": "&gt;&gt; I'd say time.",
+        "translated": ">> Tôi muốn nói là thời gian.",
+        "translations": {
+            "vi": ">> Tôi muốn nói là thời gian."
+        }
+    },
+    {
+        "id": 80,
+        "start": 119.0,
+        "end": 120.2,
+        "start_str": "00:01:59.000",
+        "end_str": "00:02:00.200",
+        "original": "&gt;&gt; Time back in my",
+        "text": "&gt;&gt; Time back in my",
+        "translated": ">> Thời gian quay lại...",
+        "translations": {
+            "vi": ">> Thời gian quay lại..."
+        }
+    },
+    {
+        "id": 81,
+        "start": 120.092,
+        "end": 121.292,
+        "start_str": "00:02:00.092",
+        "end_str": "00:02:01.292",
+        "original": "&gt;&gt; Time to be creative.",
+        "text": "&gt;&gt; Time to be creative.",
+        "translated": ">> Thời gian để sáng tạo.",
+        "translations": {
+            "vi": ">> Thời gian để sáng tạo."
+        }
+    },
+    {
+        "id": 82,
+        "start": 121.192,
+        "end": 122.492,
+        "start_str": "00:02:01.192",
+        "end_str": "00:02:02.492",
+        "original": "&gt;&gt; It gives me",
+        "text": "&gt;&gt; It gives me",
+        "translated": ">> Nó mang lại cho tôi",
+        "translations": {
+            "vi": ">> Nó mang lại cho tôi"
+        }
+    },
+    {
+        "id": 83,
+        "start": 122.492,
+        "end": 123.69200000000001,
+        "start_str": "00:02:02.492",
+        "end_str": "00:02:03.692",
+        "original": "&gt;&gt; Superpowers.",
+        "text": "&gt;&gt; Superpowers.",
+        "translated": ">> Siêu năng lực.",
+        "translations": {
+            "vi": ">> Siêu năng lực."
+        }
+    },
+    {
+        "id": 84,
+        "start": 123.492,
+        "end": 124.69200000000001,
+        "start_str": "00:02:03.492",
+        "end_str": "00:02:04.692",
+        "original": "&gt;&gt; I love that. [music]",
+        "text": "&gt;&gt; I love that. [music]",
+        "translated": ">> Tôi thích điều đó. [âm nhạc]",
+        "translations": {
+            "vi": ">> Tôi thích điều đó. [âm nhạc]"
+        }
+    },
+    {
+        "id": 85,
+        "start": 124.19200000000001,
+        "end": 125.39200000000001,
+        "start_str": "00:02:04.192",
+        "end_str": "00:02:05.392",
+        "original": "&gt;&gt; Yeah.",
+        "text": "&gt;&gt; Yeah.",
+        "translated": ">> Phải.",
+        "translations": {
+            "vi": ">> Phải."
+        }
+    },
+    {
+        "id": 86,
+        "start": 124.69200000000001,
+        "end": 125.89200000000001,
+        "start_str": "00:02:04.692",
+        "end_str": "00:02:05.892",
+        "original": "&gt;&gt; Hold on a second. I just got a push",
+        "text": "&gt;&gt; Hold on a second. I just got a push",
+        "translated": ">> Đợi một chút. Tôi vừa nhận được thông báo",
+        "translations": {
+            "vi": ">> Đợi một chút. Tôi vừa nhận được thông báo"
+        }
+    },
+    {
+        "id": 87,
+        "start": 125.892,
+        "end": 127.492,
+        "start_str": "00:02:05.892",
+        "end_str": "00:02:07.492",
+        "original": "notification. Oh, it's from the Genie",
+        "text": "notification. Oh, it's from the Genie",
+        "translated": "đẩy. Ồ, nó từ ứng dụng di động",
+        "translations": {
+            "vi": "đẩy. Ồ, nó từ ứng dụng di động"
+        }
+    },
+    {
+        "id": 88,
+        "start": 127.492,
+        "end": 128.692,
+        "start_str": "00:02:07.492",
+        "end_str": "00:02:08.692",
+        "original": "One mobile app. My weekly summary's",
+        "text": "One mobile app. My weekly summary's",
+        "translated": "Genie One. Bản tổng kết hàng tuần của tôi đã",
+        "translations": {
+            "vi": "Genie One. Bản tổng kết hàng tuần của tôi đã"
+        }
+    },
+    {
+        "id": 89,
+        "start": 128.692,
+        "end": 130.192,
+        "start_str": "00:02:08.692",
+        "end_str": "00:02:10.192",
+        "original": "ready. I got to hop and take a look at",
+        "text": "ready. I got to hop and take a look at",
+        "translated": "sẵn sàng. Tôi phải xem qua cái này ngay,",
+        "translations": {
+            "vi": "sẵn sàng. Tôi phải xem qua cái này ngay,"
+        }
+    },
+    {
+        "id": 90,
+        "start": 130.192,
+        "end": 133.392,
+        "start_str": "00:02:10.192",
+        "end_str": "00:02:13.392",
+        "original": "this, but let's chat later.",
+        "text": "this, but let's chat later.",
+        "translated": "nhưng chúng ta trò chuyện sau nhé.",
+        "translations": {
+            "vi": "nhưng chúng ta trò chuyện sau nhé."
+        }
+    }
+]

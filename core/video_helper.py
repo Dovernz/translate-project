@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 from urllib.parse import parse_qs, urlsplit
 import yt_dlp
+from core.sub_splitter import segment_subtitles
 
 if hasattr(sys.stdout, 'reconfigure'):
     try:
@@ -405,7 +406,9 @@ def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict
                 "translated": ""
             })
 
-        return subs if len(subs) > 0 else None
+        if len(subs) > 0:
+            return segment_subtitles(subs, max_duration=6.0)
+        return None
     except Exception as e:
         safe_log(f"[DEBUG] Lỗi trích xuất auto-subs: {e}")
         return None
@@ -637,7 +640,7 @@ def parse_subtitles_from_ai(ai_output: str) -> List[Dict[str, Any]]:
                 if "translations" in it:
                     item_dict["translations"] = it.get("translations")
                 result.append(item_dict)
-            return result
+            return segment_subtitles(result, max_duration=6.0)
     except Exception:
         pass
 
@@ -661,7 +664,7 @@ def parse_subtitles_from_ai(ai_output: str) -> List[Dict[str, Any]]:
             "original": orig,
             "translated": trans
         })
-    return result
+    return segment_subtitles(result, max_duration=6.0)
 
 def export_srt(subtitles: List[Dict[str, Any]], output_path: Path, lang: Optional[str] = None):
     output_path.parent.mkdir(parents=True, exist_ok=True)
