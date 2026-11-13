@@ -159,10 +159,14 @@ def cleanup_storage(upload_dir: Path, output_dir: Path, max_age_minutes: int = 3
             if p.name == ".gitkeep":
                 continue
             try:
-                if p.is_file() and (now - p.stat().st_mtime > max_age_minutes * 60):
+                if (
+                    not p.is_symlink()
+                    and p.is_file()
+                    and now - p.stat().st_mtime > max_age_minutes * 60
+                ):
                     p.unlink()
-            except Exception:
-                pass
+            except OSError as error:
+                safe_log(f"[WARN] Could not remove expired temporary file {p}: {error}")
 
 def get_video_info(url: str) -> Dict[str, Any]:
     yt_id = extract_youtube_id(url)

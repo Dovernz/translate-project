@@ -18,12 +18,10 @@ Hệ thống dịch thuật siêu tốc khai thác 100% tiềm năng ma trận m
 2. **Dịch Phim & Video Trực Tuyến với Độ Trễ Thấp Nhất (Realtime Video Subtitler):**
    - Dán đường dẫn video từ các extractor yt-dlp (YouTube, Archive.org, Wikimedia và nhiều dịch vụ khác), hoặc link media/stream MP4, HLS, DASH công khai.
    - Streamlink là fallback bổ sung cho một số nguồn stream công khai mà yt-dlp không trích xuất được. Nguồn cần đăng nhập, bị giới hạn truy cập, hoặc dùng DRM không được vượt qua.
+   - Với YouTube, hệ thống thử phụ đề công khai trước, sau đó thử Gemini Interactions API cho video công khai; nếu transcript khả dụng, phát qua YouTube IFrame chính thức mà không tải media về server. Đây là best-effort, không đảm bảo transcript có sẵn hoặc tránh được giới hạn API.
    - Trình phát tích hợp kèm **Floating Subtitle Overlay** đè trực tiếp lên khung hình video (phong cách Netflix).
-   - Cơ chế chia đoạn âm thanh (audio chunking 3s - 5s) và phân tán xoay vòng (round-robin) qua 7 API keys:
-     * Chunk 1 $\rightarrow$ Key #1
-     * Chunk 2 $\rightarrow$ Key #2
-     * Chunk 3 $\rightarrow$ Key #3 ...
-     * Nhờ đó mỗi key có tới 25 - 35s thời gian nghỉ, **hoàn toàn không bao giờ bị nghẽn hay chạm trần giới hạn phút (RPM/TPM)**!
+   - Khi không có transcript, người dùng có thể chủ động chia sẻ tab/màn hình kèm audio trên trình duyệt hỗ trợ; audio được gửi theo chunk. Không dùng microphone làm nguồn thay thế và không có cách thu trực tiếp audio của tab khác nếu browser không cấp track.
+   - Gemini Key Pool chuyển sang các key khả dụng khi gặp HTTP 429/quota; failover không loại bỏ giới hạn quota hay đảm bảo luôn có key khả dụng.
 
 3. **Ghi Âm & Transcribe Giọng Nói (Speech-to-Text):**
    - Thu âm trực tiếp qua Microphone của trình duyệt hoặc tải lên file âm thanh (`.mp3`, `.wav`, `.m4a`).

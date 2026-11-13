@@ -1091,6 +1091,24 @@
         </div>
       </div>
 
+      <div class="p-3 sm:p-4 rounded-[10px] bg-slate-900 border border-slate-800 space-y-2 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p class="text-xs font-semibold text-indigo-300" data-i18n="tab_audio_capture_title">Thu âm thanh tab đang phát</p>
+            <p class="text-[11px] text-slate-400 mt-1" data-i18n="tab_audio_capture_help">Chia sẻ tab/màn hình và bật chia sẻ âm thanh. Không dùng micro. Cần cấp quyền thủ công; một số trình duyệt di động không cung cấp audio track.</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button id="btn-capture-tab-audio" onclick="startTabAudioCapture()" class="px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium">
+              <span data-i18n="tab_audio_capture_start">Chọn tab có video</span>
+            </button>
+            <button id="btn-stop-tab-audio" onclick="stopTabAudioCapture()" disabled class="px-3 py-2 rounded-lg bg-slate-700 text-slate-400 text-xs font-medium opacity-50 cursor-not-allowed" data-i18n="tab_audio_capture_stop">
+              Dừng thu
+            </button>
+          </div>
+        </div>
+        <p id="tab-audio-capture-status" class="text-xs text-slate-400" role="status" aria-live="polite" data-i18n="tab_audio_capture_idle">Chưa chia sẻ tab âm thanh.</p>
+      </div>
+
       <!-- Video Player, Subtitle Customizer & Subtitle Feed -->
       <div id="video-workspace-grid" class="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)] items-start gap-4">
         
@@ -1277,9 +1295,9 @@
           <div id="export-download-box" class="pt-3 border-t border-slate-800 space-y-2.5 hidden">
             <div class="text-xs font-semibold text-emerald-400 flex items-center justify-between">
               <span class="flex items-center gap-1.5">
-                <i data-lucide="check-circle" class="w-4 h-4"></i> <span data-i18n="export_ready_title">Phụ đề & Video đã sẵn sàng:</span>
+                <i data-lucide="check-circle" class="w-4 h-4"></i> <span id="export-ready-label" data-i18n="export_ready_title">Phụ đề & Video đã sẵn sàng:</span>
               </span>
-              <button onclick="cleanServerStorage()" class="text-[11px] text-slate-400 hover:text-red-400 flex items-center gap-1 transition" title="Xóa toàn bộ tệp video tạm trên server">
+              <button id="btn-clean-server" onclick="cleanServerStorage()" class="text-[11px] text-slate-400 hover:text-red-400 flex items-center gap-1 transition" title="Xóa toàn bộ tệp video tạm trên server">
                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> <span data-i18n="btn_clean_server">Dọn Server (0-Byte)</span>
               </button>
             </div>
@@ -1287,12 +1305,12 @@
             <!-- Action buttons grid -->
             <div class="grid grid-cols-2 gap-2 text-xs">
               <!-- Zero-Storage Browser Burn -->
-              <button onclick="startClientSideHardsubBurn()" class="py-2 px-2.5 rounded-[8px] bg-emerald-600 hover:bg-emerald-500 border border-emerald-400/20 text-white font-medium flex items-center justify-center gap-1.5 transition shadow shadow-emerald-700/30">
+              <button id="btn-client-burn" onclick="startClientSideHardsubBurn()" class="py-2 px-2.5 rounded-[8px] bg-emerald-600 hover:bg-emerald-500 border border-emerald-400/20 text-white font-medium flex items-center justify-center gap-1.5 transition shadow shadow-emerald-700/30">
                 <i data-lucide="zap" class="w-3.5 h-3.5"></i> <span data-i18n="btn_client_burn">Xuất Zero-Storage</span>
               </button>
 
               <!-- Server FFmpeg Burn -->
-              <button onclick="burnAndExportVideoServer()" class="py-2 px-2.5 rounded-[8px] bg-indigo-600 hover:bg-indigo-500 text-white font-medium flex items-center justify-center gap-1.5 transition shadow shadow-indigo-700/30">
+              <button id="btn-server-burn" onclick="burnAndExportVideoServer()" class="py-2 px-2.5 rounded-[8px] bg-indigo-600 hover:bg-indigo-500 text-white font-medium flex items-center justify-center gap-1.5 transition shadow shadow-indigo-700/30">
                 <i data-lucide="server" class="w-3.5 h-3.5"></i> <span data-i18n="btn_server_burn">Xuất Server FFmpeg</span>
               </button>
 
@@ -2147,6 +2165,22 @@
         badge_youtube_embed: "Đang phát bằng YouTube",
         youtube_embed_title: "Trình phát video YouTube",
         youtube_download_limited: "Máy chủ hiện bị YouTube giới hạn nên không thể nạp video để tạo phụ đề. Bạn vẫn có thể xem bằng trình phát YouTube bên dưới; muốn tạo phụ đề, hãy tải tệp video lên từ thiết bị.",
+        tab_audio_capture_title: "Thu âm thanh tab đang phát",
+        tab_audio_capture_help: "Chia sẻ tab/màn hình và bật chia sẻ âm thanh. Không dùng micro. Cần cấp quyền thủ công; một số trình duyệt di động không cung cấp audio track.",
+        tab_audio_capture_start: "Chọn tab có video",
+        tab_audio_capture_stop: "Dừng thu",
+        tab_audio_capture_idle: "Chưa chia sẻ tab âm thanh.",
+        tab_audio_capture_select: "Trong hộp thoại chia sẻ, chọn tab video và bật chia sẻ âm thanh.",
+        tab_audio_capture_no_audio: "Trình duyệt không cấp audio track. Hãy thử trình duyệt desktop hỗ trợ chia sẻ âm thanh tab; micro không được dùng thay thế.",
+        tab_audio_capture_active: "Đang thu âm thanh tab. Gemini xử lý theo các đoạn ngắn; độ trễ phụ thuộc mạng và AI.",
+        tab_audio_capture_stopped: "Đã dừng thu âm thanh tab.",
+        tab_audio_capture_queue_full: "Gemini xử lý chậm hơn tốc độ thu; đã tự dừng để tránh mất các đoạn âm thanh đang chờ.",
+        tab_audio_capture_unsupported: "Trình duyệt này không hỗ trợ chia sẻ màn hình/tab có âm thanh.",
+        tab_audio_capture_error: "Không thể bắt âm thanh tab: {error}",
+        tab_audio_capture_empty: "Đang thu nhưng chưa phát hiện lời thoại rõ ràng.",
+        youtube_captions_loading: "Đang thử lấy phụ đề có sẵn từ YouTube...",
+        youtube_captions_ready: "Đã lấy và dịch {count} câu phụ đề. Phát video để xem phụ đề đồng bộ.",
+        youtube_captions_unavailable: "Không lấy được transcript công khai. Bạn vẫn có thể xem video; để tạo phụ đề, hãy tải video lên hoặc dùng thu âm thanh tab nếu trình duyệt hỗ trợ.",
         btn_auto_sub: "AI tạo Sub",
         btn_auto_sub_scanning: "Đang quét sub...",
         btn_export_video: "Xuất Video kèm Sub",
@@ -2170,6 +2204,7 @@
         timeline_scanning_sub: "Smart Key Pool tự động luân chuyển hạn ngạch",
         timeline_no_subs: "Không phát hiện thấy câu thoại trong video.",
         export_ready_title: "Phụ đề & Video đã sẵn sàng:",
+        export_subtitles_only: "Phụ đề đã sẵn sàng:",
         btn_client_burn: "Xuất Zero-Storage",
         btn_server_burn: "Xuất Server FFmpeg",
         btn_dl_srt: "Tải .SRT",
@@ -2379,6 +2414,22 @@
         badge_youtube_embed: "Playing with YouTube",
         youtube_embed_title: "YouTube video player",
         youtube_download_limited: "YouTube is limiting requests from the server, so the video cannot be imported for subtitle generation. You can still watch it in the YouTube player below; upload a video file from your device to generate subtitles.",
+        tab_audio_capture_title: "Capture audio from a playing tab",
+        tab_audio_capture_help: "Share a tab/screen and enable audio sharing. No microphone is used. Permission is required; some mobile browsers do not provide an audio track.",
+        tab_audio_capture_start: "Choose video tab",
+        tab_audio_capture_stop: "Stop capture",
+        tab_audio_capture_idle: "No tab audio is being shared.",
+        tab_audio_capture_select: "In the sharing dialog, choose the video tab and enable audio sharing.",
+        tab_audio_capture_no_audio: "The browser did not provide an audio track. Try a desktop browser that supports tab-audio sharing; the microphone is not used as a fallback.",
+        tab_audio_capture_active: "Capturing tab audio. Gemini processes short segments; latency depends on network and AI.",
+        tab_audio_capture_stopped: "Tab audio capture stopped.",
+        tab_audio_capture_queue_full: "Gemini is processing slower than the capture rate; capture stopped to avoid silently dropping queued audio.",
+        tab_audio_capture_unsupported: "This browser does not support screen/tab sharing with audio.",
+        tab_audio_capture_error: "Could not capture tab audio: {error}",
+        tab_audio_capture_empty: "Capturing audio, but no clear speech was detected yet.",
+        youtube_captions_loading: "Trying to retrieve available YouTube captions...",
+        youtube_captions_ready: "Retrieved and translated {count} caption cues. Play the video to see synchronized subtitles.",
+        youtube_captions_unavailable: "Could not retrieve a public transcript. You can still watch the video; upload a video file or try tab-audio capture if the browser supports it.",
         btn_auto_sub: "AI Scan Sub",
         btn_auto_sub_scanning: "Scanning sub...",
         btn_export_video: "Export Hardsub",
@@ -2402,6 +2453,7 @@
         timeline_scanning_sub: "Smart Key Pool with auto quota rotation",
         timeline_no_subs: "No dialogue detected in video.",
         export_ready_title: "Subtitles & Video ready:",
+        export_subtitles_only: "Subtitles ready:",
         btn_client_burn: "Export Zero-Storage",
         btn_server_burn: "Export Server FFmpeg",
         btn_dl_srt: "Download .SRT",
@@ -2592,6 +2644,20 @@
     let mediaRecorder = null;
     let recordInterval = null;
     let recordSeconds = 0;
+    let youtubePlayer = null;
+    let youtubeSyncTimer = null;
+    let youtubePlayerApiPromise = null;
+    let currentYoutubeVideoId = null;
+    let currentYoutubeUrl = null;
+    let youtubeCaptionRequestId = 0;
+    let tabAudioStream = null;
+    let tabAudioRecorder = null;
+    let tabAudioCaptureActive = false;
+    let tabAudioCaptureGeneration = 0;
+    let pendingTabAudioRequests = 0;
+    let tabAudioCaptureStartedAt = 0;
+    let tabAudioChunkQueue = [];
+    let activeTabAudioWorkers = 0;
 
     // Client burner state
     let isClientBurning = false;
@@ -2612,6 +2678,386 @@
       });
     }
 
+    function setSubtitleOnlyMode(enabled) {
+      ['btn-client-burn', 'btn-server-burn', 'btn-clean-server'].forEach(id => {
+        document.getElementById(id)?.classList.toggle('hidden', enabled);
+      });
+      const label = document.getElementById('export-ready-label');
+      if (label) {
+        label.textContent = t(enabled ? 'export_subtitles_only' : 'export_ready_title');
+      }
+    }
+
+    function stopYouTubePlayer() {
+      if (youtubeSyncTimer) {
+        clearInterval(youtubeSyncTimer);
+        youtubeSyncTimer = null;
+      }
+      if (youtubePlayer && typeof youtubePlayer.destroy === 'function') {
+        youtubePlayer.destroy();
+      }
+      youtubePlayer = null;
+      currentYoutubeVideoId = null;
+      currentYoutubeUrl = null;
+      youtubeCaptionRequestId++;
+    }
+
+    function loadYouTubeIframeApi() {
+      if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
+      if (youtubePlayerApiPromise) return youtubePlayerApiPromise;
+
+      youtubePlayerApiPromise = new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          youtubePlayerApiPromise = null;
+          reject(new Error('YouTube IFrame API timed out'));
+        }, 15000);
+        const previousReady = window.onYouTubeIframeAPIReady;
+        window.onYouTubeIframeAPIReady = () => {
+          if (typeof previousReady === 'function') previousReady();
+          clearTimeout(timeout);
+          if (window.YT && window.YT.Player) {
+            resolve(window.YT);
+          } else {
+            youtubePlayerApiPromise = null;
+            reject(new Error('YouTube IFrame API did not initialize'));
+          }
+        };
+
+        let script = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
+        if (!script) {
+          script = document.createElement('script');
+          script.src = 'https://www.youtube.com/iframe_api';
+          script.async = true;
+          script.onerror = () => {
+            clearTimeout(timeout);
+            youtubePlayerApiPromise = null;
+            reject(new Error('Could not load YouTube IFrame API'));
+          };
+          document.head.appendChild(script);
+        }
+      });
+      return youtubePlayerApiPromise;
+    }
+
+    function syncYouTubeSubtitle() {
+      if (!youtubePlayer || typeof youtubePlayer.getCurrentTime !== 'function') return;
+      const current = youtubePlayer.getCurrentTime();
+      if (!Number.isFinite(current)) return;
+      const duration = typeof youtubePlayer.getDuration === 'function'
+        ? youtubePlayer.getDuration() || 0
+        : 0;
+      const formatClock = seconds => {
+        const safeSeconds = Math.max(0, Math.floor(seconds || 0));
+        return `${String(Math.floor(safeSeconds / 60)).padStart(2, '0')}:${String(safeSeconds % 60).padStart(2, '0')}`;
+      };
+      document.getElementById('video-time-display').innerText =
+        `${formatClock(current)} / ${formatClock(duration)}`;
+
+      const active = currentVideoSubtitles.find(cue =>
+        current >= cue.start && current <= cue.end && (cue.translated || cue.original)
+      );
+      if (active) {
+        renderOverlaySubtitle(active);
+        subtitleOverlay.classList.remove('hidden');
+      } else {
+        subtitleOverlay.classList.add('hidden');
+      }
+    }
+
+    async function initializeYouTubePlayer(videoId) {
+      try {
+        const YT = await loadYouTubeIframeApi();
+        if (currentYoutubeVideoId !== videoId) return;
+        const target = document.createElement('div');
+        target.id = 'youtube-player-api-target';
+        document.getElementById('yt-player-box').replaceChildren(target);
+        youtubePlayer = new YT.Player(target, {
+          videoId,
+          playerVars: { playsinline: 1, rel: 0 },
+          events: {
+            onReady: () => {
+              if (currentYoutubeVideoId === videoId) {
+                youtubeSyncTimer = setInterval(syncYouTubeSubtitle, 200);
+              }
+            },
+            onError: event => {
+              console.warn('YouTube embedded player returned an error:', event.data);
+            }
+          }
+        });
+      } catch (error) {
+        if (currentYoutubeVideoId !== videoId) return;
+        const frame = document.createElement('iframe');
+        frame.src = `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
+        frame.title = t('youtube_embed_title');
+        frame.className = 'w-full h-full border-0';
+        frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        frame.referrerPolicy = 'strict-origin-when-cross-origin';
+        frame.allowFullscreen = true;
+        document.getElementById('yt-player-box').replaceChildren(frame);
+        console.warn('YouTube IFrame API unavailable; using the standard embed:', error);
+      }
+    }
+
+    async function fetchAndTranslateYouTubeCaptions(videoId, url) {
+      const requestId = ++youtubeCaptionRequestId;
+      const list = document.getElementById('sub-timeline-list');
+      list.textContent = t('youtube_captions_loading');
+      try {
+        const response = await fetch('/api/video/youtube-captions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url,
+            target_lang: document.getElementById('video-target-lang')?.value || 'vi'
+          })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || `Server HTTP ${response.status}`);
+        if (requestId !== youtubeCaptionRequestId || currentYoutubeVideoId !== videoId) return;
+
+        currentVideoSubtitles = data.subtitles || [];
+        renderSubtitleTimeline(currentVideoSubtitles);
+        document.getElementById('export-download-box')?.classList.remove('hidden');
+        setSubtitleOnlyMode(true);
+        updateYouTubeSubtitle();
+        list.insertAdjacentHTML(
+          'afterbegin',
+          `<p class="p-3 text-xs text-emerald-300">${escapeHtml(t('youtube_captions_ready', { count: currentVideoSubtitles.length }))}</p>`
+        );
+      } catch (error) {
+        if (requestId !== youtubeCaptionRequestId || currentYoutubeVideoId !== videoId) return;
+        list.textContent = t('youtube_captions_unavailable');
+        console.info('Public YouTube captions unavailable:', error.message);
+      }
+    }
+
+    function updateYouTubeSubtitle() {
+      if (youtubePlayer && typeof youtubePlayer.getCurrentTime === 'function') {
+        syncYouTubeSubtitle();
+      }
+    }
+
+    function getCurrentCaptureTime() {
+      if (youtubePlayer && typeof youtubePlayer.getCurrentTime === 'function') {
+        const current = youtubePlayer.getCurrentTime();
+        if (Number.isFinite(current)) return current;
+      }
+      if (uploadedVideo && !uploadedVideo.paused && Number.isFinite(uploadedVideo.currentTime)) {
+        return uploadedVideo.currentTime;
+      }
+      return Math.max(0, (performance.now() - tabAudioCaptureStartedAt) / 1000);
+    }
+
+    function recordTabAudioSegment(stream, generation) {
+      return new Promise((resolve, reject) => {
+        const preferredTypes = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/mp4'];
+        const mimeType = preferredTypes.find(type => MediaRecorder.isTypeSupported(type));
+        let recorder;
+        try {
+          recorder = mimeType
+            ? new MediaRecorder(stream, { mimeType })
+            : new MediaRecorder(stream);
+        } catch (error) {
+          reject(error);
+          return;
+        }
+        tabAudioRecorder = recorder;
+        const chunks = [];
+        recorder.ondataavailable = event => {
+          if (event.data && event.data.size) chunks.push(event.data);
+        };
+        recorder.onerror = event => reject(event.error || new Error('Audio recorder failed'));
+        recorder.onstop = () => {
+          if (tabAudioRecorder === recorder) tabAudioRecorder = null;
+          resolve(new Blob(chunks, { type: recorder.mimeType || mimeType || 'audio/webm' }));
+        };
+        recorder.start();
+        setTimeout(() => {
+          if (
+            tabAudioCaptureActive &&
+            generation === tabAudioCaptureGeneration &&
+            recorder.state === 'recording'
+          ) {
+            recorder.stop();
+          }
+        }, 6000);
+      });
+    }
+
+    async function sendTabAudioChunk(blob, startTime, endTime, generation) {
+      if (blob.size < 1000) return;
+      pendingTabAudioRequests++;
+      try {
+        const form = new FormData();
+        const extension = blob.type.includes('ogg') ? 'ogg' : blob.type.includes('mp4') ? 'm4a' : 'webm';
+        form.append('file', blob, `tab-audio.${extension}`);
+        form.append('target_lang', document.getElementById('video-target-lang')?.value || 'vi');
+        const response = await fetch('/api/video/transcribe-capture-chunk', {
+          method: 'POST',
+          body: form
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || `Server HTTP ${response.status}`);
+        if (generation !== tabAudioCaptureGeneration || !data.original && !data.translated) return;
+
+        const cueStart = Math.max(0, startTime);
+        const cueEnd = Math.max(cueStart + 0.3, endTime);
+        currentVideoSubtitles.push({
+          id: currentVideoSubtitles.length + 1,
+          start: cueStart,
+          end: cueEnd,
+          start_str: formatVttTime(cueStart),
+          end_str: formatVttTime(cueEnd),
+          original: data.original,
+          translated: data.translated,
+          translations: {
+            [document.getElementById('video-target-lang')?.value || 'vi']: data.translated
+          }
+        });
+        currentVideoSubtitles.sort((left, right) => left.start - right.start);
+        currentVideoSubtitles.forEach((cue, index) => { cue.id = index + 1; });
+        renderSubtitleTimeline(currentVideoSubtitles);
+        document.getElementById('export-download-box')?.classList.remove('hidden');
+        setSubtitleOnlyMode(true);
+        updateYouTubeSubtitle();
+      } catch (error) {
+        if (generation === tabAudioCaptureGeneration) {
+          document.getElementById('tab-audio-capture-status').textContent =
+            t('tab_audio_capture_error', { error: error.message });
+        }
+      } finally {
+        pendingTabAudioRequests = Math.max(0, pendingTabAudioRequests - 1);
+      }
+    }
+
+    async function enqueueTabAudioChunk(blob, startTime, endTime, generation) {
+      if (blob.size < 1000) return;
+      if (tabAudioChunkQueue.length >= 5) {
+        const status = document.getElementById('tab-audio-capture-status');
+        stopTabAudioCapture({ silent: true });
+        status.textContent = t('tab_audio_capture_queue_full');
+        return;
+      }
+
+      tabAudioChunkQueue.push({ blob, startTime, endTime, generation });
+      while (activeTabAudioWorkers < 2 && tabAudioChunkQueue.length) {
+        activeTabAudioWorkers++;
+        void runTabAudioQueueWorker();
+      }
+    }
+
+    async function runTabAudioQueueWorker() {
+      try {
+        while (tabAudioChunkQueue.length) {
+          const chunk = tabAudioChunkQueue.shift();
+          if (chunk.generation !== tabAudioCaptureGeneration) continue;
+          await sendTabAudioChunk(
+            chunk.blob,
+            chunk.startTime,
+            chunk.endTime,
+            chunk.generation
+          );
+        }
+      } finally {
+        activeTabAudioWorkers--;
+        if (tabAudioChunkQueue.length && activeTabAudioWorkers < 2) {
+          activeTabAudioWorkers++;
+          void runTabAudioQueueWorker();
+        }
+      }
+    }
+
+    async function runTabAudioCapture(stream, generation) {
+      while (tabAudioCaptureActive && generation === tabAudioCaptureGeneration) {
+        const startTime = getCurrentCaptureTime();
+        let blob;
+        try {
+          blob = await recordTabAudioSegment(stream, generation);
+        } catch (error) {
+          if (generation === tabAudioCaptureGeneration) {
+            document.getElementById('tab-audio-capture-status').textContent =
+              t('tab_audio_capture_error', { error: error.message });
+            stopTabAudioCapture();
+          }
+          return;
+        }
+        const endTime = getCurrentCaptureTime();
+        if (generation !== tabAudioCaptureGeneration) return;
+        if (blob.size) {
+          void enqueueTabAudioChunk(blob, startTime, endTime, generation);
+        }
+      }
+    }
+
+    async function startTabAudioCapture() {
+      if (tabAudioCaptureActive) return;
+      const status = document.getElementById('tab-audio-capture-status');
+      if (!navigator.mediaDevices?.getDisplayMedia || typeof MediaRecorder === 'undefined') {
+        status.textContent = t('tab_audio_capture_unsupported');
+        return;
+      }
+
+      status.textContent = t('tab_audio_capture_select');
+      try {
+        const sharedStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true
+        });
+        const audioTracks = sharedStream.getAudioTracks();
+        sharedStream.getVideoTracks().forEach(track => track.stop());
+        if (!audioTracks.length) {
+          sharedStream.getTracks().forEach(track => track.stop());
+          status.textContent = t('tab_audio_capture_no_audio');
+          return;
+        }
+
+        tabAudioStream = new MediaStream(audioTracks);
+        tabAudioCaptureActive = true;
+        const generation = ++tabAudioCaptureGeneration;
+        tabAudioCaptureStartedAt = performance.now();
+        currentVideoSubtitles = [];
+        tabAudioChunkQueue = [];
+        renderSubtitleTimeline(currentVideoSubtitles);
+        document.getElementById('export-download-box')?.classList.add('hidden');
+        setSubtitleOnlyMode(true);
+        document.getElementById('btn-capture-tab-audio').disabled = true;
+        document.getElementById('btn-stop-tab-audio').disabled = false;
+        document.getElementById('btn-stop-tab-audio').classList.remove('opacity-50', 'cursor-not-allowed');
+        status.textContent = t('tab_audio_capture_active');
+        audioTracks.forEach(track => {
+          track.addEventListener('ended', () => stopTabAudioCapture(), { once: true });
+        });
+        void runTabAudioCapture(tabAudioStream, generation);
+      } catch (error) {
+        status.textContent = t('tab_audio_capture_error', { error: error.message });
+      }
+    }
+
+    function stopTabAudioCapture(options = {}) {
+      tabAudioCaptureActive = false;
+      tabAudioCaptureGeneration++;
+      tabAudioChunkQueue = [];
+      if (tabAudioRecorder && tabAudioRecorder.state !== 'inactive') {
+        tabAudioRecorder.stop();
+      }
+      if (tabAudioStream) {
+        tabAudioStream.getTracks().forEach(track => track.stop());
+        tabAudioStream = null;
+      }
+      const startButton = document.getElementById('btn-capture-tab-audio');
+      const stopButton = document.getElementById('btn-stop-tab-audio');
+      if (startButton) startButton.disabled = false;
+      if (stopButton) {
+        stopButton.disabled = true;
+        stopButton.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+      if (!options.silent) {
+        document.getElementById('tab-audio-capture-status').textContent =
+          t('tab_audio_capture_stopped');
+      }
+    }
+
     // Restore the user's subtitle choices before any automatically-started job reads them.
     const savedVideoTargetLang = localStorage.getItem('geminitrans_video_target_lang');
     const videoTargetLangSelect = document.getElementById('video-target-lang');
@@ -2629,7 +3075,10 @@
 
     // Dừng và dọn dẹp sạch sẽ toàn bộ player (YouTube iframe, HTML5 video, overlays)
     function stopAndCleanAllPlayers() {
+      stopYouTubePlayer();
+      stopTabAudioCapture({ silent: true });
       setVideoActionsEnabled(true);
+      setSubtitleOnlyMode(false);
       // Dừng và xóa triệt để nội dung của yt-player-box
       const box = document.getElementById('yt-player-box');
       if (box) {
@@ -3623,6 +4072,10 @@ document.addEventListener('mousedown', (e) => {
     // Chuyển đổi ngôn ngữ hiển thị hoặc dịch phụ đề sang ngôn ngữ mới
     async function onVideoTargetLangChange(newLang) {
       localStorage.setItem('geminitrans_video_target_lang', newLang);
+      if (currentYoutubeVideoId && currentYoutubeUrl) {
+        await fetchAndTranslateYouTubeCaptions(currentYoutubeVideoId, currentYoutubeUrl);
+        return;
+      }
       if (!currentVideoSubtitles || !currentVideoSubtitles.length) {
         return;
       }
@@ -3815,6 +4268,11 @@ document.addEventListener('mousedown', (e) => {
     }
 
     function jumpToTime(sec) {
+      if (youtubePlayer && typeof youtubePlayer.seekTo === 'function') {
+        youtubePlayer.seekTo(sec, true);
+        youtubePlayer.playVideo();
+        return;
+      }
       uploadedVideo.currentTime = sec;
       uploadedVideo.play();
     }
@@ -4325,29 +4783,35 @@ document.addEventListener('mousedown', (e) => {
       }
     }
 
-    function showYouTubeEmbedFallback(videoId, errorMessage) {
+    function showYouTubeEmbedFallback(videoId, errorMessage, captionsAlreadyAttempted = false) {
       const box = document.getElementById('yt-player-box');
       const placeholder = document.getElementById('player-placeholder');
       const videoBadge = document.getElementById('current-video-badge');
-      const frame = document.createElement('iframe');
-      frame.src = `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
-      frame.title = t('youtube_embed_title');
-      frame.className = 'w-full h-full border-0';
-      frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-      frame.referrerPolicy = 'strict-origin-when-cross-origin';
-      frame.allowFullscreen = true;
-      box.replaceChildren(frame);
+      currentYoutubeVideoId = videoId;
+      currentYoutubeUrl = document.getElementById('video-url-input').value.trim();
+      currentVideoSubtitles = [];
+      const target = document.createElement('div');
+      target.id = 'youtube-player-api-target';
+      box.replaceChildren(target);
       box.classList.remove('hidden');
       placeholder.classList.add('hidden');
       videoBadge.innerText = t('badge_youtube_embed');
       videoBadge.className = 'text-xs px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 font-medium';
       setVideoActionsEnabled(false);
+      setSubtitleOnlyMode(true);
 
       const message = document.createElement('div');
       message.className = 'p-4 text-xs text-amber-300 leading-relaxed';
       message.textContent = t('youtube_download_limited');
       document.getElementById('sub-timeline-list').replaceChildren(message);
       document.getElementById('sub-count-badge').innerText = '—';
+      void initializeYouTubePlayer(videoId);
+      if (captionsAlreadyAttempted) {
+        document.getElementById('sub-timeline-list').textContent =
+          t('youtube_captions_unavailable');
+      } else {
+        void fetchAndTranslateYouTubeCaptions(videoId, currentYoutubeUrl);
+      }
       console.warn('YouTube server import failed; falling back to the official embedded player:', errorMessage);
     }
 
@@ -4382,6 +4846,7 @@ document.addEventListener('mousedown', (e) => {
 
       const videoBadge = document.getElementById('current-video-badge');
       const btnAuto = document.getElementById('btn-auto-sub');
+      let youtubeCaptionsAttempted = false;
 
       videoBadge.innerText = t('badge_url_loading');
       videoBadge.className = "text-xs px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 font-medium animate-pulse";
@@ -4391,10 +4856,34 @@ document.addEventListener('mousedown', (e) => {
         const res = await fetch('/api/video/process-url', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: url })
+          body: JSON.stringify({
+            url,
+            target_lang: document.getElementById('video-target-lang')?.value || 'vi'
+          })
         });
         const data = await res.json();
+        youtubeCaptionsAttempted = Boolean(data.youtube_captions_attempted);
+        if (data.mode === 'youtube_captions' && Array.isArray(data.subtitles)) {
+          currentVideoId = null;
+          currentLoadedUrl = url;
+          currentYoutubeVideoId = data.youtube_id;
+          currentYoutubeUrl = url;
+          currentVideoSubtitles = data.subtitles;
+          const box = document.getElementById('yt-player-box');
+          box.classList.remove('hidden');
+          placeholder?.classList.add('hidden');
+          videoBadge.innerText = t('badge_youtube_embed');
+          videoBadge.className = 'text-xs px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 font-medium';
+          setVideoActionsEnabled(false);
+          setSubtitleOnlyMode(true);
+          document.getElementById('export-download-box')?.classList.remove('hidden');
+          renderSubtitleTimeline(currentVideoSubtitles);
+          void initializeYouTubePlayer(data.youtube_id);
+          updateYouTubeSubtitle();
+          return;
+        }
         if (data.video_id) {
+          setSubtitleOnlyMode(false);
           currentVideoId = data.video_id;
           videoBadge.innerText = `${t('badge_url_loaded')}${data.filename || 'Stream'}`;
           videoBadge.className = "text-xs px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 font-medium";
@@ -4433,7 +4922,7 @@ document.addEventListener('mousedown', (e) => {
       } catch (err) {
         const youtubeId = getYouTubeVideoId(url);
         if (youtubeId && /\bHTTP\s+(?:403|429)\b/i.test(err.message)) {
-          showYouTubeEmbedFallback(youtubeId, err.message);
+          showYouTubeEmbedFallback(youtubeId, err.message, youtubeCaptionsAttempted);
           return;
         }
         stopAndCleanAllPlayers();

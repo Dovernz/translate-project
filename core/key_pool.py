@@ -131,6 +131,10 @@ class KeyPool:
         self.cooldowns: Dict[str, float] = {}
         self.usage_stats: Dict[str, Dict[str, int]] = {}
         self.api_base = os.getenv("GEMINI_API_BASE", "https://generativelanguage.googleapis.com/v1beta/models")
+        self.interactions_api_url = os.getenv(
+            "GEMINI_INTERACTIONS_API_URL",
+            "https://generativelanguage.googleapis.com/v1beta/interactions",
+        )
         self.cooldown_seconds = int(os.getenv("COOLDOWN_SECONDS", "60"))
         self.request_timeout = float(os.getenv("REQUEST_TIMEOUT", "60.0"))
 
@@ -174,6 +178,19 @@ class KeyPool:
         soonest_key = min(self.keys, key=lambda k: self.cooldowns.get(k, 0))
         return soonest_key
 
+    def _ordered_keys_for_request(self) -> List[str]:
+        if not self.keys:
+            raise RuntimeError("Không tìm thấy GEMINI_API_KEYS. Vui lòng kiểm tra file D:\\Thành\\Agent\\.env")
+
+        now = time.time()
+        start = self.current_index % len(self.keys)
+        self.current_index = (start + 1) % len(self.keys)
+        ordered = self.keys[start:] + self.keys[:start]
+        ready = [key for key in ordered if self.cooldowns.get(key, 0) <= now]
+        if ready:
+            return ready
+        return [min(self.keys, key=lambda key: self.cooldowns.get(key, 0))]
+
     def record_usage(self, key: str, success: bool, status_code: int = 200):
         if key not in self.usage_stats:
             self.usage_stats[key] = {"requests": 0, "errors": 0}
@@ -196,12 +213,9 @@ class KeyPool:
     ) -> AsyncGenerator[str, None]:
         tier_info = MODEL_TIERS.get(tier, MODEL_TIERS["bulk"])
         model_name = tier_info["primary"]
-        
-        retries = 3
-        while retries > 0:
-            key = self.acquire_key()
+
+        for key in self._ordered_keys_for_request():
             url = f"{self.api_base}/{model_name}:streamGenerateContent?alt=sse&key={key}"
-            
             gen_config: Dict[str, Any] = {
                 "temperature": 0.3,
                 "maxOutputTokens": max_output_tokens
@@ -223,8 +237,6 @@ class KeyPool:
                     async with client.stream("POST", url, json=payload) as response:
                         if response.status_code != 200:
                             self.record_usage(key, success=False, status_code=response.status_code)
-                            retries -= 1
-                            await asyncio.sleep(0.5)
                             continue
 
                         self.record_usage(key, success=True, status_code=200)
@@ -246,12 +258,75 @@ class KeyPool:
                                 except Exception:
                                     continue
                         return
+            except httpx.HTTPError as error:
+                safe_error = type(error).__name__
+                print(f"[WARN] Gemini stream request failed for one key: {safe_error}")
+                self.record_usage(key, success=False, status_code=500)
             except Exception:
                 self.record_usage(key, success=False, status_code=500)
-                retries -= 1
-                await asyncio.sleep(0.5)
 
-        yield "\n[Lỗi kết nối hoặc toàn bộ API Keys trong pool đang bận/hết hạn ngạch. Vui lòng thử lại sau vài giây.]"
+        raise RuntimeError(
+            "Không thể kết nối Gemini: tất cả API key khả dụng đều lỗi hoặc hết hạn ngạch."
+        )
+
+    async def generate_youtube_video_transcript(self, video_url: str) -> str:
+        prompt = (
+            "Tạo transcript phụ đề từ video YouTube công khai được cung cấp. "
+            "Trả về duy nhất JSON array, không markdown hay giải thích. "
+            'Mỗi phần tử có dạng {"start":"HH:MM:SS.mmm",'
+            '"end":"HH:MM:SS.mmm","original":"lời thoại nguyên văn"}. '
+            "Giữ nguyên ngôn ngữ được nói, chia thành các câu thoại ngắn có timestamp "
+            "chính xác theo video. Bỏ qua nhạc nền và không suy đoán lời thoại."
+        )
+        input_content = [
+            {"type": "video", "uri": video_url},
+            {"type": "text", "text": prompt},
+        ]
+        last_status = 0
+
+        for key in self._ordered_keys_for_request():
+            try:
+                async with httpx.AsyncClient(timeout=self.request_timeout * 3.0) as client:
+                    response = await client.post(
+                        self.interactions_api_url,
+                        headers={
+                            "Content-Type": "application/json",
+                            "x-goog-api-key": key,
+                        },
+                        json={
+                            "model": "gemini-4-hydrogen",
+                            "input": input_content,
+                            "generation_config": {"max_output_tokens": 8192},
+                        },
+                    )
+                last_status = response.status_code
+                if response.status_code != 200:
+                    self.record_usage(key, success=False, status_code=response.status_code)
+                    if response.status_code in (400, 404):
+                        break
+                    continue
+
+                self.record_usage(key, success=True, status_code=200)
+                data = response.json()
+                output_text = data.get("output_text")
+                if isinstance(output_text, str) and output_text.strip():
+                    return output_text.strip()
+                text_parts = []
+                for step in data.get("output", []):
+                    for content in step.get("content", []):
+                        if content.get("type") == "text" and isinstance(content.get("text"), str):
+                            text_parts.append(content["text"])
+                if text_parts:
+                    return "\n".join(text_parts).strip()
+                raise RuntimeError("Gemini Interactions API không trả transcript dạng văn bản.")
+            except httpx.HTTPError as error:
+                last_status = 500
+                print(f"[WARN] Gemini YouTube interaction failed for one key: {type(error).__name__}")
+                self.record_usage(key, success=False, status_code=500)
+
+        raise RuntimeError(
+            f"Không thể tạo transcript YouTube qua Gemini Interactions API (HTTP {last_status})."
+        )
 
     async def generate_multimodal(
         self,
@@ -269,9 +344,7 @@ class KeyPool:
         candidate_models = list(dict.fromkeys(fallback_models))
 
         for current_model in candidate_models:
-            retries = 2
-            while retries > 0:
-                key = self.acquire_key()
+            for key in self._ordered_keys_for_request():
                 url = f"{self.api_base}/{current_model}:generateContent?key={key}"
                 
                 parts = [
@@ -304,11 +377,8 @@ class KeyPool:
                         resp = await client.post(url, json=payload)
                         if resp.status_code != 200:
                             self.record_usage(key, success=False, status_code=resp.status_code)
-                            retries -= 1
                             if resp.status_code in [404, 400]:
-                                # Switch to next candidate model immediately
                                 break
-                            await asyncio.sleep(0.5)
                             continue
                         
                         self.record_usage(key, success=True, status_code=200)
@@ -320,10 +390,11 @@ class KeyPool:
                                 text_parts.append(p.get("text", ""))
                             return "".join(text_parts)
                         return ""
+                except httpx.HTTPError as error:
+                    print(f"[WARN] Gemini multimodal request failed for one key: {type(error).__name__}")
+                    self.record_usage(key, success=False, status_code=500)
                 except Exception:
                     self.record_usage(key, success=False, status_code=500)
-                    retries -= 1
-                    await asyncio.sleep(0.5)
 
         raise RuntimeError("Không thể xử lý multimodal qua Gemini Pool sau khi thử các model dự phòng.")
 

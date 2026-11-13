@@ -146,6 +146,10 @@ async def process_auto_subtitle(req: AutoSubRequest, pool, loop, upload_dir: Pat
 
         with open(audio_path, "rb") as f:
             audio_bytes = f.read()
+        try:
+            audio_path.unlink(missing_ok=True)
+        except OSError as cleanup_error:
+            print(f"[WARN] Could not remove intermediate audio {audio_path}: {cleanup_error}")
 
         if not is_multi:
             prompt = (

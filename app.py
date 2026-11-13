@@ -18,6 +18,7 @@ import time
 import uuid
 import json
 import asyncio
+from contextlib import asynccontextmanager
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Optional, List, Dict, Any
@@ -54,6 +55,7 @@ from core.video_helper import (
     extract_audio_from_video,
     download_video_from_url,
     extract_subtitles_from_url,
+    clean_gemini_json,
     get_youtube_diagnostics,
     cleanup_storage,
     parse_subtitles_from_ai,
@@ -62,8 +64,6 @@ from core.video_helper import (
     burn_subtitles_to_video,
     safe_log
 )
-
-app = FastAPI(title="Gemini Universal Translator & Realtime Subtitler")
 
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = BASE_DIR / "uploads"
@@ -76,6 +76,39 @@ MANGA_UPLOAD_DIR = UPLOAD_DIR / "manga"
 MANGA_OUTPUT_DIR = OUTPUT_DIR / "manga"
 MANGA_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 MANGA_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+async def _storage_cleanup_worker():
+    while True:
+        await asyncio.sleep(10 * 60)
+        try:
+            await asyncio.to_thread(
+                cleanup_storage,
+                UPLOAD_DIR,
+                OUTPUT_DIR,
+                max_age_minutes=30,
+            )
+        except Exception as error:
+            safe_log(f"[ERROR] Scheduled storage cleanup failed: {error}")
+
+
+@asynccontextmanager
+async def app_lifespan(_app: FastAPI):
+    cleanup_task = asyncio.create_task(_storage_cleanup_worker())
+    try:
+        yield
+    finally:
+        cleanup_task.cancel()
+        try:
+            await cleanup_task
+        except asyncio.CancelledError:
+            pass
+
+
+app = FastAPI(
+    title="Gemini Universal Translator & Realtime Subtitler",
+    lifespan=app_lifespan,
+)
 
 # Mount thư mục tĩnh để stream và download video
 app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
@@ -97,6 +130,74 @@ class VideoInfoRequest(BaseModel):
 
 class VideoProcessUrlRequest(BaseModel):
     url: str
+    target_lang: str = "vi"
+
+class YouTubeCaptionRequest(BaseModel):
+    url: str
+    target_lang: str = "vi"
+
+
+async def _fetch_and_translate_youtube_captions(
+    url: str,
+    target_lang: str,
+) -> Optional[List[Dict[str, Any]]]:
+    subtitles = await asyncio.to_thread(
+        extract_subtitles_from_url,
+        url,
+        OUTPUT_DIR,
+    )
+    if not subtitles:
+        youtube_id = extract_youtube_id(url)
+        if not youtube_id:
+            return None
+        canonical_url = f"https://www.youtube.com/watch?v={youtube_id}"
+        transcript = await pool.generate_youtube_video_transcript(canonical_url)
+        subtitles = parse_subtitles_from_ai(transcript)
+        subtitles = [
+            cue for cue in subtitles
+            if isinstance(cue.get("original"), str)
+            and cue["original"].strip()
+            and isinstance(cue.get("start"), (int, float))
+            and isinstance(cue.get("end"), (int, float))
+            and cue["start"] >= 0
+            and cue["end"] > cue["start"]
+        ][:2500]
+    if not subtitles:
+        return None
+
+    language_name = SUPPORTED_VIDEO_LANGUAGES[target_lang]
+    batches = [subtitles[index:index + 25] for index in range(0, len(subtitles), 25)]
+    translation_limit = asyncio.Semaphore(3)
+
+    async def translate_batch(batch: List[Dict[str, Any]]):
+        cue_text = "\n".join(
+            f'{cue["id"]}. {cue["original"]}' for cue in batch
+        )
+        prompt = (
+            f"Dịch từng câu phụ đề sau sang {language_name}. "
+            "Trả về JSON object hợp lệ, key là số thứ tự và value là bản dịch. "
+            "Giữ nguyên số thứ tự, không thêm nội dung ngoài JSON.\n"
+            f"{cue_text}"
+        )
+        async with translation_limit:
+            response = await pool.generate_content(
+                prompt,
+                tier="bulk",
+                response_mime_type="application/json",
+                max_output_tokens=4096,
+            )
+        translations = json.loads(clean_gemini_json(response))
+        if not isinstance(translations, dict):
+            raise ValueError("Gemini caption translation must be a JSON object.")
+        for cue in batch:
+            translated = translations.get(str(cue["id"]))
+            if not isinstance(translated, str) or not translated.strip():
+                raise ValueError(f"Gemini caption translation is missing cue {cue['id']}.")
+            cue["translated"] = translated.strip()
+            cue["translations"] = {target_lang: cue["translated"]}
+
+    await asyncio.gather(*(translate_batch(batch) for batch in batches))
+    return subtitles
 
 class VideoChunkTranslateRequest(BaseModel):
     chunk_text: str
@@ -404,13 +505,33 @@ async def fetch_video_info(req: VideoInfoRequest):
 @app.post("/api/video/process-url")
 async def process_video_url(req: VideoProcessUrlRequest):
     """
-    Xử lý link video: Tự động dọn rác cũ, tải video/audio và sẵn sàng cho AI quét
+    Thử lấy phụ đề YouTube trước, sau đó mới nhập media vào server.
     """
     url_str = (req.url or "").strip()
     if not url_str:
         return JSONResponse(status_code=200, content={"success": False, "error": "Vui lòng cung cấp link video", "detail": "Vui lòng cung cấp link video"})
-    
+
+    youtube_id = extract_youtube_id(url_str)
+    youtube_captions_attempted = False
     try:
+        if youtube_id and req.target_lang in SUPPORTED_VIDEO_LANGUAGES:
+            youtube_captions_attempted = True
+            try:
+                subtitles = await _fetch_and_translate_youtube_captions(
+                    url_str,
+                    req.target_lang,
+                )
+                if subtitles:
+                    return {
+                        "success": True,
+                        "mode": "youtube_captions",
+                        "youtube_id": youtube_id,
+                        "subtitles": subtitles,
+                        "target_lang": req.target_lang,
+                    }
+            except Exception as caption_error:
+                safe_log(f"[WARN] YouTube transcript-first processing failed: {caption_error}")
+
         # Dọn dẹp ổ đĩa định kỳ để tránh tốn dung lượng
         try:
             cleanup_storage(UPLOAD_DIR, OUTPUT_DIR, max_age_minutes=30)
@@ -421,12 +542,121 @@ async def process_video_url(req: VideoProcessUrlRequest):
         res = await loop.run_in_executor(None, download_video_from_url, url_str, UPLOAD_DIR)
         if not res or not res.get("success"):
             err_msg = (res.get("error") if res else None) or "Không thể tải video từ đường dẫn này."
-            return JSONResponse(status_code=200, content={"success": False, "error": err_msg, "detail": err_msg})
+            return JSONResponse(status_code=200, content={
+                "success": False,
+                "error": err_msg,
+                "detail": err_msg,
+                "youtube_captions_attempted": youtube_captions_attempted,
+            })
+        if youtube_captions_attempted:
+            res["youtube_captions_attempted"] = True
         return res
     except Exception as e:
         safe_log(f"[ERROR] process_video_url error: {e}")
         err_msg = f"Lỗi xử lý video: {str(e)}"
-        return JSONResponse(status_code=200, content={"success": False, "error": err_msg, "detail": err_msg})
+        return JSONResponse(status_code=200, content={
+            "success": False,
+            "error": err_msg,
+            "detail": err_msg,
+            "youtube_captions_attempted": youtube_captions_attempted,
+        })
+
+@app.post("/api/video/youtube-captions")
+async def fetch_youtube_captions(req: YouTubeCaptionRequest):
+    url_str = req.url.strip()
+    if not extract_youtube_id(url_str):
+        raise HTTPException(status_code=400, detail="URL không phải video YouTube hợp lệ.")
+
+    if req.target_lang not in SUPPORTED_VIDEO_LANGUAGES:
+        raise HTTPException(status_code=400, detail="Ngôn ngữ dịch phụ đề không được hỗ trợ.")
+
+    try:
+        subtitles = await _fetch_and_translate_youtube_captions(
+            url_str,
+            req.target_lang,
+        )
+    except (json.JSONDecodeError, TypeError, ValueError) as e:
+        safe_log(f"[ERROR] YouTube caption processing returned invalid data: {e}")
+        raise HTTPException(
+            status_code=502,
+            detail="Gemini không trả về bản dịch phụ đề hợp lệ. Vui lòng thử lại.",
+        ) from e
+    except Exception as e:
+        safe_log(f"[ERROR] YouTube caption processing failed: {e}")
+        raise HTTPException(
+            status_code=502,
+            detail="Không thể tạo phụ đề YouTube lúc này. Vui lòng thử lại.",
+        ) from e
+    if not subtitles:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "Không lấy được phụ đề/transcript công khai từ YouTube. "
+                "Bạn vẫn có thể xem video; hãy tải video lên để tạo phụ đề."
+            ),
+        )
+
+    return {
+        "subtitles": subtitles,
+        "youtube_id": extract_youtube_id(url_str),
+        "target_lang": req.target_lang,
+    }
+
+@app.post("/api/video/transcribe-capture-chunk")
+async def transcribe_captured_video_audio(
+    file: UploadFile = File(...),
+    target_lang: str = Form("vi"),
+):
+    if target_lang not in SUPPORTED_VIDEO_LANGUAGES:
+        raise HTTPException(status_code=400, detail="Ngôn ngữ dịch phụ đề không được hỗ trợ.")
+
+    mime_type = (file.content_type or "").split(";", 1)[0].strip().lower()
+    if not mime_type.startswith("audio/"):
+        raise HTTPException(status_code=415, detail="Chỉ chấp nhận đoạn âm thanh đã thu từ tab chia sẻ.")
+
+    audio_bytes = await file.read(8 * 1024 * 1024 + 1)
+    if not audio_bytes:
+        raise HTTPException(status_code=400, detail="Đoạn âm thanh thu được đang rỗng.")
+    if len(audio_bytes) > 8 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Đoạn âm thanh vượt giới hạn 8 MB.")
+
+    language_name = SUPPORTED_VIDEO_LANGUAGES[target_lang]
+    prompt = (
+        "Nghe đoạn âm thanh ngắn này. Nếu có lời thoại, hãy nhận diện nguyên văn "
+        f"và dịch sang {language_name}. Trả về duy nhất JSON hợp lệ gồm hai chuỗi: "
+        '{"original":"lời thoại gốc","translated":"bản dịch"}. '
+        "Nếu không nghe thấy lời thoại rõ ràng, trả về hai chuỗi rỗng. "
+        "Không suy đoán nội dung."
+    )
+    try:
+        response = await pool.generate_multimodal(
+            audio_bytes,
+            mime_type,
+            prompt,
+            response_mime_type="application/json",
+        )
+        result = json.loads(clean_gemini_json(response))
+    except (json.JSONDecodeError, TypeError, ValueError) as e:
+        safe_log(f"[ERROR] Captured audio transcription returned invalid JSON: {e}")
+        raise HTTPException(
+            status_code=502,
+            detail="Gemini không trả kết quả phiên âm hợp lệ cho đoạn âm thanh.",
+        ) from e
+    except Exception as e:
+        safe_log(f"[ERROR] Captured audio transcription failed: {e}")
+        raise HTTPException(
+            status_code=502,
+            detail="Không thể phiên âm đoạn âm thanh lúc này. Vui lòng thử lại.",
+        ) from e
+
+    original = result.get("original")
+    translated = result.get("translated")
+    if not isinstance(original, str) or not isinstance(translated, str):
+        raise HTTPException(
+            status_code=502,
+            detail="Kết quả phiên âm thiếu nội dung gốc hoặc bản dịch.",
+        )
+    return {"original": original.strip(), "translated": translated.strip()}
 
 @app.post("/api/video/translate-chunk")
 async def translate_video_chunk(req: VideoChunkTranslateRequest):
