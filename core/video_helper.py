@@ -12,6 +12,7 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Optional
+from urllib.parse import parse_qs, urlsplit
 import yt_dlp
 
 if hasattr(sys.stdout, 'reconfigure'):
@@ -124,14 +125,29 @@ def safe_log(msg: str):
         pass
 
 def extract_youtube_id(url: str) -> Optional[str]:
-    patterns = [
-        r'(?:v=|\/)([0-9A-Za-z_-]{11}).*',
-        r'(?:embed\/|shorts\/|youtu.be\/)([0-9A-Za-z_-]{11})'
-    ]
-    for pattern in patterns:
-        match = re.search(pattern, url)
-        if match:
-            return match.group(1)
+    parsed_url = urlsplit(url if "://" in url else f"//{url}")
+    hostname = (parsed_url.hostname or "").lower().rstrip(".")
+    is_youtube_host = (
+        hostname == "youtu.be"
+        or hostname.endswith(".youtu.be")
+        or hostname == "youtube.com"
+        or hostname.endswith(".youtube.com")
+        or hostname == "youtube-nocookie.com"
+        or hostname.endswith(".youtube-nocookie.com")
+    )
+    if not is_youtube_host:
+        return None
+
+    video_id = parse_qs(parsed_url.query).get("v", [None])[0]
+    if video_id and re.fullmatch(r"[0-9A-Za-z_-]{11}", video_id):
+        return video_id
+
+    match = re.match(
+        r"^/(?:embed|shorts|live|v)?/?([0-9A-Za-z_-]{11})(?:/|$)",
+        parsed_url.path,
+    )
+    if match:
+        return match.group(1)
     return None
 
 def cleanup_storage(upload_dir: Path, output_dir: Path, max_age_minutes: int = 30):
@@ -166,6 +182,7 @@ def get_video_info(url: str) -> Dict[str, Any]:
             "duration": data.get("duration", 0),
             "thumbnail": data.get("thumbnail", "") or (f"https://img.youtube.com/vi/{yt_id}/hqdefault.jpg" if yt_id else ""),
             "uploader": data.get("uploader", ""),
+            "extractor": data.get("extractor_key") or data.get("extractor"),
             "webpage_url": data.get("webpage_url", url),
             "youtube_id": yt_id
         }
@@ -176,13 +193,20 @@ def get_video_info(url: str) -> Dict[str, Any]:
             "duration": 0,
             "thumbnail": f"https://img.youtube.com/vi/{yt_id}/hqdefault.jpg" if yt_id else "",
             "uploader": "External Stream",
+            "extractor": None,
             "webpage_url": url,
             "youtube_id": yt_id,
             "error": str(e)
         }
 
-def _bgutil_ytdlp_fallback_options(base_options: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+def _bgutil_ytdlp_fallback_options(
+    url: str,
+    base_options: Dict[str, Any],
+) -> Optional[Dict[str, Any]]:
     """Build the opt-in mweb/bgutil retry only when its runtime is installed."""
+    if not extract_youtube_id(url):
+        return None
+
     if os.getenv("BGUTIL_YTDLP_FALLBACK", "").strip().lower() not in {"1", "true", "yes"}:
         return None
 
@@ -216,6 +240,82 @@ def _bgutil_ytdlp_fallback_options(base_options: Dict[str, Any]) -> Optional[Dic
             "youtubepot-bgutilscript": {"server_home": [str(server_path)]},
         },
     }
+
+
+def _streamlink_fallback_eligible(url: str, download_errors: List[str]) -> bool:
+    if extract_youtube_id(url):
+        return False
+
+    combined_errors = " ".join(download_errors).lower()
+    if any(
+        marker in combined_errors
+        for marker in (
+            "http error 401",
+            "http error 403",
+            "http error 429",
+            "login_required",
+            "sign in to confirm",
+            "drm",
+            "private video",
+            "age-restricted",
+        )
+    ):
+        return False
+
+    return any(
+        marker in combined_errors
+        for marker in (
+            "unsupported url",
+            "no suitable extractor",
+            "no yt-dlp extractor matched",
+            "no video formats found",
+            "requested format is not available",
+        )
+    )
+
+
+def _download_with_streamlink(url: str, output_path: Path):
+    from streamlink import Streamlink
+
+    session = Streamlink()
+    session.set_option("stream-segment-timeout", 30)
+    stream = session.streams(url).get("best")
+    if stream is None:
+        raise ValueError("Streamlink không tìm thấy luồng video công khai phù hợp")
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    stream_path = output_path.with_suffix(".stream")
+    byte_limit = 4 * 1024 * 1024 * 1024
+    deadline = time.monotonic() + 3 * 60 * 60
+    try:
+        with stream.open() as stream_reader, stream_path.open("wb") as stream_file:
+            while chunk := stream_reader.read(1024 * 1024):
+                if time.monotonic() >= deadline:
+                    raise TimeoutError("Streamlink vượt giới hạn tải 3 giờ")
+                if stream_file.tell() + len(chunk) > byte_limit:
+                    raise ValueError("Streamlink vượt giới hạn dung lượng 4 GiB")
+                stream_file.write(chunk)
+
+        if not stream_path.is_file() or stream_path.stat().st_size == 0:
+            raise ValueError("Streamlink không nhận được dữ liệu video")
+
+        subprocess.run(
+            [
+                "ffmpeg", "-y", "-i", str(stream_path),
+                "-c", "copy", "-movflags", "+faststart", str(output_path),
+            ],
+            capture_output=True,
+            check=True,
+            timeout=300,
+        )
+        if not output_path.is_file() or output_path.stat().st_size == 0:
+            raise ValueError("FFmpeg không tạo được video MP4 từ luồng")
+    finally:
+        try:
+            stream_path.unlink(missing_ok=True)
+        except OSError as e:
+            safe_log(f"[WARN] Không thể xóa luồng tạm {stream_path}: {e}")
+
 
 def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict[str, Any]]]:
     """
@@ -326,7 +426,7 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
         'outtmpl': output_template,
     }
     ydl_profiles = [base_ydl_opts]
-    bgutil_profile = _bgutil_ytdlp_fallback_options(base_ydl_opts)
+    bgutil_profile = _bgutil_ytdlp_fallback_options(url, base_ydl_opts)
     if bgutil_profile:
         ydl_profiles.append(bgutil_profile)
         _record_youtube_diagnostic("fallback_ready")
@@ -381,6 +481,28 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
 
         remove_partial_downloads()
 
+    if _streamlink_fallback_eligible(url, download_errors):
+        streamlink_path = output_dir / f"{video_id}_streamlink.mp4"
+        try:
+            _download_with_streamlink(url, streamlink_path)
+            audio_path = output_dir / f"{video_id}_audio.mp3"
+            extract_audio_from_video(streamlink_path, audio_path)
+            return {
+                "success": True,
+                "video_id": video_id,
+                "filename": streamlink_path.name,
+                "video_url": f"/uploads/{streamlink_path.name}",
+                "size_bytes": streamlink_path.stat().st_size,
+                "extractor": "Streamlink",
+            }
+        except Exception as e:
+            download_errors.append(f"Streamlink fallback: {e}")
+            safe_log(f"[WARN] Streamlink fallback thất bại: {e}")
+            try:
+                streamlink_path.unlink(missing_ok=True)
+            except OSError as cleanup_error:
+                safe_log(f"[WARN] Không thể xóa video Streamlink tải dở {streamlink_path}: {cleanup_error}")
+
     fallback_errors = []
     audio_template = str(output_dir / f"{video_id}_audio.%(ext)s")
     base_audio_opts = {
@@ -396,7 +518,7 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
         }],
     }
     audio_profiles = [base_audio_opts]
-    bgutil_audio_profile = _bgutil_ytdlp_fallback_options(base_audio_opts)
+    bgutil_audio_profile = _bgutil_ytdlp_fallback_options(url, base_audio_opts)
     if bgutil_audio_profile:
         audio_profiles.append(bgutil_audio_profile)
 

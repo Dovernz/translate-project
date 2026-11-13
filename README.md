@@ -16,7 +16,8 @@ Hệ thống dịch thuật siêu tốc khai thác 100% tiềm năng ma trận m
      * `deep` (`gemini-3.8-flash`): 140 req/ngày, 35 RPM.
 
 2. **Dịch Phim & Video Trực Tuyến với Độ Trễ Thấp Nhất (Realtime Video Subtitler):**
-   - Dán đường dẫn video YouTube hoặc stream MP4.
+   - Dán đường dẫn video từ các extractor yt-dlp (YouTube, Archive.org, Wikimedia và nhiều dịch vụ khác), hoặc link media/stream MP4, HLS, DASH công khai.
+   - Streamlink là fallback bổ sung cho một số nguồn stream công khai mà yt-dlp không trích xuất được. Nguồn cần đăng nhập, bị giới hạn truy cập, hoặc dùng DRM không được vượt qua.
    - Trình phát tích hợp kèm **Floating Subtitle Overlay** đè trực tiếp lên khung hình video (phong cách Netflix).
    - Cơ chế chia đoạn âm thanh (audio chunking 3s - 5s) và phân tán xoay vòng (round-robin) qua 7 API keys:
      * Chunk 1 $\rightarrow$ Key #1
