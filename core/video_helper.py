@@ -339,6 +339,7 @@ def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict
         'subtitleslangs': ['en', 'vi', 'ko', 'ja', 'zh'],
         'subtitlesformat': 'vtt',
         'outtmpl': sub_path_template,
+        'socket_timeout': 8,
     }
     try:
         try:

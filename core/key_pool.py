@@ -270,6 +270,13 @@ class KeyPool:
         )
 
     async def generate_youtube_video_transcript(self, video_url: str) -> str:
+        video_id = ""
+        if "youtu.be/" in video_url:
+            video_id = video_url.split("youtu.be/")[1].split("?")[0].split("&")[0]
+        elif "watch?v=" in video_url:
+            video_id = video_url.split("watch?v=")[1].split("&")[0]
+        canonical_url = f"https://www.youtube.com/watch?v={video_id}" if video_id else video_url
+
         prompt = (
             "Tạo transcript phụ đề từ video YouTube công khai được cung cấp. "
             "Trả về duy nhất JSON array, không markdown hay giải thích. "
@@ -278,54 +285,79 @@ class KeyPool:
             "Giữ nguyên ngôn ngữ được nói, chia thành các câu thoại ngắn có timestamp "
             "chính xác theo video. Bỏ qua nhạc nền và không suy đoán lời thoại."
         )
-        input_content = [
-            {"type": "video", "uri": video_url},
-            {"type": "text", "text": prompt},
+        parts = [
+            {
+                "file_data": {
+                    "mime_type": "video/mp4",
+                    "file_uri": canonical_url,
+                }
+            },
+            {"text": prompt},
         ]
+        payload: Dict[str, Any] = {
+            "contents": [{"parts": parts}],
+            "generationConfig": {
+                "temperature": 0.2,
+                "maxOutputTokens": 8192,
+                "responseMimeType": "application/json",
+            },
+        }
+
+        candidate_models = [
+            "gemini-2.5-flash",
+            "gemini-3.5-flash-lite",
+            "gemini-3.6-flash",
+            "gemini-3.8-flash",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash",
+        ]
+        candidate_models = list(dict.fromkeys(candidate_models))
+
         last_status = 0
+        last_error = ""
 
-        for key in self._ordered_keys_for_request():
-            try:
-                async with httpx.AsyncClient(timeout=self.request_timeout * 3.0) as client:
-                    response = await client.post(
-                        self.interactions_api_url,
-                        headers={
-                            "Content-Type": "application/json",
-                            "x-goog-api-key": key,
-                        },
-                        json={
-                            "model": "gemini-4-hydrogen",
-                            "input": input_content,
-                            "generation_config": {"max_output_tokens": 8192},
-                        },
-                    )
-                last_status = response.status_code
-                if response.status_code != 200:
-                    self.record_usage(key, success=False, status_code=response.status_code)
-                    if response.status_code in (400, 404):
-                        break
-                    continue
+        for current_model in candidate_models:
+            for key in self._ordered_keys_for_request():
+                url = f"{self.api_base}/{current_model}:generateContent?key={key}"
+                try:
+                    async with httpx.AsyncClient(timeout=min(self.request_timeout, 35.0)) as client:
+                        response = await client.post(
+                            url,
+                            headers={
+                                "Content-Type": "application/json",
+                                "x-goog-api-key": key,
+                            },
+                            json=payload,
+                        )
+                    last_status = response.status_code
+                    if response.status_code != 200:
+                        self.record_usage(key, success=False, status_code=response.status_code)
+                        if response.status_code in (400, 404):
+                            break
+                        continue
 
-                self.record_usage(key, success=True, status_code=200)
-                data = response.json()
-                output_text = data.get("output_text")
-                if isinstance(output_text, str) and output_text.strip():
-                    return output_text.strip()
-                text_parts = []
-                for step in data.get("output", []):
-                    for content in step.get("content", []):
-                        if content.get("type") == "text" and isinstance(content.get("text"), str):
-                            text_parts.append(content["text"])
-                if text_parts:
-                    return "\n".join(text_parts).strip()
-                raise RuntimeError("Gemini Interactions API không trả transcript dạng văn bản.")
-            except httpx.HTTPError as error:
-                last_status = 500
-                print(f"[WARN] Gemini YouTube interaction failed for one key: {type(error).__name__}")
-                self.record_usage(key, success=False, status_code=500)
+                    self.record_usage(key, success=True, status_code=200)
+                    data = response.json()
+                    candidates = data.get("candidates", [])
+                    if candidates:
+                        text_parts = []
+                        for p in candidates[0].get("content", {}).get("parts", []):
+                            if "text" in p and isinstance(p["text"], str):
+                                text_parts.append(p["text"])
+                        if text_parts:
+                            return "".join(text_parts).strip()
+                    output_text = data.get("output_text")
+                    if isinstance(output_text, str) and output_text.strip():
+                        return output_text.strip()
+                    raise RuntimeError("Gemini generateContent không trả transcript dạng văn bản.")
+                except httpx.HTTPError as error:
+                    last_status = 500
+                    last_error = str(error)
+                    print(f"[WARN] Gemini YouTube generateContent failed for one key: {type(error).__name__}")
+                    self.record_usage(key, success=False, status_code=500)
 
         raise RuntimeError(
-            f"Không thể tạo transcript YouTube qua Gemini Interactions API (HTTP {last_status})."
+            f"Không thể tạo transcript YouTube qua Gemini generateContent API (HTTP {last_status}, error: {last_error})."
         )
 
     async def generate_multimodal(

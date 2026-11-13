@@ -5127,8 +5127,12 @@ document.addEventListener('mousedown', (e) => {
     // TAB 2: TEXT TRANSLATE
     // ==========================================
     function updateCharCount() {
-      const text = document.getElementById('src-text').value;
-      document.getElementById('src-char-count').innerText = t('char_count_format', { count: text.length });
+      const srcTextEl = document.getElementById('src-text');
+      if (!srcTextEl) return;
+      const charCountEl = document.getElementById('src-char-count');
+      if (charCountEl) {
+        charCountEl.innerText = t('char_count_format', { count: srcTextEl.value.length });
+      }
     }
     function clearSourceText() {
       document.getElementById('src-text').value = '';

@@ -148,6 +148,26 @@ class VideoBrowserAudioTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 400)
 
+    def test_youtube_caption_route_returns_422_when_extraction_fails(self):
+        with (
+            patch.object(app, "extract_subtitles_from_url", return_value=None),
+            patch.object(
+                app.pool,
+                "generate_youtube_video_transcript",
+                side_effect=RuntimeError("AI failed"),
+            ),
+        ):
+            response = self.client.post(
+                "/api/video/youtube-captions",
+                json={"url": "https://youtu.be/It79k94XMTw", "target_lang": "vi"},
+            )
+
+        self.assertEqual(response.status_code, 422)
+        data = response.json()
+        self.assertFalse(data["success"])
+        self.assertIn("detail", data)
+        self.assertIn("error_detail", data)
+
     def test_capture_transcribes_audio_without_persisting_the_chunk(self):
         with patch.object(
             app.pool,

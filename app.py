@@ -141,37 +141,61 @@ async def _fetch_and_translate_youtube_captions(
     url: str,
     target_lang: str,
 ) -> Optional[List[Dict[str, Any]]]:
-    subtitles = await asyncio.to_thread(
-        extract_subtitles_from_url,
-        url,
-        OUTPUT_DIR,
-    )
+    subtitles = None
+    last_error_detail = ""
+
+    # 1. Thử lấy phụ đề có sẵn qua yt-dlp với timeout tối đa 8 giây
+    try:
+        subtitles = await asyncio.wait_for(
+            asyncio.to_thread(extract_subtitles_from_url, url, OUTPUT_DIR),
+            timeout=8.0,
+        )
+    except asyncio.TimeoutError:
+        safe_log("[WARN] yt-dlp extract_subtitles_from_url timed out after 8s.")
+        last_error_detail = "yt-dlp timeout 8s"
+    except Exception as ytdlp_err:
+        safe_log(f"[WARN] yt-dlp extract_subtitles_from_url failed: {ytdlp_err}")
+        last_error_detail = f"yt-dlp error: {ytdlp_err}"
+
+    # 2. Nếu yt-dlp không có phụ đề hoặc bị timeout/lỗi, gọi Gemini generateContent với YouTube URL
     if not subtitles:
         youtube_id = extract_youtube_id(url)
-        if not youtube_id:
-            return None
-        canonical_url = f"https://www.youtube.com/watch?v={youtube_id}"
-        transcript = await pool.generate_youtube_video_transcript(canonical_url)
-        subtitles = parse_subtitles_from_ai(transcript)
-        subtitles = [
-            cue for cue in subtitles
-            if isinstance(cue.get("original"), str)
-            and cue["original"].strip()
-            and isinstance(cue.get("start"), (int, float))
-            and isinstance(cue.get("end"), (int, float))
-            and cue["start"] >= 0
-            and cue["end"] > cue["start"]
-        ][:2500]
+        if youtube_id:
+            canonical_url = f"https://www.youtube.com/watch?v={youtube_id}"
+            try:
+                transcript = await pool.generate_youtube_video_transcript(canonical_url)
+                parsed = parse_subtitles_from_ai(transcript)
+                subtitles = [
+                    cue for cue in parsed
+                    if isinstance(cue.get("original"), str)
+                    and cue["original"].strip()
+                    and isinstance(cue.get("start"), (int, float))
+                    and isinstance(cue.get("end"), (int, float))
+                    and cue["start"] >= 0
+                    and cue["end"] > cue["start"]
+                ][:2500]
+            except Exception as ai_err:
+                last_error_detail = f"{last_error_detail} | Gemini video transcript failed: {ai_err}"
+                safe_log(f"[WARN] {last_error_detail}")
+
     if not subtitles:
+        safe_log(f"[INFO] No subtitles obtained for {url}. Last errors: {last_error_detail}")
         return None
 
-    language_name = SUPPORTED_VIDEO_LANGUAGES[target_lang]
+    language_name = SUPPORTED_VIDEO_LANGUAGES.get(target_lang, "Vietnamese")
     batches = [subtitles[index:index + 25] for index in range(0, len(subtitles), 25)]
     translation_limit = asyncio.Semaphore(3)
 
     async def translate_batch(batch: List[Dict[str, Any]]):
+        cues_to_translate = [
+            cue for cue in batch
+            if not cue.get("translated") or cue.get("translated") == cue.get("original")
+        ]
+        if not cues_to_translate:
+            return
+
         cue_text = "\n".join(
-            f'{cue["id"]}. {cue["original"]}' for cue in batch
+            f'{cue["id"]}. {cue["original"]}' for cue in cues_to_translate
         )
         prompt = (
             f"Dịch từng câu phụ đề sau sang {language_name}. "
@@ -179,22 +203,33 @@ async def _fetch_and_translate_youtube_captions(
             "Giữ nguyên số thứ tự, không thêm nội dung ngoài JSON.\n"
             f"{cue_text}"
         )
-        async with translation_limit:
-            response = await pool.generate_content(
-                prompt,
-                tier="bulk",
-                response_mime_type="application/json",
-                max_output_tokens=4096,
-            )
-        translations = json.loads(clean_gemini_json(response))
-        if not isinstance(translations, dict):
-            raise ValueError("Gemini caption translation must be a JSON object.")
-        for cue in batch:
-            translated = translations.get(str(cue["id"]))
-            if not isinstance(translated, str) or not translated.strip():
-                raise ValueError(f"Gemini caption translation is missing cue {cue['id']}.")
-            cue["translated"] = translated.strip()
-            cue["translations"] = {target_lang: cue["translated"]}
+        try:
+            async with translation_limit:
+                response = await pool.generate_content(
+                    prompt,
+                    tier="bulk",
+                    response_mime_type="application/json",
+                    max_output_tokens=4096,
+                )
+            translations = json.loads(clean_gemini_json(response))
+            if isinstance(translations, dict):
+                for cue in cues_to_translate:
+                    translated = translations.get(str(cue["id"]))
+                    if isinstance(translated, str) and translated.strip():
+                        cue["translated"] = translated.strip()
+                    else:
+                        cue["translated"] = cue["original"]
+                    if "translations" not in cue or not isinstance(cue["translations"], dict):
+                        cue["translations"] = {}
+                    cue["translations"][target_lang] = cue["translated"]
+        except Exception as trans_err:
+            safe_log(f"[WARN] Batch translation error: {trans_err}")
+            for cue in cues_to_translate:
+                if not cue.get("translated"):
+                    cue["translated"] = cue["original"]
+                if "translations" not in cue or not isinstance(cue["translations"], dict):
+                    cue["translations"] = {}
+                cue["translations"][target_lang] = cue["translated"]
 
     await asyncio.gather(*(translate_batch(batch) for batch in batches))
     return subtitles
@@ -509,10 +544,11 @@ async def process_video_url(req: VideoProcessUrlRequest):
     """
     url_str = (req.url or "").strip()
     if not url_str:
-        return JSONResponse(status_code=200, content={"success": False, "error": "Vui lòng cung cấp link video", "detail": "Vui lòng cung cấp link video"})
+        return JSONResponse(status_code=200, content={"success": False, "error": "Vui lòng cung cấp link video", "detail": "Vui lòng cung cấp link video", "error_detail": "Empty URL"})
 
     youtube_id = extract_youtube_id(url_str)
     youtube_captions_attempted = False
+    last_caption_err = ""
     try:
         if youtube_id and req.target_lang in SUPPORTED_VIDEO_LANGUAGES:
             youtube_captions_attempted = True
@@ -530,6 +566,7 @@ async def process_video_url(req: VideoProcessUrlRequest):
                         "target_lang": req.target_lang,
                     }
             except Exception as caption_error:
+                last_caption_err = str(caption_error)
                 safe_log(f"[WARN] YouTube transcript-first processing failed: {caption_error}")
 
         # Dọn dẹp ổ đĩa định kỳ để tránh tốn dung lượng
@@ -546,6 +583,7 @@ async def process_video_url(req: VideoProcessUrlRequest):
                 "success": False,
                 "error": err_msg,
                 "detail": err_msg,
+                "error_detail": last_caption_err or err_msg,
                 "youtube_captions_attempted": youtube_captions_attempted,
             })
         if youtube_captions_attempted:
@@ -558,13 +596,15 @@ async def process_video_url(req: VideoProcessUrlRequest):
             "success": False,
             "error": err_msg,
             "detail": err_msg,
+            "error_detail": str(e),
             "youtube_captions_attempted": youtube_captions_attempted,
         })
 
 @app.post("/api/video/youtube-captions")
 async def fetch_youtube_captions(req: YouTubeCaptionRequest):
     url_str = req.url.strip()
-    if not extract_youtube_id(url_str):
+    youtube_id = extract_youtube_id(url_str)
+    if not youtube_id:
         raise HTTPException(status_code=400, detail="URL không phải video YouTube hợp lệ.")
 
     if req.target_lang not in SUPPORTED_VIDEO_LANGUAGES:
@@ -575,30 +615,36 @@ async def fetch_youtube_captions(req: YouTubeCaptionRequest):
             url_str,
             req.target_lang,
         )
-    except (json.JSONDecodeError, TypeError, ValueError) as e:
-        safe_log(f"[ERROR] YouTube caption processing returned invalid data: {e}")
-        raise HTTPException(
-            status_code=502,
-            detail="Gemini không trả về bản dịch phụ đề hợp lệ. Vui lòng thử lại.",
-        ) from e
     except Exception as e:
         safe_log(f"[ERROR] YouTube caption processing failed: {e}")
-        raise HTTPException(
-            status_code=502,
-            detail="Không thể tạo phụ đề YouTube lúc này. Vui lòng thử lại.",
-        ) from e
+        return JSONResponse(
+            status_code=422,
+            content={
+                "success": False,
+                "detail": "Không thể tạo phụ đề YouTube lúc này. Vui lòng thử lại.",
+                "error_detail": str(e),
+                "subtitles": [],
+            },
+        )
+
     if not subtitles:
-        raise HTTPException(
-            status_code=404,
-            detail=(
-                "Không lấy được phụ đề/transcript công khai từ YouTube. "
-                "Bạn vẫn có thể xem video; hãy tải video lên để tạo phụ đề."
-            ),
+        return JSONResponse(
+            status_code=422,
+            content={
+                "success": False,
+                "detail": (
+                    "Không lấy được phụ đề/transcript công khai từ YouTube. "
+                    "Bạn vẫn có thể xem video; hãy tải video lên để tạo phụ đề."
+                ),
+                "error_detail": "Không tìm thấy phụ đề hoặc transcript từ Gemini/yt-dlp.",
+                "subtitles": [],
+            },
         )
 
     return {
+        "success": True,
         "subtitles": subtitles,
-        "youtube_id": extract_youtube_id(url_str),
+        "youtube_id": youtube_id,
         "target_lang": req.target_lang,
     }
 
