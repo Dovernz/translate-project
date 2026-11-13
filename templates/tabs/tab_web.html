@@ -1,0 +1,195 @@
+    <!-- TAB 3: DEDICATED WEB PAGE TRANSLATOR -->
+    <!-- ========================================== -->
+    <section id="tab-web" class="space-y-4 hidden">
+      <!-- SUB-MODE 2: WEB PAGE TRANSLATOR -->
+      <div id="web-mode-container" class="space-y-4">
+        <!-- URL Input & Configuration Card -->
+        <div class="rounded-[10px] bg-slate-900 border border-slate-800 p-5 shadow-lg space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-sm sm:text-base text-white flex items-center gap-2">
+                <i data-lucide="globe" class="w-4 h-4 text-cyan-400"></i>
+                <span data-i18n="web_input_title">Dịch trang web</span>
+              </h3>
+            </div>
+            <span class="text-[11px] px-2.5 py-0.5 rounded-[8px] bg-slate-800 text-slate-400 font-mono border border-slate-700/60">
+              Layout Preserved
+            </span>
+          </div>
+
+          <p class="text-xs text-slate-400" data-i18n="web_input_desc">
+            Dịch toàn bộ trang web sang ngôn ngữ đích và giữ nguyên cấu trúc bố cục, bảng biểu và giao diện gốc.
+          </p>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-center">
+            <!-- Browser Navigation Controls (Back, Forward, Refresh) -->
+            <div class="lg:col-span-2 flex items-center gap-1 bg-slate-950 border border-slate-800 p-1 rounded-[8px] shadow-inner">
+              <button id="btn-web-nav-back" onclick="webNavBack()" disabled type="button"
+                      class="flex-1 py-1.5 px-2 rounded-lg text-slate-500 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800/80 transition flex items-center justify-center gap-1 text-xs font-semibold cursor-pointer"
+                      title="Quay lại trang trước (Back)">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+              </button>
+              <button id="btn-web-nav-forward" onclick="webNavForward()" disabled type="button"
+                      class="flex-1 py-1.5 px-2 rounded-lg text-slate-500 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800/80 transition flex items-center justify-center gap-1 text-xs font-semibold cursor-pointer"
+                      title="Tiến tới trang sau (Forward)">
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </button>
+              <button id="btn-web-nav-refresh" onclick="webNavRefresh()" type="button"
+                      class="flex-1 py-1.5 px-2 rounded-lg text-slate-400 hover:text-cyan-400 hover:bg-slate-800/80 transition flex items-center justify-center gap-1 text-xs font-semibold cursor-pointer"
+                      title="Tải lại trang (Refresh)">
+                <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+
+            <!-- URL Input with Paste button & Cache Hit Indicator -->
+            <div class="lg:col-span-5 relative">
+              <input type="url" id="web-url-input"
+                     placeholder="https://en.wikipedia.org/wiki/Artificial_intelligence..."
+                     class="w-full bg-slate-950 border border-slate-800 rounded-[8px] px-4 py-2.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500 font-mono pr-28">
+              <div class="absolute right-2 top-2 flex items-center gap-1.5">
+                <span id="web-cache-badge" class="hidden text-[10px] px-2 py-0.5 rounded-[8px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono font-medium">0ms Cache</span>
+                <button onclick="pasteWebUrl()" type="button" class="p-1 text-slate-400 hover:text-white rounded" title="Dán từ Clipboard">
+                  <i data-lucide="clipboard" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Target Lang Select -->
+            <div class="lg:col-span-2">
+              <select id="web-target-lang" class="w-full bg-slate-950 border border-slate-800 rounded-[8px] px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-medium">
+                <option value="vi" selected>Tiếng Việt</option>
+                <option value="en">Tiếng Anh</option>
+                <option value="ja">Tiếng Nhật</option>
+                <option value="ko">Tiếng Hàn</option>
+                <option value="zh">Tiếng Trung</option>
+                <option value="fr">Tiếng Pháp</option>
+                <option value="de">Tiếng Đức</option>
+              </select>
+            </div>
+
+            <!-- Translate Action Button -->
+            <div class="lg:col-span-3 flex items-center gap-2">
+              <button onclick="translateWebPage()" id="btn-web-translate" class="w-full py-2.5 px-4 rounded-[8px] bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 transition cursor-pointer">
+                <i data-lucide="globe" class="w-4 h-4"></i>
+                <span id="btn-web-translate-text" data-i18n="btn_web_translate">Dịch Trang Web</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress / Status bar -->
+        <div id="web-progress-container" class="rounded-[8px] bg-cyan-950/40 border border-cyan-800/40 p-3 hidden">
+          <div class="flex items-center justify-between text-xs text-cyan-200 mb-1.5">
+            <span class="flex items-center gap-2">
+              <i data-lucide="loader" class="w-3.5 h-3.5 animate-spin text-cyan-400"></i>
+              <span id="web-progress-text">Đang tải và dịch cấu trúc trang web qua Gemini Key Pool...</span>
+            </span>
+            <span id="web-progress-status" class="font-mono text-cyan-300 font-semibold">Vui lòng chờ...</span>
+          </div>
+          <div class="w-full bg-slate-800 status-dot h-1.5 overflow-hidden">
+            <div id="web-progress-bar" class="bg-indigo-600 h-1.5 rounded-[4px] transition-all duration-300" style="width: 30%"></div>
+          </div>
+        </div>
+
+        <!-- Result Workspace (Hidden until page translated) -->
+        <div id="web-result-workspace" class="rounded-[10px] bg-slate-900 border border-slate-800 shadow-xl overflow-hidden flex flex-col hidden">
+          <!-- Toolbar -->
+          <div class="bg-slate-950/90 border-b border-slate-800 px-4 py-3 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20 backdrop-blur">
+            <!-- Left: Browser Navigation Controls & Title & Page info -->
+            <div class="flex items-center gap-2.5 max-w-xl truncate">
+              <!-- Mini Browser Nav -->
+              <div class="inline-flex items-center gap-0.5 bg-slate-900 border border-slate-800 p-0.5 rounded-lg shrink-0">
+                <button id="btn-web-tb-back" onclick="webNavBack()" disabled type="button" class="p-1.5 rounded text-slate-500 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800 transition cursor-pointer" title="Quay lại (Back)">
+                  <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                </button>
+                <button id="btn-web-tb-forward" onclick="webNavForward()" disabled type="button" class="p-1.5 rounded text-slate-500 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800 transition cursor-pointer" title="Tiến tới (Forward)">
+                  <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </button>
+                <button id="btn-web-tb-refresh" onclick="webNavRefresh()" type="button" class="p-1.5 rounded text-slate-400 hover:text-cyan-400 hover:bg-slate-800 transition cursor-pointer" title="Tải lại (Refresh)">
+                  <i data-lucide="rotate-cw" class="w-3 h-3"></i>
+                </button>
+              </div>
+              <i data-lucide="globe" class="w-4 h-4 text-cyan-400 shrink-0"></i>
+              <span id="web-result-title" class="text-xs font-bold text-slate-200 truncate">Tiêu đề trang web</span>
+              <span id="web-node-count-badge" class="text-[10px] px-2 py-0.5 rounded-[8px] bg-slate-800 text-slate-400 font-mono shrink-0">0 đoạn văn</span>
+              <span id="web-tb-cache-badge" class="hidden text-[10px] px-2 py-0.5 rounded-[8px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono shrink-0">0ms Cache Hit</span>
+            </div>
+
+            <!-- Center/Right: View Modes & Controls -->
+            <div class="flex flex-wrap items-center gap-2">
+              <!-- 3 View Modes Segmented Control -->
+              <div class="inline-flex p-0.5 rounded-lg bg-slate-800/90 border border-slate-700/60 shadow-inner">
+                <button type="button" onclick="setWebViewMode('translated')" id="web-view-btn-trans" class="px-3 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white cursor-pointer">
+                  <span data-i18n="web_view_trans">Bản dịch</span>
+                </button>
+                <button type="button" onclick="setWebViewMode('original')" id="web-view-btn-orig" class="px-3 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white cursor-pointer">
+                  <span data-i18n="web_view_orig">Bản gốc</span>
+                </button>
+                <button type="button" onclick="setWebViewMode('split')" id="web-view-btn-split" class="px-3 py-1 rounded-md text-xs font-semibold transition bg-indigo-600 text-white shadow cursor-pointer" title="So sánh song song 2 cột">
+                  <span data-i18n="web_view_split">Song song</span>
+                </button>
+              </div>
+
+              <!-- Quick Switch button between Original & Translated -->
+              <button type="button" onclick="toggleWebQuickSwitch()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium text-xs flex items-center gap-1.5 transition border border-slate-700/60 cursor-pointer shadow" title="Đổi nhanh giữa Bản Gốc và Bản Dịch">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-cyan-400"></i>
+                <span data-i18n="web_btn_quick_switch">Đổi chế độ xem</span>
+              </button>
+
+              <!-- Synchronized Scroll Switch -->
+              <label class="flex items-center gap-1.5 cursor-pointer select-none text-xs text-slate-300 hover:text-white bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800/80" title="Tự động đồng bộ cuộn 2 cột theo tỷ lệ">
+                <input type="checkbox" id="web-sync-scroll-check" checked onchange="toggleSyncScroll(this.checked)" class="w-3.5 h-3.5 rounded text-cyan-600 focus:ring-0 focus:ring-offset-0 bg-slate-900 border-slate-700 cursor-pointer">
+                <span class="text-[11px] font-medium flex items-center gap-1">
+                  <i data-lucide="link-2" class="w-3 h-3 text-cyan-400"></i>
+                  <span data-i18n="web_sync_scroll">Đồng bộ cuộn</span>
+                </span>
+              </label>
+
+              <!-- Open External Link -->
+              <a id="web-external-link" href="#" target="_blank" rel="noopener noreferrer" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition" title="Mở trang gốc trong tab mới">
+                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Viewports Grid -->
+          <div class="p-3 bg-slate-950/60">
+            <div id="web-viewports-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-3 transition-all duration-200">
+              <!-- Left Column: Original HTML -->
+              <div id="web-col-orig" class="flex flex-col rounded-[8px] bg-slate-900 border border-slate-800 overflow-hidden shadow">
+                <div class="px-3 py-1.5 bg-slate-800/70 border-b border-slate-700/60 flex items-center justify-between text-xs font-semibold text-slate-300">
+                  <span class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 status-dot bg-slate-400"></span> Bản gốc (Original)
+                  </span>
+                  <span class="text-[10px] text-slate-400 font-mono" id="web-orig-status">Sẵn sàng</span>
+                </div>
+                <iframe id="web-orig-iframe" class="w-full h-[78vh] min-h-[600px] bg-white border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+              </div>
+
+              <!-- Right Column: Translated HTML -->
+              <div id="web-col-trans" class="flex flex-col rounded-[8px] bg-slate-900 border border-slate-800 overflow-hidden shadow">
+                <div class="px-3 py-1.5 bg-slate-800/70 border-b border-slate-700/60 flex items-center justify-between text-xs font-semibold text-indigo-300">
+                  <span class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 status-dot bg-emerald-400"></span> Bản dịch (Vietnamese)
+                  </span>
+                  <span class="text-[10px] text-emerald-400 font-mono" id="web-trans-status">AI Translated</span>
+                </div>
+                <iframe id="web-trans-iframe" class="w-full h-[78vh] min-h-[600px] bg-white border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Web Empty State (Shown before any URL is translated) -->
+        <div id="web-empty-state" class="py-20 flex flex-col items-center justify-center text-center space-y-3 px-4 rounded-[10px] bg-slate-900/50 border border-slate-800/70">
+          <div class="w-16 h-16 rounded-[10px] bg-slate-900 border border-slate-800 flex items-center justify-center text-cyan-400/70 shadow-inner">
+            <i data-lucide="globe" class="w-8 h-8"></i>
+          </div>
+          <h4 class="text-base font-bold text-slate-200" data-i18n="web_empty_title">Chưa có trang web nào được nạp</h4>
+          <p class="text-xs text-slate-400 max-w-md leading-relaxed" data-i18n="web_empty_desc">
+            Nhập URL bài viết, tin tức công nghệ hoặc tài liệu bất kỳ ở trên để AI dịch toàn bộ trang web sang tiếng Việt giữ nguyên giao diện gốc.
+          </p>
+        </div>
+      </div>
+    </section>
+

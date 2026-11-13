@@ -1391,12 +1391,28 @@ def get_network_info():
     }
 
 
+def render_template_with_includes(template_path: Path) -> str:
+    """Resolve Jinja2-style {% include 'path' %} directives recursively."""
+    if not template_path.exists():
+        return ""
+    content = template_path.read_text(encoding="utf-8")
+    base_dir = template_path.parent
+
+    def replacer(match):
+        inc_name = match.group(1).strip()
+        inc_path = base_dir / inc_name
+        if inc_path.exists():
+            return render_template_with_includes(inc_path)
+        return f"<!-- Missing template partial: {inc_name} -->"
+
+    pattern = re.compile(r"{%\s*include\s+['\"]([^'\"]+)['\"]\s*%}")
+    return pattern.sub(replacer, content)
+
 @app.get("/", response_class=HTMLResponse)
 def get_home(tab: Optional[str] = None):
     html_file = Path(__file__).parent / "templates" / "index.html"
     if html_file.exists():
-        with open(html_file, "r", encoding="utf-8") as f:
-            return f.read()
+        return render_template_with_includes(html_file)
     return "<h1>Translator App Ready</h1>"
 
 

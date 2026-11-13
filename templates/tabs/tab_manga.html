@@ -1,0 +1,234 @@
+    <!-- TAB 4: AI MANGA & COMIC TRANSLATOR        -->
+    <!-- ========================================== -->
+    <section id="tab-manga" class="space-y-4 hidden">
+      <!-- 1. MANGA SOURCE & INPUT CONTROLS -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Nạp cách 1: Tải ảnh hoặc tệp ZIP -->
+        <div class="rounded-[10px] bg-slate-900 border border-slate-800 p-5 shadow-lg flex flex-col justify-between hover:border-slate-700 transition">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-sm sm:text-base flex items-center gap-2 text-white">
+                <i data-lucide="folder-archive" class="w-5 h-5 text-indigo-400"></i>
+                <span data-i18n="manga_opt1_title">Tải lên ảnh hoặc tệp ZIP</span>
+              </h3>
+              <span class="text-[11px] px-2 py-0.5 rounded-[8px] bg-slate-800 text-slate-400 font-mono border border-slate-700/60">ZIP, CBZ, JPG, PNG, WEBP</span>
+            </div>
+            
+            <!-- Drag & Drop & Paste Zone -->
+            <div id="manga-dropzone" 
+                 tabindex="0"
+                 ondragover="handleMangaDragOver(event)" 
+                 ondragleave="handleMangaDragLeave(event)" 
+                 ondrop="handleMangaDrop(event)"
+                 class="relative border border-dashed border-slate-700 hover:border-indigo-500 focus:border-indigo-500 focus:outline-none rounded-[8px] p-6 text-center transition bg-slate-950/40 cursor-pointer group">
+              <input type="file" id="manga-file-input" multiple accept="image/*,.zip,.cbz" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="handleMangaFileInput(event)">
+              <div class="flex flex-col items-center justify-center space-y-2.5 pointer-events-none">
+                <div class="w-12 h-12 rounded-[10px] bg-indigo-600/10 text-indigo-400 flex items-center justify-center group-hover:scale-105 transition border border-indigo-500/20">
+                  <i data-lucide="image-plus" class="w-6 h-6"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-200 group-hover:text-white">
+                    Kéo thả ảnh hoặc tệp ZIP vào đây
+                  </p>
+                  <p class="text-xs text-slate-400 mt-1" data-i18n="manga_paste_hint">
+                    Hỗ trợ dán trực tiếp từ Clipboard hoặc ảnh chụp màn hình (<kbd class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[11px] border border-slate-700">Ctrl + V</kbd>)
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+            <span id="manga-upload-status" class="truncate font-mono flex items-center gap-1.5">
+              <i data-lucide="info" class="w-3.5 h-3.5 text-slate-500"></i> Chưa nạp truyện
+            </span>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="pasteImageFromClipboardButton(event)" id="btn-manga-paste-clipboard" class="px-3 py-1.5 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 hover:text-white font-medium text-xs flex items-center gap-1.5 transition border border-indigo-500/30 cursor-pointer shadow">
+                <i data-lucide="clipboard" class="w-3.5 h-3.5 text-indigo-400"></i>
+                <span data-i18n="manga_btn_paste">Dán ảnh (Ctrl+V)</span>
+              </button>
+              <label for="manga-file-input" class="cursor-pointer px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-1.5 transition shadow">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i> <span data-i18n="manga_btn_choose">Chọn tệp</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nạp cách 2: Link web truyện hoặc link ảnh trực tiếp -->
+        <div class="rounded-[10px] bg-slate-900 border border-slate-800 p-5 shadow-lg flex flex-col justify-between hover:border-slate-700 transition">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-sm sm:text-base flex items-center gap-2 text-white">
+                <i data-lucide="globe" class="w-5 h-5 text-cyan-400"></i>
+                <span data-i18n="manga_opt2_title">Nạp từ liên kết web hoặc ảnh</span>
+              </h3>
+              <span class="text-[11px] px-2 py-0.5 rounded-[8px] bg-slate-800 text-slate-400 font-mono border border-slate-700/60">Auto Scrape</span>
+            </div>
+
+            <p class="text-xs text-slate-400 mb-3" data-i18n="manga_opt2_desc">
+              Nhập địa chỉ URL chương truyện hoặc liên kết hình ảnh trực tiếp để nạp vào trình đọc.
+            </p>
+
+            <div class="space-y-3">
+              <div class="relative">
+                <input type="text" id="manga-url-input" 
+                       placeholder="https://example.com/chapter-1 hoặc link ảnh .jpg/.png..."
+                       class="w-full bg-slate-950 border border-slate-800 rounded-[8px] px-4 py-2.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500 font-mono pr-10">
+                <button onclick="pasteMangaUrl()" class="absolute right-2 top-2 p-1 text-slate-400 hover:text-white rounded" title="Dán từ Clipboard">
+                  <i data-lucide="clipboard" class="w-4 h-4"></i>
+                </button>
+              </div>
+
+              <!-- Quick target lang selection for manga -->
+              <div class="flex items-center justify-between pt-1">
+                <span class="text-xs text-slate-400" data-i18n="manga_target_lang_label">Ngôn ngữ dịch:</span>
+                <select id="manga-target-lang" class="bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 font-medium">
+                  <option value="vi" selected>Tiếng Việt</option>
+                  <option value="en">Tiếng Anh</option>
+                  <option value="ja">Tiếng Nhật</option>
+                  <option value="ko">Tiếng Hàn</option>
+                  <option value="zh">Tiếng Trung</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
+            <span id="manga-url-status" class="text-xs text-slate-400 truncate font-mono max-w-[200px]"></span>
+            <div class="flex items-center gap-2">
+              <button onclick="scanMangaChapters()" id="btn-manga-scan-series" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium text-xs flex items-center gap-1.5 transition cursor-pointer border border-slate-700/60 shadow">
+                <i data-lucide="list" class="w-3.5 h-3.5 text-cyan-400"></i> <span data-i18n="manga_btn_scan_series">Quét Chapter</span>
+              </button>
+              <button onclick="loadMangaFromUrl(true)" id="btn-manga-load-url" class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-1.5 transition cursor-pointer shadow">
+                <i data-lucide="languages" class="w-3.5 h-3.5"></i> <span data-i18n="manga_btn_load_and_translate">Đọc & Dịch Ngay</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. TRÌNH ĐỌC TRUYỆN & THANH ĐIỀU KHIỂN (MANGA READER WORKSPACE) -->
+      <div id="manga-workspace" class="rounded-[10px] bg-slate-900 border border-slate-800 shadow-xl overflow-hidden flex flex-col">
+        <!-- Top Toolbar -->
+        <div class="bg-slate-950/80 border-b border-slate-800 px-4 py-3 flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20 backdrop-blur">
+          <!-- Left: Session Info & View Mode Toggle -->
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5">
+              <i data-lucide="book" class="w-4 h-4 text-indigo-400"></i>
+              <span id="manga-chapter-info" class="text-xs font-bold text-slate-200">Chapter: Chưa có dữ liệu</span>
+              <span id="manga-page-count-badge" class="text-[10px] px-2 py-0.5 rounded-[8px] bg-slate-800 text-slate-400 font-mono">0 trang</span>
+            </div>
+
+            <!-- Toggle View Mode: Bản Dịch <-> Bản Gốc <-> Song Song <-> Song Ngữ -->
+            <div class="inline-flex p-0.5 rounded-lg bg-slate-800/90 border border-slate-700/60 shadow-inner">
+              <button onclick="setMangaViewMode('translated')" id="manga-view-btn-trans" class="px-2.5 py-1 rounded-md text-xs font-semibold transition bg-indigo-600 text-white shadow">
+                <span data-i18n="manga_view_trans">Bản dịch</span>
+              </button>
+              <button onclick="setMangaViewMode('original')" id="manga-view-btn-orig" class="px-2.5 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white">
+                <span data-i18n="manga_view_orig">Bản gốc</span>
+              </button>
+              <button onclick="setMangaViewMode('split')" id="manga-view-btn-split" class="px-2.5 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white" title="So sánh song song Bản Gốc và Bản Dịch">
+                <span data-i18n="manga_view_split">Song song</span>
+              </button>
+              <button onclick="toggleMangaBilingualTooltip()" id="manga-view-btn-bilingual" class="px-2.5 py-1 rounded-md text-xs font-semibold transition text-slate-400 hover:text-white" title="Rê chuột vào bóng thoại để xem chữ gốc">
+                <span data-i18n="manga_view_bilingual">Bóng thoại</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Action Buttons (Translate All, Export ZIP, Zoom) -->
+          <div class="flex items-center gap-2">
+            <!-- Zoom Controls -->
+            <div class="hidden sm:flex items-center bg-slate-800 rounded-lg p-0.5 border border-slate-700/60 text-slate-300">
+              <button onclick="zoomManga(-10)" class="p-1 hover:text-white rounded" title="Thu nhỏ"><i data-lucide="zoom-out" class="w-3.5 h-3.5"></i></button>
+              <button onclick="zoomMangaReset()" id="manga-zoom-text" class="text-[11px] px-1.5 font-mono hover:text-indigo-300 cursor-pointer" title="Nhấn để đặt lại 100%">100%</button>
+              <button onclick="zoomManga(10)" class="p-1 hover:text-white rounded" title="Phóng to"><i data-lucide="zoom-in" class="w-3.5 h-3.5"></i></button>
+            </div>
+
+            <!-- Translate All Button -->
+            <button onclick="translateAllManga()" id="btn-manga-translate-all" class="px-3.5 py-1.5 rounded-[8px] bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center gap-1.5 shadow-lg shadow-indigo-600/20 transition cursor-pointer">
+              <i data-lucide="languages" class="w-3.5 h-3.5"></i> <span id="btn-manga-translate-all-text" data-i18n="manga_btn_translate_all">Dịch toàn bộ Chapter</span>
+            </button>
+
+            <!-- Export ZIP Button -->
+            <button onclick="exportMangaZip()" id="btn-manga-export-zip" class="px-3.5 py-1.5 rounded-[8px] bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-600/20 transition cursor-pointer">
+              <i data-lucide="file-archive" class="w-3.5 h-3.5"></i> <span data-i18n="manga_btn_export_zip">Tải tệp ZIP</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Chapter Navigation Bar -->
+        <div id="manga-chapter-bar" class="bg-slate-900/95 border-b border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2.5 sticky top-0 z-30 backdrop-blur shadow-md">
+          <!-- Prev / Select / Next controls -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <button id="btn-manga-prev" onclick="changeChapterOffset(-1)" disabled class="px-3 py-1.5 rounded-[8px] bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold text-slate-200 hover:text-white flex items-center gap-1.5 transition border border-slate-700/60 shadow cursor-pointer">
+              <i data-lucide="chevron-left" class="w-4 h-4 text-indigo-400"></i>
+              <span data-i18n="manga_prev_chapter">Chương trước</span>
+            </button>
+
+            <div class="relative flex items-center">
+              <select id="manga-chapter-dropdown" onchange="onChapterDropdownChange(this.value)" class="bg-slate-950 border border-indigo-500/50 hover:border-indigo-400 focus:border-indigo-400 text-indigo-300 font-semibold rounded-[8px] px-3 py-1.5 text-xs focus:outline-none transition shadow-inner max-w-[240px] sm:max-w-[340px] truncate cursor-pointer">
+                <option value="" data-i18n="manga_select_chapter">-- Chọn Chương Truyện --</option>
+              </select>
+            </div>
+
+            <button id="btn-manga-next" onclick="changeChapterOffset(1)" disabled class="px-3 py-1.5 rounded-[8px] bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold text-slate-200 hover:text-white flex items-center gap-1.5 transition border border-slate-700/60 shadow cursor-pointer">
+              <span data-i18n="manga_next_chapter">Chương tiếp</span>
+              <i data-lucide="chevron-right" class="w-4 h-4 text-indigo-400"></i>
+            </button>
+          </div>
+
+          <!-- Auto translate on switch toggle & reading mode badge -->
+          <div class="flex items-center gap-3">
+            <label class="flex items-center gap-2 cursor-pointer select-none text-xs text-slate-300 hover:text-white bg-slate-950 px-3 py-1.5 rounded-[8px] border border-slate-800/80">
+              <input type="checkbox" id="manga-auto-trans-check" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-0 focus:ring-offset-0 bg-slate-900 border-slate-700 cursor-pointer">
+              <span class="flex items-center gap-1.5 text-[11px] sm:text-xs font-medium">
+                <i data-lucide="zap" class="w-3.5 h-3.5 text-indigo-400"></i>
+                <span data-i18n="manga_auto_translate_switch">Tự động dịch khi đổi chương</span>
+              </span>
+            </label>
+
+            <div class="hidden sm:flex items-center gap-1 text-[11px] text-slate-400 px-2.5 py-1 rounded-lg bg-slate-800/60 border border-slate-700/40">
+              <i data-lucide="arrow-down" class="w-3.5 h-3.5 text-slate-400"></i>
+              <span data-i18n="manga_webtoon_scroll">Cuộn dọc Webtoon</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Translation Progress Bar (Hidden by default, shown during translate all) -->
+        <div id="manga-progress-container" class="bg-indigo-950/60 border-b border-indigo-800/40 px-4 py-2 hidden">
+          <div class="flex items-center justify-between text-xs text-indigo-200 mb-1">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="loader" class="w-3.5 h-3.5 animate-spin text-indigo-400"></i>
+              <span id="manga-progress-text">Đang dịch qua Smart Key Pool...</span>
+            </span>
+            <span id="manga-progress-percent" class="font-mono font-bold text-indigo-300">0%</span>
+          </div>
+          <div class="w-full bg-slate-800 status-dot h-1.5 overflow-hidden">
+            <div id="manga-progress-bar" class="bg-indigo-600 h-1.5 rounded-[4px] transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Webtoon Continuous Vertical Scroll Viewer -->
+        <div id="manga-reader-viewport" class="p-4 sm:p-6 bg-slate-950 min-h-[600px] max-h-[85vh] overflow-y-auto flex flex-col items-center">
+          
+          <!-- Empty State -->
+          <div id="manga-empty-state" class="py-24 flex flex-col items-center justify-center text-center space-y-3 px-4">
+            <div class="w-16 h-16 rounded-[10px] bg-slate-900 border border-slate-800 flex items-center justify-center text-indigo-400/60 shadow-inner">
+              <i data-lucide="book-open" class="w-8 h-8"></i>
+            </div>
+            <h4 class="text-base font-bold text-slate-200" data-i18n="manga_empty_title">Chưa có trang nào</h4>
+            <p class="text-xs text-slate-400 max-w-md leading-relaxed" data-i18n="manga_empty_desc">
+              Nhấn Ctrl+V để dán ảnh, tải ảnh/ZIP hoặc nhập URL truyện để bắt đầu
+            </p>
+          </div>
+
+          <!-- Pages Container (Cuộn dọc liên tục) -->
+          <div id="manga-pages-list" class="w-full max-w-2xl space-y-4 flex flex-col items-center transition-all duration-200">
+            <!-- Dynamic Page Items will be injected here -->
+          </div>
+
+        </div>
+      </div>
+    </section>
+
