@@ -2144,6 +2144,9 @@
         badge_video_prefix: "Video: ",
         badge_url_loading: "Đang tải video...",
         badge_url_loaded: "Đã nạp: ",
+        badge_youtube_embed: "Đang phát bằng YouTube",
+        youtube_embed_title: "Trình phát video YouTube",
+        youtube_download_limited: "Máy chủ hiện bị YouTube giới hạn nên không thể nạp video để tạo phụ đề. Bạn vẫn có thể xem bằng trình phát YouTube bên dưới; muốn tạo phụ đề, hãy tải tệp video lên từ thiết bị.",
         btn_auto_sub: "AI tạo Sub",
         btn_auto_sub_scanning: "Đang quét sub...",
         btn_export_video: "Xuất Video kèm Sub",
@@ -2373,6 +2376,9 @@
         badge_video_prefix: "Video: ",
         badge_url_loading: "Loading video...",
         badge_url_loaded: "Loaded: ",
+        badge_youtube_embed: "Playing with YouTube",
+        youtube_embed_title: "YouTube video player",
+        youtube_download_limited: "YouTube is limiting requests from the server, so the video cannot be imported for subtitle generation. You can still watch it in the YouTube player below; upload a video file from your device to generate subtitles.",
         btn_auto_sub: "AI Scan Sub",
         btn_auto_sub_scanning: "Scanning sub...",
         btn_export_video: "Export Hardsub",
@@ -4281,6 +4287,60 @@ document.addEventListener('mousedown', (e) => {
       a.click();
     }
 
+    function getYouTubeVideoId(url) {
+      try {
+        const parsed = new URL(url);
+        if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return null;
+        const hostname = parsed.hostname.toLowerCase().replace(/\.$/, '');
+        const isShortHost = hostname === 'youtu.be';
+        const isYouTubeHost = isShortHost ||
+          hostname === 'youtube.com' || hostname.endsWith('.youtube.com') ||
+          hostname === 'youtube-nocookie.com' || hostname.endsWith('.youtube-nocookie.com');
+        if (!isYouTubeHost) return null;
+
+        let videoId = parsed.searchParams.get('v');
+        if (isShortHost) {
+          videoId = parsed.pathname.split('/').filter(Boolean)[0];
+        } else if (!videoId) {
+          const pathParts = parsed.pathname.split('/').filter(Boolean);
+          if (['embed', 'shorts', 'live', 'v'].includes(pathParts[0])) {
+            videoId = pathParts[1];
+          }
+        }
+        return videoId && /^[A-Za-z0-9_-]{11}$/.test(videoId) ? videoId : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function showYouTubeEmbedFallback(videoId, errorMessage) {
+      const box = document.getElementById('yt-player-box');
+      const placeholder = document.getElementById('player-placeholder');
+      const videoBadge = document.getElementById('current-video-badge');
+      const btnAutoSub = document.getElementById('btn-auto-sub');
+      const frame = document.createElement('iframe');
+      frame.src = `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
+      frame.title = t('youtube_embed_title');
+      frame.className = 'w-full h-full border-0';
+      frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      frame.referrerPolicy = 'strict-origin-when-cross-origin';
+      frame.allowFullscreen = true;
+      box.replaceChildren(frame);
+      box.classList.remove('hidden');
+      placeholder.classList.add('hidden');
+      videoBadge.innerText = t('badge_youtube_embed');
+      videoBadge.className = 'text-xs px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 font-medium';
+      btnAutoSub.disabled = true;
+      btnAutoSub.title = t('youtube_download_limited');
+
+      const message = document.createElement('div');
+      message.className = 'p-4 text-xs text-amber-300 leading-relaxed';
+      message.textContent = t('youtube_download_limited');
+      document.getElementById('sub-timeline-list').replaceChildren(message);
+      document.getElementById('sub-count-badge').innerText = '—';
+      console.warn('YouTube server import failed; falling back to the official embedded player:', errorMessage);
+    }
+
     // YouTube / Web Stream Video Loader
     async function loadYouTubeVideo() {
       if (isLoadingVideo) return;
@@ -4362,6 +4422,11 @@ document.addEventListener('mousedown', (e) => {
           throw new Error(data.error || data.detail || "Cannot load video");
         }
       } catch (err) {
+        const youtubeId = getYouTubeVideoId(url);
+        if (youtubeId && /\bHTTP\s+(?:403|429)\b/i.test(err.message)) {
+          showYouTubeEmbedFallback(youtubeId, err.message);
+          return;
+        }
         stopAndCleanAllPlayers();
         videoBadge.innerText = "Error: " + err.message;
         videoBadge.className = "text-xs px-2.5 py-1 rounded-md bg-red-500/20 text-red-400 font-medium";
