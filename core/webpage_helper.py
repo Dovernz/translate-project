@@ -182,6 +182,25 @@ def sanitize_and_prepare_soup(raw_html: str, base_url: str):
     for meta in soup.find_all("meta", attrs={"http-equiv": re.compile(r"refresh", re.I)}):
         meta.decompose()
 
+    # Remove unmounted JS splash/preloader overlays that block reading when scripts are stripped (e.g. Oracle #highline-mount)
+    mount_selectors = [
+        "#highline-mount",
+        "#preloader",
+        ".preloader",
+        "#loading-screen",
+        ".loading-screen",
+        ".loading-overlay",
+        "#splash-screen"
+    ]
+    for sel in mount_selectors:
+        for el in soup.select(sel):
+            el.decompose()
+
+    # Decompose any empty div with mount/splash/preloader/loader in id
+    for el in soup.find_all("div", id=re.compile(r"mount|preloader|splash|loader", re.I)):
+        if not el.get_text(strip=True):
+            el.decompose()
+
     # Ensure <head> exists
     head = soup.find("head")
     if not head:
@@ -210,9 +229,17 @@ def sanitize_and_prepare_soup(raw_html: str, base_url: str):
     custom_style = soup.new_tag("style")
     custom_style.string = """
         html { scroll-behavior: smooth; }
-        body { -webkit-font-smoothing: antialiased; }
+        body { -webkit-font-smoothing: antialiased; min-height: 100vh; }
         .gemini-trans-highlight { outline: 2px solid #6366f1 !important; }
         a { cursor: pointer !important; }
+        /* Defend against unmounted JS overlays / white blank splash blockers */
+        #highline-mount, #preloader, .preloader, #loading-screen, .loading-screen, .loading-overlay, #splash-screen, [id*="-mount"]:empty {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            z-index: -9999 !important;
+        }
     """
     head.append(custom_style)
 
