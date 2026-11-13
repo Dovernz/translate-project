@@ -2601,6 +2601,17 @@
     const uploadedVideo = document.getElementById('uploaded-video-player');
     const subtitleOverlay = document.getElementById('video-subtitle');
 
+    function setVideoActionsEnabled(enabled) {
+      ['btn-auto-sub', 'btn-burn-video'].forEach(id => {
+        const button = document.getElementById(id);
+        if (!button) return;
+        button.disabled = !enabled;
+        button.classList.toggle('opacity-50', !enabled);
+        button.classList.toggle('cursor-not-allowed', !enabled);
+        button.title = enabled ? '' : t('youtube_download_limited');
+      });
+    }
+
     // Restore the user's subtitle choices before any automatically-started job reads them.
     const savedVideoTargetLang = localStorage.getItem('geminitrans_video_target_lang');
     const videoTargetLangSelect = document.getElementById('video-target-lang');
@@ -2618,6 +2629,7 @@
 
     // Dừng và dọn dẹp sạch sẽ toàn bộ player (YouTube iframe, HTML5 video, overlays)
     function stopAndCleanAllPlayers() {
+      setVideoActionsEnabled(true);
       // Dừng và xóa triệt để nội dung của yt-player-box
       const box = document.getElementById('yt-player-box');
       if (box) {
@@ -3593,7 +3605,7 @@ document.addEventListener('mousedown', (e) => {
         uploadedVideo.load();
 
         // Enable Action Buttons
-        document.getElementById('btn-auto-sub').disabled = false;
+        setVideoActionsEnabled(true);
         
         subtitleOverlay.innerHTML = '';
         subtitleOverlay.classList.add('hidden');
@@ -4317,7 +4329,6 @@ document.addEventListener('mousedown', (e) => {
       const box = document.getElementById('yt-player-box');
       const placeholder = document.getElementById('player-placeholder');
       const videoBadge = document.getElementById('current-video-badge');
-      const btnAutoSub = document.getElementById('btn-auto-sub');
       const frame = document.createElement('iframe');
       frame.src = `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`;
       frame.title = t('youtube_embed_title');
@@ -4330,8 +4341,7 @@ document.addEventListener('mousedown', (e) => {
       placeholder.classList.add('hidden');
       videoBadge.innerText = t('badge_youtube_embed');
       videoBadge.className = 'text-xs px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 font-medium';
-      btnAutoSub.disabled = true;
-      btnAutoSub.title = t('youtube_download_limited');
+      setVideoActionsEnabled(false);
 
       const message = document.createElement('div');
       message.className = 'p-4 text-xs text-amber-300 leading-relaxed';
@@ -4406,8 +4416,7 @@ document.addEventListener('mousedown', (e) => {
           }
 
           // Enable Action Buttons
-          const btnAutoSub = document.getElementById('btn-auto-sub');
-          if (btnAutoSub) btnAutoSub.disabled = false;
+          setVideoActionsEnabled(true);
 
           currentLoadedUrl = url;
           currentFileSignature = null;
