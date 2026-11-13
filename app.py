@@ -54,6 +54,7 @@ from core.video_helper import (
     extract_audio_from_video,
     download_video_from_url,
     extract_subtitles_from_url,
+    get_youtube_diagnostics,
     cleanup_storage,
     parse_subtitles_from_ai,
     export_srt,
@@ -180,6 +181,7 @@ def get_runtime_info():
         "bgutil_fallback_enabled": os.environ.get("BGUTIL_YTDLP_FALLBACK", "").strip().lower()
         in {"1", "true", "yes"},
         "bgutil_script_available": bgutil_script_available,
+        "youtube_extraction_diagnostic": get_youtube_diagnostics(),
     }
 
 @app.post("/api/shutdown")

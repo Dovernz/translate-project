@@ -8,6 +8,8 @@ import shutil
 import asyncio
 import importlib.metadata
 import subprocess
+import threading
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 import yt_dlp
@@ -22,6 +24,50 @@ if hasattr(sys.stderr, 'reconfigure'):
         sys.stderr.reconfigure(encoding='utf-8', errors='replace')
     except Exception:
         pass
+
+_youtube_diagnostic_lock = threading.Lock()
+_youtube_diagnostic = {"event": "not_started", "timestamp": None}
+
+
+def _record_youtube_diagnostic(event: str):
+    with _youtube_diagnostic_lock:
+        _youtube_diagnostic.update(
+            event=event,
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        )
+
+
+def get_youtube_diagnostics() -> Dict[str, Optional[str]]:
+    with _youtube_diagnostic_lock:
+        return dict(_youtube_diagnostic)
+
+
+class _YouTubeDiagnosticLogger:
+    def _record_message(self, message):
+        text = str(message).lower()
+        if "po token providers:" in text:
+            _record_youtube_diagnostic("provider_loaded")
+        elif "generating a " in text and " po token " in text:
+            _record_youtube_diagnostic("token_generation_started")
+        elif "failed while generating pot" in text or "failed to get a po token" in text:
+            _record_youtube_diagnostic("token_generation_failed")
+        elif "player response playability status:" in text:
+            _record_youtube_diagnostic("client_unplayable")
+        elif "failed to extract any player response" in text:
+            _record_youtube_diagnostic("no_player_response")
+
+    def debug(self, message):
+        self._record_message(message)
+
+    def info(self, message):
+        self._record_message(message)
+
+    def warning(self, message):
+        self._record_message(message)
+
+    def error(self, message):
+        self._record_message(message)
+
 
 def safe_log(msg: str):
     try:
@@ -120,6 +166,7 @@ def _bgutil_ytdlp_fallback_options(base_options: Dict[str, Any]) -> Optional[Dic
 
     return {
         **base_options,
+        "logger": _YouTubeDiagnosticLogger(),
         "extractor_args": {
             "youtube": {"player_client": ["mweb", "tv", "web_safari"]},
             "youtubepot-bgutilscript": {"server_home": [str(server_path)]},
@@ -221,6 +268,7 @@ def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict
                 safe_log(f"[WARN] Không thể xóa phụ đề tạm {vtt_file}: {e}")
 
 def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
+    _record_youtube_diagnostic("download_started")
     output_dir.mkdir(parents=True, exist_ok=True)
     video_id = str(uuid.uuid4())[:8]
     output_template = str(output_dir / f"{video_id}_%(title).50s.%(ext)s")
@@ -237,6 +285,7 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
     bgutil_profile = _bgutil_ytdlp_fallback_options(base_ydl_opts)
     if bgutil_profile:
         ydl_profiles.append(bgutil_profile)
+        _record_youtube_diagnostic("fallback_ready")
     download_errors = []
 
     def remove_partial_downloads():
