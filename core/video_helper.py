@@ -49,7 +49,10 @@ def get_youtube_diagnostics() -> Dict[str, Any]:
 class _YouTubeDiagnosticLogger:
     def _record_message(self, message):
         text = str(message).lower()
-        if "po token providers:" in text:
+        http_status = re.search(r"http error\s*(\d{3})", text)
+        if http_status and http_status.group(1) in {"400", "403", "429", "500", "502", "503"}:
+            _record_youtube_diagnostic(f"client_http_{http_status.group(1)}")
+        elif "po token providers:" in text:
             _record_youtube_diagnostic("provider_loaded")
         elif "generating a " in text and " po token " in text:
             _record_youtube_diagnostic("token_generation_started")
