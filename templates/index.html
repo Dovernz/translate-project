@@ -725,6 +725,21 @@
         min-height: 40px;
       }
     }
+    #video-workspace-grid > *,
+    #video-player-column,
+    #subtitle-timeline-panel {
+      min-width: 0;
+    }
+    #subtitle-timeline-panel {
+      min-height: 20rem;
+      height: min(65vh, 550px);
+    }
+    @media (min-width: 1024px) {
+      #subtitle-timeline-panel {
+        height: min(70vh, 650px);
+        min-height: 26rem;
+      }
+    }
   </style>
 
     <style>
@@ -1077,10 +1092,10 @@
       </div>
 
       <!-- Video Player, Subtitle Customizer & Subtitle Feed -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div id="video-workspace-grid" class="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)] items-start gap-4">
         
         <!-- Player & Customizer Area (2 cols) -->
-        <div class="lg:col-span-2 space-y-4">
+        <div id="video-player-column" class="min-w-0 space-y-4">
           <!-- Main Player Box -->
           <div class="rounded-[10px] bg-slate-900 border border-slate-800 overflow-hidden flex flex-col shadow-lg">
             <div class="relative w-full aspect-video bg-black flex items-center justify-center group" id="player-container">
@@ -1242,7 +1257,7 @@
         </div>
 
         <!-- Live Subtitles Timeline & Editor (1 col) -->
-        <div class="rounded-[10px] bg-slate-900 border border-slate-800 p-3 sm:p-4 flex flex-col h-[480px] sm:h-[550px] lg:h-[650px] shadow-lg">
+        <div id="subtitle-timeline-panel" class="rounded-[10px] bg-slate-900 border border-slate-800 p-3 sm:p-4 flex flex-col shadow-lg">
           <div class="flex items-center justify-between pb-2.5 border-b border-slate-800 mb-2">
             <span class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
               <i data-lucide="list" class="w-4 h-4 text-indigo-400"></i> <span data-i18n="timeline_title">Phụ đề</span>
@@ -1251,10 +1266,10 @@
           </div>
 
           <!-- Subtitle List Container -->
-          <div id="sub-timeline-list" class="flex-1 overflow-y-auto space-y-2 pr-1">
+          <div id="sub-timeline-list" class="min-h-0 flex-1 overflow-y-auto space-y-2 pr-1 overscroll-contain">
             <div id="timeline-empty-msg" class="p-6 text-center text-xs text-slate-500 italic">
               <i data-lucide="captions" class="w-10 h-10 mx-auto mb-2 opacity-30"></i>
-              <span data-i18n="timeline_empty">Tải video lên và bấm "AI tạo Sub"</span>
+              <span data-i18n="timeline_empty">Tải video lên để tự động tạo phụ đề</span>
             </div>
           </div>
 
@@ -2146,7 +2161,7 @@
         font_size_label: "Cỡ chữ",
         margin_label: "Vị trí đáy",
         timeline_title: "Phụ đề",
-        timeline_empty: "Chưa có phụ đề. Tải video và bấm \"AI tạo Sub\".",
+        timeline_empty: "Chưa có phụ đề. Tải video lên để tự động tạo phụ đề.",
         timeline_count_cues: "{count} câu",
         timeline_scanning_msg: "Gemini đang nhận diện thoại & mốc thời gian...",
         timeline_scanning_sub: "Smart Key Pool tự động luân chuyển hạn ngạch",
@@ -2375,7 +2390,7 @@
         font_size_label: "Font size",
         margin_label: "Bottom margin",
         timeline_title: "Subtitles",
-        timeline_empty: "No subtitles yet. Upload video and click \"AI Scan Sub\".",
+        timeline_empty: "No subtitles yet. Upload a video to generate subtitles automatically.",
         timeline_count_cues: "{count} cues",
         timeline_scanning_msg: "Gemini is recognizing dialogue & timestamps...",
         timeline_scanning_sub: "Smart Key Pool with auto quota rotation",
@@ -2563,6 +2578,9 @@
     let currentFileSignature = null;
     let currentLoadedUrl = null;
     let currentTrackBlobUrl = null;
+    let isLoadingVideo = false;
+    let autoSubtitleJob = null;
+    let autoSubtitleJobVideoId = null;
     let poolData = null;
     let audioBlob = null;
     let mediaRecorder = null;
@@ -2576,6 +2594,21 @@
 
     const uploadedVideo = document.getElementById('uploaded-video-player');
     const subtitleOverlay = document.getElementById('video-subtitle');
+
+    // Restore the user's subtitle choices before any automatically-started job reads them.
+    const savedVideoTargetLang = localStorage.getItem('geminitrans_video_target_lang');
+    const videoTargetLangSelect = document.getElementById('video-target-lang');
+    if (videoTargetLangSelect && savedVideoTargetLang &&
+        Array.from(videoTargetLangSelect.options).some(option => option.value === savedVideoTargetLang)) {
+      videoTargetLangSelect.value = savedVideoTargetLang;
+    }
+    const multiLangSubtitleToggle = document.getElementById('multi-lang-sub-toggle');
+    if (multiLangSubtitleToggle) {
+      multiLangSubtitleToggle.checked = localStorage.getItem('geminitrans_multi_lang_subtitles') === '1';
+      multiLangSubtitleToggle.addEventListener('change', () => {
+        localStorage.setItem('geminitrans_multi_lang_subtitles', multiLangSubtitleToggle.checked ? '1' : '0');
+      });
+    }
 
     // Dừng và dọn dẹp sạch sẽ toàn bộ player (YouTube iframe, HTML5 video, overlays)
     function stopAndCleanAllPlayers() {
@@ -3320,6 +3353,14 @@ document.addEventListener('mousedown', (e) => {
       }
     }
 
+    function resetSubtitleStateForVideoLoad() {
+      currentVideoSubtitles = [];
+      renderSubtitleTimeline([]);
+      updateVideoTextTrack([]);
+      hideCacheNoticeBadge();
+      document.getElementById('export-download-box')?.classList.add('hidden');
+    }
+
     function rescanBypassCache() {
       clearSubtitleCacheForCurrentVideo();
       hideCacheNoticeBadge();
@@ -3485,7 +3526,15 @@ document.addEventListener('mousedown', (e) => {
         const activeCard = document.getElementById(`sub-card-${active.id}`);
         if (activeCard) {
           activeCard.classList.add('border-amber-400', 'bg-slate-800');
-          activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          // Keep the document/player position fixed; only move the subtitle list itself.
+          const timeline = document.getElementById('sub-timeline-list');
+          const timelineRect = timeline.getBoundingClientRect();
+          const cardRect = activeCard.getBoundingClientRect();
+          if (cardRect.top < timelineRect.top) {
+            timeline.scrollTop -= timelineRect.top - cardRect.top;
+          } else if (cardRect.bottom > timelineRect.bottom) {
+            timeline.scrollTop += cardRect.bottom - timelineRect.bottom;
+          }
         }
       } else {
         subtitleOverlay.classList.add('hidden');
@@ -3499,6 +3548,8 @@ document.addEventListener('mousedown', (e) => {
 
       // Dọn dẹp và dừng sạch sẽ toàn bộ player trước khi nạp video mới
       stopAndCleanAllPlayers();
+      currentVideoId = null;
+      resetSubtitleStateForVideoLoad();
 
       document.getElementById('upload-btn-label').innerText = t('video_opt1_uploading');
       const statusText = document.getElementById('upload-status-text');
@@ -3543,7 +3594,7 @@ document.addEventListener('mousedown', (e) => {
         updateSubtitleStyle();
 
         // Check and restore local cache in 0.05s without calling AI Studio
-        checkAndLoadSubtitleCache();
+        await startAutoSubtitling();
       } catch (err) {
         alert("Upload error: " + err.message);
         document.getElementById('upload-btn-label').innerText = t('video_opt1_btn');
@@ -3553,6 +3604,7 @@ document.addEventListener('mousedown', (e) => {
     // AI AUTO SUBTITLING
     // Chuyển đổi ngôn ngữ hiển thị hoặc dịch phụ đề sang ngôn ngữ mới
     async function onVideoTargetLangChange(newLang) {
+      localStorage.setItem('geminitrans_video_target_lang', newLang);
       if (!currentVideoSubtitles || !currentVideoSubtitles.length) {
         return;
       }
@@ -3618,13 +3670,16 @@ document.addEventListener('mousedown', (e) => {
       if (!currentVideoId) {
         const urlInput = document.getElementById('video-url-input').value.trim();
         if (urlInput) {
-          await loadYouTubeVideo();
+          return loadYouTubeVideo();
+        } else {
+          alert(t('alert_no_video'));
+          return;
         }
       }
 
-      if (!currentVideoId) {
-        alert(t('alert_no_video'));
-        return;
+      const videoId = currentVideoId;
+      if (autoSubtitleJob && autoSubtitleJobVideoId === videoId) {
+        return autoSubtitleJob;
       }
 
       // Check cache first if not explicitly bypassing
@@ -3633,6 +3688,19 @@ document.addEventListener('mousedown', (e) => {
         if (hasCache) return;
       }
 
+      autoSubtitleJobVideoId = videoId;
+      autoSubtitleJob = runAutoSubtitleJob(videoId);
+      try {
+        return await autoSubtitleJob;
+      } finally {
+        if (autoSubtitleJobVideoId === videoId) {
+          autoSubtitleJob = null;
+          autoSubtitleJobVideoId = null;
+        }
+      }
+    }
+
+    async function runAutoSubtitleJob(videoId) {
       const btn = document.getElementById('btn-auto-sub');
       btn.disabled = true;
       btn.innerHTML = `<span class="w-3.5 h-3.5 rounded-[8px] bg-white animate-ping mr-1"></span> ${t('btn_auto_sub_scanning')}`;
@@ -3655,7 +3723,7 @@ document.addEventListener('mousedown', (e) => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            video_id: currentVideoId,
+            video_id: videoId,
             target_lang: targetLang,
             target_langs: isMulti ? targetLangs : undefined,
             url: document.getElementById('video-url-input').value.trim()
@@ -3666,6 +3734,7 @@ document.addEventListener('mousedown', (e) => {
           throw new Error(errData.detail || `Server HTTP ${res.status}`);
         }
         const data = await res.json();
+        if (currentVideoId !== videoId) return;
         currentVideoSubtitles = data.subtitles || [];
 
         subtitleOverlay.innerHTML = '';
@@ -3680,11 +3749,15 @@ document.addEventListener('mousedown', (e) => {
         document.getElementById('export-download-box').classList.remove('hidden');
 
         // Auto play preview from beginning
-        uploadedVideo.currentTime = 0;
-        uploadedVideo.play().catch(() => {});
+        if (!uploadedVideo.classList.contains('hidden')) {
+          uploadedVideo.currentTime = 0;
+          uploadedVideo.play().catch(() => {});
+        }
         fetchPoolStatus();
       } catch (err) {
-        listContainer.innerHTML = `<div class="p-4 text-xs text-red-400">Subtitle error: ${err.message}</div>`;
+        if (currentVideoId === videoId) {
+          listContainer.innerHTML = `<div class="p-4 text-xs text-red-400">Subtitle error: ${err.message}</div>`;
+        }
       } finally {
         btn.disabled = false;
         btn.innerHTML = `<i data-lucide="subtitles" class="w-4 h-4"></i> ${t('btn_auto_sub')}`;
@@ -4210,14 +4283,20 @@ document.addEventListener('mousedown', (e) => {
 
     // YouTube / Web Stream Video Loader
     async function loadYouTubeVideo() {
+      if (isLoadingVideo) return;
       const url = document.getElementById('video-url-input').value.trim();
       if (!url) {
         alert(t('alert_no_video'));
         return;
       }
+      isLoadingVideo = true;
+      currentVideoId = null;
+      currentLoadedUrl = null;
+      currentFileSignature = null;
 
       // Dừng và dọn dẹp sạch sẽ toàn bộ player trước đó
       stopAndCleanAllPlayers();
+      resetSubtitleStateForVideoLoad();
 
       // Hiển thị loading spinner trên player-placeholder (TUYỆT ĐỐI KHÔNG TẠO IFRAME YOUTUBE AUTOPLAY)
       const placeholder = document.getElementById('player-placeholder');
@@ -4277,8 +4356,8 @@ document.addEventListener('mousedown', (e) => {
           subtitleOverlay.classList.add('hidden');
           updateSubtitleStyle();
 
-          // Check and restore local cache in 0.05s without calling AI Studio
-          checkAndLoadSubtitleCache();
+          // Reuse cached subtitles when available; otherwise start the normal extraction flow.
+          await startAutoSubtitling();
         } else {
           throw new Error(data.error || data.detail || "Cannot load video");
         }
@@ -4288,6 +4367,7 @@ document.addEventListener('mousedown', (e) => {
         videoBadge.className = "text-xs px-2.5 py-1 rounded-md bg-red-500/20 text-red-400 font-medium";
         alert("Error loading video: " + err.message);
       } finally {
+        isLoadingVideo = false;
         btnAuto.innerHTML = `<i data-lucide="subtitles" class="w-4 h-4"></i> ${t('btn_auto_sub')}`;
         lucide.createIcons();
       }

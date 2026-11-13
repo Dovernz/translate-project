@@ -103,7 +103,10 @@ def _bgutil_ytdlp_fallback_options(base_options: Dict[str, Any]) -> Optional[Dic
         return None
 
     server_path = Path(server_home)
-    if not (server_path / "src" / "main.ts").is_file() or not (server_path / "node_modules").is_dir():
+    if (
+        not (server_path / "src" / "generate_once.ts").is_file()
+        or not (server_path / "node_modules").is_dir()
+    ):
         safe_log(f"[WARN] BGUTIL YouTube fallback provider files are missing from {server_path}")
         return None
     if not shutil.which("deno"):
@@ -118,7 +121,7 @@ def _bgutil_ytdlp_fallback_options(base_options: Dict[str, Any]) -> Optional[Dic
     return {
         **base_options,
         "extractor_args": {
-            "youtube": {"player_client": ["mweb"]},
+            "youtube": {"player_client": ["mweb", "tv", "web_safari"]},
             "youtubepot-bgutilscript": {"server_home": [str(server_path)]},
         },
     }

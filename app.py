@@ -163,7 +163,7 @@ def get_runtime_info():
     bgutil_server_path = Path(bgutil_home) if bgutil_home else None
     bgutil_script_available = bool(
         bgutil_server_path
-        and (bgutil_server_path / "src" / "main.ts").is_file()
+        and (bgutil_server_path / "src" / "generate_once.ts").is_file()
         and (bgutil_server_path / "node_modules").is_dir()
         and shutil.which("deno")
     )
