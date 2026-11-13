@@ -26,18 +26,22 @@ if hasattr(sys.stderr, 'reconfigure'):
         pass
 
 _youtube_diagnostic_lock = threading.Lock()
-_youtube_diagnostic = {"event": "not_started", "timestamp": None}
+_youtube_diagnostic = {"event": "not_started", "timestamp": None, "events": []}
 
 
-def _record_youtube_diagnostic(event: str):
+def _record_youtube_diagnostic(event: str, *, reset: bool = False):
     with _youtube_diagnostic_lock:
+        events = [] if reset else list(_youtube_diagnostic["events"])
+        if not events or events[-1] != event:
+            events.append(event)
         _youtube_diagnostic.update(
             event=event,
             timestamp=datetime.now(timezone.utc).isoformat(),
+            events=events[-12:],
         )
 
 
-def get_youtube_diagnostics() -> Dict[str, Optional[str]]:
+def get_youtube_diagnostics() -> Dict[str, Any]:
     with _youtube_diagnostic_lock:
         return dict(_youtube_diagnostic)
 
@@ -53,6 +57,12 @@ class _YouTubeDiagnosticLogger:
             _record_youtube_diagnostic("token_generation_failed")
         elif "player response playability status:" in text:
             _record_youtube_diagnostic("client_unplayable")
+        elif "downloading mweb player api json" in text:
+            _record_youtube_diagnostic("mweb_player_requested")
+        elif "downloading tv player api json" in text:
+            _record_youtube_diagnostic("tv_player_requested")
+        elif "downloading web safari player api json" in text:
+            _record_youtube_diagnostic("web_safari_player_requested")
         elif "failed to extract any player response" in text:
             _record_youtube_diagnostic("no_player_response")
 
@@ -268,7 +278,7 @@ def extract_subtitles_from_url(url: str, output_dir: Path) -> Optional[List[Dict
                 safe_log(f"[WARN] Không thể xóa phụ đề tạm {vtt_file}: {e}")
 
 def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
-    _record_youtube_diagnostic("download_started")
+    _record_youtube_diagnostic("download_started", reset=True)
     output_dir.mkdir(parents=True, exist_ok=True)
     video_id = str(uuid.uuid4())[:8]
     output_template = str(output_dir / f"{video_id}_%(title).50s.%(ext)s")
