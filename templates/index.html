@@ -725,6 +725,27 @@
         min-height: 40px;
       }
     }
+    #yt-player-box {
+      width: 100% !important;
+      height: 100% !important;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    #yt-player-box iframe,
+    #yt-player-box > div,
+    #youtube-player-api-target {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+      border: 0;
+    }
+    .sub-item-card.active-cue {
+      border-color: #f59e0b !important;
+      background-color: rgba(30, 41, 59, 0.95) !important;
+      box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    }
+
     #video-workspace-grid > *,
     #video-player-column,
     #subtitle-timeline-panel {
@@ -2739,6 +2760,30 @@
       return youtubePlayerApiPromise;
     }
 
+    
+    function highlightAndScrollSubtitle(active) {
+      if (!active) {
+        document.querySelectorAll('.sub-item-card.active-cue').forEach(el => el.classList.remove('active-cue', 'border-amber-400', 'bg-slate-800'));
+        return;
+      }
+      const activeCard = document.getElementById(sub-card-);
+      if (!activeCard) return;
+
+      if (!activeCard.classList.contains('active-cue')) {
+        document.querySelectorAll('.sub-item-card.active-cue').forEach(el => el.classList.remove('active-cue', 'border-amber-400', 'bg-slate-800'));
+        activeCard.classList.add('active-cue', 'border-amber-400', 'bg-slate-800');
+
+        const timeline = document.getElementById('sub-timeline-list');
+        if (timeline) {
+          const timelineRect = timeline.getBoundingClientRect();
+          const cardRect = activeCard.getBoundingClientRect();
+          if (cardRect.top < timelineRect.top || cardRect.bottom > timelineRect.bottom) {
+            activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }
+      }
+    }
+
     function syncYouTubeSubtitle() {
       if (!youtubePlayer || typeof youtubePlayer.getCurrentTime !== 'function') return;
       const current = youtubePlayer.getCurrentTime();
@@ -2759,8 +2804,10 @@
       if (active) {
         renderOverlaySubtitle(active);
         subtitleOverlay.classList.remove('hidden');
+        highlightAndScrollSubtitle(active);
       } else {
         subtitleOverlay.classList.add('hidden');
+        highlightAndScrollSubtitle(null);
       }
     }
 
@@ -2772,6 +2819,8 @@
         target.id = 'youtube-player-api-target';
         document.getElementById('yt-player-box').replaceChildren(target);
         youtubePlayer = new YT.Player(target, {
+          width: '100%',
+          height: '100%',
           videoId,
           playerVars: { playsinline: 1, rel: 0 },
           events: {
@@ -3987,24 +4036,10 @@ document.addEventListener('mousedown', (e) => {
       if (active && (active.translated || active.original)) {
         renderOverlaySubtitle(active);
         subtitleOverlay.classList.remove('hidden');
-
-        // Highlight active item in timeline
-        document.querySelectorAll('.sub-item-card').forEach(el => el.classList.remove('border-amber-400', 'bg-slate-800'));
-        const activeCard = document.getElementById(`sub-card-${active.id}`);
-        if (activeCard) {
-          activeCard.classList.add('border-amber-400', 'bg-slate-800');
-          // Keep the document/player position fixed; only move the subtitle list itself.
-          const timeline = document.getElementById('sub-timeline-list');
-          const timelineRect = timeline.getBoundingClientRect();
-          const cardRect = activeCard.getBoundingClientRect();
-          if (cardRect.top < timelineRect.top) {
-            timeline.scrollTop -= timelineRect.top - cardRect.top;
-          } else if (cardRect.bottom > timelineRect.bottom) {
-            timeline.scrollTop += cardRect.bottom - timelineRect.bottom;
-          }
-        }
+        highlightAndScrollSubtitle(active);
       } else {
         subtitleOverlay.classList.add('hidden');
+        highlightAndScrollSubtitle(null);
       }
     });
 

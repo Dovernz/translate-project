@@ -33,3 +33,7 @@ tmp/
 !*.enc
 !.env.enc
 .install_path
+
+# Test proofs and docs
+proofs/
+Docs/
