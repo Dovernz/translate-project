@@ -46,6 +46,21 @@ def get_youtube_diagnostics() -> Dict[str, Any]:
         return dict(_youtube_diagnostic)
 
 
+def _youtube_download_error_message(detail: str) -> str:
+    events = set(get_youtube_diagnostics()["events"])
+    if "client_http_429" in events:
+        return (
+            "YouTube đang giới hạn lượt truy cập từ máy chủ (HTTP 429). "
+            "Hãy thử lại sau, tải tệp video lên, hoặc dùng phiên bản local."
+        )
+    if "client_http_403" in events:
+        return (
+            "YouTube từ chối yêu cầu từ máy chủ (HTTP 403) trước khi trả player response. "
+            "Hãy thử lại sau, tải tệp video lên, hoặc dùng phiên bản local."
+        )
+    return detail
+
+
 class _YouTubeDiagnosticLogger:
     def _record_message(self, message):
         text = str(message).lower()
@@ -415,7 +430,11 @@ def download_video_from_url(url: str, output_dir: Path) -> Dict[str, Any]:
     err_msg = download_errors[-1] if download_errors else "Không thể tải video từ đường dẫn này."
     fb_err = fallback_errors[-1] if fallback_errors else ""
     detail_err = f"Lỗi tải video: {err_msg}" + (f" | Lỗi fallback audio: {fb_err}" if fb_err else "")
-    return {"success": False, "error": detail_err}
+    return {
+        "success": False,
+        "error": _youtube_download_error_message(detail_err),
+        "detail": detail_err,
+    }
 
 def extract_audio_from_video(video_path: Path, output_audio: Path) -> bool:
     output_audio.parent.mkdir(parents=True, exist_ok=True)
