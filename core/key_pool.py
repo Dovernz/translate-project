@@ -432,6 +432,111 @@ class KeyPool:
 
         raise RuntimeError("Không thể xử lý multimodal qua Gemini Pool sau khi thử các model dự phòng.")
 
+    async def upload_file_resumable(self, file_path: Path, mime_type: str) -> str:
+        """Tải file lên Google Gemini File API qua Resumable Upload Protocol để chống tràn RAM."""
+        file_size = file_path.stat().st_size
+        headers = {
+            "X-Goog-Upload-Protocol": "resumable",
+            "X-Goog-Upload-Command": "start",
+            "X-Goog-Upload-Header-Content-Length": str(file_size),
+            "X-Goog-Upload-Header-Content-Type": mime_type,
+            "Content-Type": "application/json",
+        }
+        payload = {"file": {"display_name": file_path.name}}
+
+        for key in self._ordered_keys_for_request():
+            init_url = f"https://generativelanguage.googleapis.com/upload/v1beta/files?key={key}"
+            try:
+                async with httpx.AsyncClient(timeout=60.0) as client:
+                    resp = await client.post(init_url, headers=headers, json=payload)
+                    if resp.status_code != 200:
+                        self.record_usage(key, success=False, status_code=resp.status_code)
+                        continue
+                    upload_url = resp.headers.get("X-Goog-Upload-URL")
+                    if not upload_url:
+                        continue
+                    upload_headers = {
+                        "X-Goog-Upload-Offset": "0",
+                        "X-Goog-Upload-Command": "upload, finalize"
+                    }
+                    with open(file_path, "rb") as f:
+                        upload_resp = await client.put(upload_url, headers=upload_headers, content=f)
+                    if upload_resp.status_code != 200:
+                        self.record_usage(key, success=False, status_code=upload_resp.status_code)
+                        continue
+                    self.record_usage(key, success=True, status_code=200)
+                    result = upload_resp.json()
+                    return result["file"]["uri"]
+            except Exception as e:
+                print(f"[WARN] Gemini upload_file_resumable failed for key: {e}")
+                self.record_usage(key, success=False, status_code=500)
+        raise RuntimeError("Không thể upload file lên Gemini File API với tất cả các key khả dụng.")
+
+    async def generate_multimodal_file(
+        self,
+        file_path: Path,
+        mime_type: str,
+        prompt: str,
+        system_instruction: str = "",
+        model_name: str = "gemini-3.5-flash-lite",
+        response_mime_type: Optional[str] = None
+    ) -> str:
+        """Tạo nội dung từ file path sử dụng Gemini File API (chống tràn RAM), fallback sang inline base64 nếu cần."""
+        try:
+            file_uri = await self.upload_file_resumable(file_path, mime_type)
+            file_part = {
+                "file_data": {
+                    "mime_type": mime_type,
+                    "file_uri": file_uri
+                }
+            }
+            fallback_models = [model_name, "gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.6-flash"]
+            candidate_models = list(dict.fromkeys(fallback_models))
+
+            for current_model in candidate_models:
+                for key in self._ordered_keys_for_request():
+                    url = f"{self.api_base}/{current_model}:generateContent?key={key}"
+                    parts = [{"text": prompt}, file_part]
+                    gen_config: Dict[str, Any] = {"temperature": 0.2, "maxOutputTokens": 8192}
+                    if response_mime_type:
+                        gen_config["responseMimeType"] = response_mime_type
+                    payload: Dict[str, Any] = {"contents": [{"parts": parts}], "generationConfig": gen_config}
+                    if system_instruction:
+                        payload["systemInstruction"] = {"parts": [{"text": system_instruction}]}
+                    try:
+                        async with httpx.AsyncClient(timeout=self.request_timeout * 2.0) as client:
+                            resp = await client.post(url, json=payload)
+                            if resp.status_code != 200:
+                                self.record_usage(key, success=False, status_code=resp.status_code)
+                                if resp.status_code in [404, 400]:
+                                    break
+                                continue
+                            self.record_usage(key, success=True, status_code=200)
+                            data = resp.json()
+                            candidates = data.get("candidates", [])
+                            if candidates:
+                                text_parts = []
+                                for p in candidates[0].get("content", {}).get("parts", []):
+                                    text_parts.append(p.get("text", ""))
+                                return "".join(text_parts)
+                            return ""
+                    except Exception as err:
+                        print(f"[WARN] Gemini multimodal file request failed: {err}")
+                        self.record_usage(key, success=False, status_code=500)
+        except Exception as upload_err:
+            print(f"[WARN] File API upload error, fallback to inline: {upload_err}")
+            with open(file_path, "rb") as f:
+                raw_bytes = f.read()
+            return await self.generate_multimodal(
+                audio_bytes=raw_bytes,
+                mime_type=mime_type,
+                prompt=prompt,
+                system_instruction=system_instruction,
+                model_name=model_name,
+                response_mime_type=response_mime_type
+            )
+        raise RuntimeError("Không thể xử lý multimodal file qua Gemini Pool.")
+
     async def generate_content(
         self,
         prompt: str,

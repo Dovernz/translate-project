@@ -306,7 +306,7 @@ def _download_with_streamlink(url: str, output_path: Path):
 
         subprocess.run(
             [
-                "ffmpeg", "-y", "-i", str(stream_path),
+                "ffmpeg", "-y", "-threads", "1", "-i", str(stream_path),
                 "-c", "copy", "-movflags", "+faststart", str(output_path),
             ],
             capture_output=True,
@@ -570,6 +570,7 @@ def extract_audio_from_video(video_path: Path, output_audio: Path) -> bool:
     output_audio.parent.mkdir(parents=True, exist_ok=True)
     cmd = [
         "ffmpeg", "-y",
+        "-threads", "1",
         "-i", str(video_path),
         "-vn",
         "-acodec", "libmp3lame",
@@ -740,6 +741,7 @@ def burn_subtitles_to_video(
 
     cmd = [
         "ffmpeg", "-y",
+        "-threads", "1",
         "-i", str(video_path),
         "-vf", sub_filter,
         "-c:v", "libx264",
